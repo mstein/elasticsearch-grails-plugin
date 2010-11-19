@@ -34,7 +34,7 @@ class ClosureSearchableDomainClassMapper {
   }
 
   Object invokeMethod(String name, Object args) {
-    // Special cases (only, excludes, ...)
+    // Special cases (only, except, ...)
     if (name.equals('only')) {
       onlyMode = true
       mappableProperties = args
@@ -65,9 +65,9 @@ class ClosureSearchableDomainClassMapper {
     }
 
     def defaultMapping = this.getDefaultMapping(property)
+    this.validateOptions(args[0])
+    defaultMapping.attributes += args[0]
     mappedProperties << defaultMapping
-
-
   }
 
   private SearchableClassPropertyMapping getDefaultMapping(property){

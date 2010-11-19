@@ -3,6 +3,7 @@ package test
 class User {
   static searchable = {
     lastname boost:20
+    firstname boost:15
   }
 
   static constraints = {}

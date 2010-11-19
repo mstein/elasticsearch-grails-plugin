@@ -6,5 +6,5 @@ class SearchableClassPropertyMapping {
   /** The type of the class property */
   Class propertyType
   /** Mapping attributes values */
-  Map attributes
+  Map attributes = [:]
 }

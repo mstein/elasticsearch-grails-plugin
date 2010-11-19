@@ -22,7 +22,10 @@ class ElasticSearchInterceptor extends EmptyInterceptor{
   }
 
   void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
-    // TODO : delete the indexed document
+    def clazz = entity?.class
+    if(clazz?.searchable) {
+      elasticSearchIndexService.deleteDomain(entity)
+    }
     super.onDelete(entity, id, state, propertyNames, types);    
   }
 

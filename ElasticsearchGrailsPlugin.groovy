@@ -15,6 +15,15 @@ import org.springframework.context.ApplicationContext
 import org.elasticsearch.groovy.client.GClient
 import static org.elasticsearch.index.query.xcontent.QueryBuilders.termQuery
 import grails.converters.JSON
+import org.elasticsearch.client.Requests
+import org.elasticsearch.transport.RemoteTransportException
+import org.elasticsearch.indices.IndexAlreadyExistsException
+import org.grails.plugins.elasticsearch.mapping.ElasticSearchMappingFactory
+import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
+import org.elasticsearch.client.Client
+import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
+import test.User
+import test.Tweet
 
 class ElasticsearchGrailsPlugin {
   // the plugin version
@@ -66,24 +75,12 @@ Based on Graeme Rocher spike.
       if (domain.getPropertyValue("searchable")) {
         def domainCopy = domain
         domain.metaClass.static.search = { String q, Map params = [from: 0, size: 60, explain: true] ->
-          helper.withElasticSearch { GClient client ->
+          helper.withElasticSearch { client ->
             try {
-              /*def response = client.search {
-                indices(domainCopy.packageName ?: domainCopy.propertyName)
-                types domainCopy.propertyName
-                source {
-                  query {
-                    element(term:queryString(q))
-                  }
-                  *//*element(query:queryString(q))*//*
-                }
-                *//*from(params.from ?: 0)
-                size(params.size ?: 0)
-                explain(params.containsKey('explain') ? params.explain : true)*//*
-              }.actionGet()*/
               def response = client.search(
                       searchRequest(domainCopy.packageName ?: domainCopy.propertyName)
                               .searchType(SearchType.DFS_QUERY_THEN_FETCH)
+                              .types(domainCopy.propertyName)
                               .source(searchSource().query(queryString(q))
                               .from(params.from ?: 0)
                               .size(params.size ?: 60)
@@ -98,14 +95,22 @@ Based on Graeme Rocher spike.
               def typeConverter = new SimpleTypeConverter()
 
               // Convert the hits back to their initial type
+              BindDynamicMethod bind = new BindDynamicMethod()
               result.searchResults = searchHits.hits().collect { SearchHit hit ->
                 def identifier = domainCopy.getIdentifier()
                 def id = typeConverter.convertIfNecessary(hit.id(), identifier.getType())
                 def instance = domainCopy.newInstance()
                 instance."${identifier.name}" = id
-                instance.properties = hit.source
-                println "instance.properties : ${hit.source}"
+
+                def args =  [ instance, hit.source ] as Object[]
+                bind.invoke( instance, 'bind', args)
+
+                //instance.properties = hit.source
+                println "hit.source : ${hit.source}"
+                println "instance.properties : ${instance.properties}"
                 if(hit.source.user) {
+                  def u = hit.source.user as User
+                  println "u.tweets : " + u.tweets
                   println "> : ${instance.user} : ${hit.source.user.class}"
                 }
                 return instance
@@ -122,7 +127,33 @@ Based on Graeme Rocher spike.
   }
 
   def doWithApplicationContext = { applicationContext ->
-    // TODO Implement post initialization spring config (optional)
+    // Implement post initialization spring config (optional)
+
+    // Define the custom ElasticSearch mapping for searchable domain classes
+    // This will eventually be done in the ElasticsearchGrailsPlugin
+    def helper = applicationContext.getBean(ElasticSearchHelper)
+    application.domainClasses.each { GrailsDomainClass domainClass ->
+      if(domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))){
+        def indexValue = domainClass.packageName ?: domainClass.propertyName
+        println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
+        def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
+        println "Converting into JSON..."
+        def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(domainClass, mappedProperties)
+        println elasticMapping.toString()
+        println 'Send custom mapping to the ElasticSearch instance'
+        helper.withElasticSearch { client ->
+          try {
+            client.admin.indices.prepareCreate(indexValue).execute().actionGet()
+            // If the index already exists, ignore the exception
+          } catch (IndexAlreadyExistsException iaee) {
+          } catch (RemoteTransportException rte) {}
+
+          def putMapping = Requests.putMappingRequest(indexValue)
+          putMapping.mappingSource = elasticMapping.toString()
+          client.admin.indices.putMapping(putMapping).actionGet()
+        }
+      }
+    }
   }
 
   def onChange = { event ->

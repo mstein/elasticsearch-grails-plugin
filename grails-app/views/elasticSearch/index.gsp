@@ -69,8 +69,14 @@
   <span class="title">Recherche</span>
   <g:form controller="elasticSearch" action="searchForUserTweets">
     <p>
-      <label for="user-lastname-search">Lastname</label>
-      <input type="text" name="user.lastname" id="user-lastname-search" value="DA"/>
+      <label for="user-lastname-search">Nom de l'utilisateur</label>
+      <br />
+      <input type="text" name="user.lastname.search" id="user-lastname-search" value="DA" disabled="disabled"/>
+    </p>
+    <p>
+      <label for="message-search">Contenu du message</label>
+      <br />
+      <input type="text" name="message.search" id="message-search" style="width:250px;"/>
     </p>
     <p>
       <input type="submit" value="Rechercher"/>
