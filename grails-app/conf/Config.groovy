@@ -22,3 +22,7 @@ log4j = {
 
     warn   'org.mortbay.log'
 }
+
+elasticSearch {
+  date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+}

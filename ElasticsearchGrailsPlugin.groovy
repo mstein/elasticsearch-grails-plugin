@@ -24,6 +24,10 @@ import org.elasticsearch.client.Client
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
 import test.User
 import test.Tweet
+import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import grails.util.GrailsUtil
 
 class ElasticsearchGrailsPlugin {
   // the plugin version
@@ -55,6 +59,11 @@ Based on Graeme Rocher spike.
   }
 
   def doWithSpring = {
+    def esConfig = application.config.containsKey("elasticSearch") ? application.config.elasticSearch : null
+    if(!esConfig) {
+      throw new Exception('Elastic Search configuration not found.')
+    }
+
     entityInterceptor(ElasticSearchInterceptor) {
       elasticSearchIndexService = ref("elasticSearchIndexService")
     }
@@ -62,6 +71,11 @@ Based on Graeme Rocher spike.
     elasticSearchHelper(ElasticSearchHelper) {
       elasticSearchNode = ref("elasticSearchNode")
     }
+
+    elasticSearchContextHolder(ElasticSearchContextHolder) {
+      config = esConfig
+    }
+    customEditorRegistrar(CustomEditorRegistar)
   }
 
   def onShutdown = { event ->
@@ -78,13 +92,7 @@ Based on Graeme Rocher spike.
           helper.withElasticSearch { client ->
             try {
               def response = client.search(
-                      searchRequest(domainCopy.packageName ?: domainCopy.propertyName)
-                              .searchType(SearchType.DFS_QUERY_THEN_FETCH)
-                              .types(domainCopy.propertyName)
-                              .source(searchSource().query(queryString(q))
-                              .from(params.from ?: 0)
-                              .size(params.size ?: 60)
-                              .explain(params.containsKey('explain') ? params.explain : true))
+                      searchRequest(domainCopy.packageName ?: domainCopy.propertyName).searchType(SearchType.DFS_QUERY_THEN_FETCH).types(domainCopy.propertyName).source(searchSource().query(queryString(q)).from(params.from ?: 0).size(params.size ?: 60).explain(params.containsKey('explain') ? params.explain : true))
 
               ).actionGet()
               def searchHits = response.hits()
@@ -102,13 +110,13 @@ Based on Graeme Rocher spike.
                 def instance = domainCopy.newInstance()
                 instance."${identifier.name}" = id
 
-                def args =  [ instance, hit.source ] as Object[]
-                bind.invoke( instance, 'bind', args)
+                def args = [instance, hit.source] as Object[]
+                bind.invoke(instance, 'bind', args)
 
                 //instance.properties = hit.source
                 println "hit.source : ${hit.source}"
                 println "instance.properties : ${instance.properties}"
-                if(hit.source.user) {
+                if (hit.source.user) {
                   def u = hit.source.user as User
                   println "u.tweets : " + u.tweets
                   println "> : ${instance.user} : ${hit.source.user.class}"
@@ -133,7 +141,7 @@ Based on Graeme Rocher spike.
     // This will eventually be done in the ElasticsearchGrailsPlugin
     def helper = applicationContext.getBean(ElasticSearchHelper)
     application.domainClasses.each { GrailsDomainClass domainClass ->
-      if(domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))){
+      if (domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))) {
         def indexValue = domainClass.packageName ?: domainClass.propertyName
         println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
         def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
@@ -141,6 +149,7 @@ Based on Graeme Rocher spike.
         def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(domainClass, mappedProperties)
         println elasticMapping.toString()
         println 'Send custom mapping to the ElasticSearch instance'
+
         helper.withElasticSearch { client ->
           try {
             client.admin.indices.prepareCreate(indexValue).execute().actionGet()
@@ -172,9 +181,9 @@ class ClientNodeFactoryBean implements FactoryBean {
 
   Object getObject() {
     org.elasticsearch.groovy.node.GNodeBuilder nb = nodeBuilder()
-    nb.settings{
+    nb.settings {
       node {
-        client=true
+        client = true
       }
     }
     nb.node()
