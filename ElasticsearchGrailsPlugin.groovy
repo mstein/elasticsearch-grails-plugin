@@ -28,6 +28,7 @@ import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import grails.util.GrailsUtil
+import org.grails.plugins.elasticsearch.mapping.DomainInstancesRebuilder
 
 class ElasticsearchGrailsPlugin {
   // the plugin version
@@ -75,6 +76,10 @@ Based on Graeme Rocher spike.
     elasticSearchContextHolder(ElasticSearchContextHolder) {
       config = esConfig
     }
+    domainInstancesRebuilder(DomainInstancesRebuilder) {
+      elasticSearchContextHolder = ref("elasticSearchContextHolder")
+      grailsApplication = ref("grailsApplication")
+    }
     customEditorRegistrar(CustomEditorRegistar)
   }
 
@@ -84,6 +89,8 @@ Based on Graeme Rocher spike.
 
   def doWithDynamicMethods = { ctx ->
     def helper = ctx.getBean(ElasticSearchHelper)
+    def elasticSearchContextHolder = ctx.getBean(ElasticSearchContextHolder)
+    def domainInstancesRebuilder = ctx.getBean(DomainInstancesRebuilder)
 
     for (GrailsDomainClass domain in application.domainClasses) {
       if (domain.getPropertyValue("searchable")) {
@@ -92,7 +99,13 @@ Based on Graeme Rocher spike.
           helper.withElasticSearch { client ->
             try {
               def response = client.search(
-                      searchRequest(domainCopy.packageName ?: domainCopy.propertyName).searchType(SearchType.DFS_QUERY_THEN_FETCH).types(domainCopy.propertyName).source(searchSource().query(queryString(q)).from(params.from ?: 0).size(params.size ?: 60).explain(params.containsKey('explain') ? params.explain : true))
+                      searchRequest(domainCopy.packageName ?: domainCopy.propertyName)
+                              .searchType(SearchType.DFS_QUERY_THEN_FETCH)
+                              .types(domainCopy.propertyName)
+                              .source(searchSource().query(queryString(q))
+                              .from(params.from ?: 0)
+                              .size(params.size ?: 60)
+                              .explain(params.containsKey('explain') ? params.explain : true))
 
               ).actionGet()
               def searchHits = response.hits()
@@ -100,29 +113,10 @@ Based on Graeme Rocher spike.
               result.total = searchHits.totalHits()
 
               println "Found ${result.total ?: 0} result(s)."
-              def typeConverter = new SimpleTypeConverter()
 
               // Convert the hits back to their initial type
-              BindDynamicMethod bind = new BindDynamicMethod()
-              result.searchResults = searchHits.hits().collect { SearchHit hit ->
-                def identifier = domainCopy.getIdentifier()
-                def id = typeConverter.convertIfNecessary(hit.id(), identifier.getType())
-                def instance = domainCopy.newInstance()
-                instance."${identifier.name}" = id
+              result.searchResults = domainInstancesRebuilder.buildResults(domainCopy, searchHits.hits())
 
-                def args = [instance, hit.source] as Object[]
-                bind.invoke(instance, 'bind', args)
-
-                //instance.properties = hit.source
-                println "hit.source : ${hit.source}"
-                println "instance.properties : ${instance.properties}"
-                if (hit.source.user) {
-                  def u = hit.source.user as User
-                  println "u.tweets : " + u.tweets
-                  println "> : ${instance.user} : ${hit.source.user.class}"
-                }
-                return instance
-              }
               return result
             } catch (e) {
               e.printStackTrace()
@@ -140,11 +134,13 @@ Based on Graeme Rocher spike.
     // Define the custom ElasticSearch mapping for searchable domain classes
     // This will eventually be done in the ElasticsearchGrailsPlugin
     def helper = applicationContext.getBean(ElasticSearchHelper)
+    def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
     application.domainClasses.each { GrailsDomainClass domainClass ->
       if (domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))) {
         def indexValue = domainClass.packageName ?: domainClass.propertyName
         println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
         def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
+        elasticSearchContextHolder.addMappingContext(domainClass, mappedProperties)
         println "Converting into JSON..."
         def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(domainClass, mappedProperties)
         println elasticMapping.toString()

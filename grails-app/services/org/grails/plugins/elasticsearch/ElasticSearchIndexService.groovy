@@ -76,8 +76,9 @@ class ElasticSearchIndexService implements GrailsApplicationAware {
               }
             } else {
               json.field(prop.name, propertyValue)
-              println "Indexed ${prop.name} string"
             }
+            // The class of the document (for object rebuilding)
+            //json.field('class', prop.class)
           }
           json.endObject()
           client.index(
@@ -86,7 +87,7 @@ class ElasticSearchIndexService implements GrailsApplicationAware {
           /*client.index(
                   indexRequest(indexValue).type(name).id(instance.id.toString()).source(json)
           )*/
-          println "Indexed domain type ${name} of id ${instance.id} and source ${json2}"
+          println "Indexed domain type ${name} of id ${instance.id} and source ${json2.toString()}"
         }
       } catch (e) {
         e.printStackTrace()

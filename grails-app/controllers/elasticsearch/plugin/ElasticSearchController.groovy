@@ -2,6 +2,7 @@ package elasticsearch.plugin
 
 import test.User
 import test.Tweet
+import grails.converters.JSON
 
 class ElasticSearchController {
   def elasticSearchIndexService
@@ -38,7 +39,7 @@ class ElasticSearchController {
     def tweets = Tweet.search("${params.message.search}").searchResults
     def tweetsMsg = 'Messages : '
     tweets.each {
-      tweetsMsg += "<br />Tweet de ${it.user} : ${it.message}"
+      tweetsMsg += "<br />Tweet de ${it.user.lastname} : ${it.message}"
     }
     flash.notice = tweetsMsg
     render(view: 'index')
