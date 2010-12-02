@@ -12,7 +12,7 @@ class ThreadWithSession extends Thread {
     def threadClosure = {
       try {
         sessionBound = bindSession(sessionFactory)
-        delegate = c.delegate
+        c.delegate = delegate
         c()
 
         final SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory)

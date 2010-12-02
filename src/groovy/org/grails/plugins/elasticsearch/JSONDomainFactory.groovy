@@ -57,85 +57,9 @@ class JSONDomainFactory {
     marshaller.marshall(object)
   }
 
-  private static isDomainClass(String className) {
-    def grailsApplication = ApplicationHolder.application
-    return className.toLowerCase() in grailsApplication.domainClasses*.naturalName*.toLowerCase()
-  }
-
-  private static isDomainClass(instance) {
-    def grailsApplication = ApplicationHolder.application
-    return instance.class?.simpleName in grailsApplication.domainClasses*.naturalName
-  }
-
   private static GrailsDomainClass getDomainClass(instance) {
     def grailsApplication = ApplicationHolder.application
     grailsApplication.domainClasses.find {it.naturalName == instance.class?.simpleName}
-  }
-
-  private static marshallCollection(collection, maxDepth) {
-    if (maxDepth > 0) {
-      return collection.collect {
-        if (it instanceof Collection) {
-          marshallCollection(it, maxDepth - 1)
-        } else if (it instanceof Map) {
-          marshallMap(it, maxDepth - 1)
-        } else if (isDomainClass(it)) {
-          deepMarshallDomain(it, maxDepth - 1)
-        }
-      }
-    } else {
-      []
-    }
-  }
-
-  private static marshallMap(map, maxDepth) {
-    def marshallResult = [:]
-    if (maxDepth > 0) {
-      map.each { key, value ->
-        if (value instanceof Collection) {
-          marshallResult."${key}" = marshallCollection(value, maxDepth - 1)
-        } else if (value instanceof Map) {
-          marshallResult."${key}" = marshallMap(value, maxDepth - 1)
-        } else if (isDomainClass(value)) {
-          marshallResult."${key}" = deepMarshallDomain(value, maxDepth - 1)
-        }
-      }
-    }
-    return marshallResult
-  }
-
-  private static deepMarshallDomain(instance, maxDepth) {
-    def grailsApplication = ApplicationHolder.application
-    def marshallResult = [id: instance.id, 'class': instance.class?.simpleName]
-    if (maxDepth > 0) {
-      def domainClass = getDomainClass(instance)
-      for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
-        def propertyClassName = instance."${prop.name}"?.class?.simpleName
-        def propertyValue = instance."${prop.name}"
-
-        // Collection marshalling
-        if (propertyValue instanceof Collection) {
-          marshallResult += [(prop.name): marshallCollection(propertyValue, maxDepth - 1)]
-
-          // Map marshalling
-        } else if (propertyValue instanceof Map) {
-          marshallResult += [(prop.name): marshallMap(propertyValue, maxDepth - 1)]
-
-          // Domain marshalling
-        } else if (propertyClassName in grailsApplication.domainClasses*.naturalName) {
-          if (propertyValue.class.searchable) {
-            marshallResult += [(prop.name): ([id: instance.id] + deepMarshallDomain(propertyValue, maxDepth - 1))]
-          } else {
-            marshallResult += [(prop.name): [id: instance.id, 'class': propertyClassName]]
-          }
-
-          // Basic/unsupported types marshalling
-        } else {
-          marshallResult += [(prop.name): propertyValue]
-        }
-      }
-    }
-    return marshallResult
   }
 
   /**
@@ -144,8 +68,7 @@ class JSONDomainFactory {
    * @param instance A domain class instance.
    * @return
    */
-  public XContentBuilder buildJSON2(instance) {
-    println 'buildJSON2 called!'
+  public XContentBuilder buildJSON(instance) {
     def domainClass = getDomainClass(instance)
     def json = jsonBuilder().startObject()
     // TODO : add maxDepth in custom mapping (only for "seachable components")
@@ -158,42 +81,6 @@ class JSONDomainFactory {
       json.field(prop.name, res)
     }
     marshallingContext.marshallStack.pop()
-    json.endObject()
-  }
-
-  public static XContentBuilder buildJSON(domainClass, instance) {
-    def grailsApplication = ApplicationHolder.application
-    def json = jsonBuilder().startObject()
-    // TODO : add maxDepth in custom mapping (only for "seachable components")
-    // TODO : detect cyclic association
-    def maxDepth = 5
-    // Build the json-formated map that will contain the data to index
-    for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
-      // Associations with other domain classes are indexed only if those are searchable as well
-      def propertyClassName = instance."${prop.name}"?.class?.simpleName
-      def propertyValue = instance."${prop.name}"
-
-      // Collection marshalling
-      if (propertyValue instanceof Collection) {
-        json.field(prop.name, marshallCollection(propertyValue, maxDepth - 1))
-
-        // Map marshalling
-      } else if (propertyValue instanceof Map) {
-        json.field(prop.name, marshallMap(propertyValue, maxDepth - 1))
-
-        // Domain marshalling
-      } else if (propertyClassName in grailsApplication.domainClasses*.naturalName) {
-        if (propertyValue.class.searchable) {
-          json.field(prop.name, deepMarshallDomain(propertyValue, maxDepth - 1))
-        } else {
-          json.field(prop.name, [id: instance.id, 'class': propertyClassName])
-        }
-
-        // Basic/unsupported types marshalling
-      } else {
-        json.field(prop.name, propertyValue)
-      }
-    }
     json.endObject()
   }
 }
