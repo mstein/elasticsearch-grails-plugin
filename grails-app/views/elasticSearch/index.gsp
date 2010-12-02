@@ -42,12 +42,12 @@
 <div class="box">
   <g:form controller="elasticSearch" action="createUsers">
     <p>
-      <input type="submit" value="Creer Utilisateur"/>
+      <input type="submit" value="Create users"/>
     </p>
   </g:form>
 </div>
 <div class="box">
-  <span class="title">Poster un message</span>
+  <span class="title">Post a Tweet</span>
   <g:form controller="elasticSearch" action="postTweet">
     <p>
       <label for="user-firstname">Firstname</label><br/>
@@ -61,30 +61,34 @@
       <textarea rows="7" cols="80" name="tweet.message" id="tweet"></textarea>
     </p>
     <p>
-      <input type="submit" value="Envoyer"/>
+      <label for="tags">Tags (use comma to add multiple tags)</label><br/>
+      <input type="text" name="tags" id="tags"/>
+    </p>
+    <p>
+      <input type="submit" value="Send"/>
     </p>
   </g:form>
 </div>
 <div class="box">
-  <span class="title">Recherche</span>
+  <span class="title">Search for tweets</span>
   <g:form controller="elasticSearch" action="searchForUserTweets">
-    <p>
-      <label for="user-lastname-search">Nom de l'utilisateur</label>
+    %{--<p>
+      <label for="user-lastname-search">User lastname</label>
       <br />
       <input type="text" name="user.lastname.search" id="user-lastname-search" value="DA" disabled="disabled"/>
-    </p>
+    </p>--}%
     <p>
-      <label for="message-search">Contenu du message</label>
+      <label for="message-search">Query terms</label>
       <br />
       <input type="text" name="message.search" id="message-search" style="width:250px;"/>
     </p>
     <p>
-      <input type="submit" value="Rechercher"/>
+      <input type="submit" value="Search"/>
     </p>
   </g:form>
 </div>
 <g:if test="${hits}">
-  Résultat de la recherche
+  Search results
   <g:each in="${hits}" var="hit">
     ${hit.source.user} : ${hit.source.tweet}
   </g:each>

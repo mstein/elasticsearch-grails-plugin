@@ -7,7 +7,7 @@ import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClassProperty
 
 class ElasticSearchMappingFactory {
-  static SUPPORTED_FORMAT = ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null']
+  static SUPPORTED_FORMAT = ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
   static JSON getElasticMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertyMappings) {
     def properties = domainClass.getProperties()
     def mapBuilder = [
@@ -15,6 +15,7 @@ class ElasticSearchMappingFactory {
                     properties:[:]
             ]
     ]
+    // Map each domain properties in supported format, or object for complex type
     properties.each {DefaultGrailsDomainClassProperty prop ->
       def propType = prop.typePropertyName
       def propOptions = [:]
@@ -22,6 +23,7 @@ class ElasticSearchMappingFactory {
         propType = 'object'
       }
       propOptions.type = propType
+      // Add the custom mapping (searchable static property in domain model)
       def customMapping = propertyMappings.find {it.propertyName == prop.name}
       if(customMapping) {
         customMapping.attributes.each { key, value ->

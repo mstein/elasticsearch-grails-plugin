@@ -5,7 +5,7 @@ import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 
 class ClosureSearchableDomainClassMapper {
   def CLASS_MAPPING_OPTIONS = ['all']
-  def SEARCHABLE_MAPPING_OPTIONS = ['boost']
+  def SEARCHABLE_MAPPING_OPTIONS = ['boost', 'component']
 
   Map mappingOptionsValues
   def mappableProperties
@@ -17,6 +17,18 @@ class ClosureSearchableDomainClassMapper {
 
   ClosureSearchableDomainClassMapper(GrailsDomainClass domainClass){
     mappableProperties = domainClass.getProperties()*.name
+  }
+
+  def getPropertyMappings(GrailsDomainClass domainClass, Collection searchableDomainClasses, Boolean searchableValues) {
+    assert searchableValues instanceof Boolean
+    assert searchableValues
+
+    grailsDomainClass = domainClass
+    grailsDomainClass.getProperties().each { property ->
+      mappedProperties << this.getDefaultMapping(property)
+    }
+
+    return mappedProperties
   }
 
   def getPropertyMappings(GrailsDomainClass domainClass, Collection searchableDomainClasses, Object searchableValues) {
@@ -71,11 +83,11 @@ class ClosureSearchableDomainClassMapper {
   }
 
   private SearchableClassPropertyMapping getDefaultMapping(property){
-    new SearchableClassPropertyMapping(propertyName: property.getName(), propertyType: property.getType())
+    new SearchableClassPropertyMapping(propertyName: property.name, propertyType: property.type)
   }
 
   private void validateOptions(propertyMapping) {
-    def invalidOptions = SEARCHABLE_MAPPING_OPTIONS - propertyMapping.keySet()
+    def invalidOptions = propertyMapping.keySet() - SEARCHABLE_MAPPING_OPTIONS
     if(invalidOptions){
       throw new IllegalArgumentException("Invalid options found in searchable mapping ${invalidOptions}.")
     }

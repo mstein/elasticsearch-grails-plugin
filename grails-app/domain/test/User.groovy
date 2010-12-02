@@ -4,9 +4,12 @@ class User {
   static searchable = {
     lastname boost:20
     firstname boost:15
+    tweets component:true
   }
 
-  static constraints = {}
+  static constraints = {
+    tweets cascade:'all'
+  }
   static hasMany = [
           tweets:Tweet
   ]

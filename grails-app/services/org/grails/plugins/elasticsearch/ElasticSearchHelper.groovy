@@ -6,10 +6,10 @@ package org.grails.plugins.elasticsearch
  */
 class ElasticSearchHelper {
 
-  org.elasticsearch.groovy.node.GNode elasticSearchNode
+  org.elasticsearch.node.Node elasticSearchNode
 
   def withElasticSearch(Closure callable) {
-    callable.call(elasticSearchNode.client)
+    callable.call(elasticSearchNode.client())
   }
 
 }

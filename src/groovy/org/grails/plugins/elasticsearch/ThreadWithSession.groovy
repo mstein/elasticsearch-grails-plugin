@@ -26,9 +26,7 @@ class ThreadWithSession extends Thread {
           unbindSession(sessionFactory)
         }
       }
-
     }
-
     return ThreadWithSession.start(threadClosure)
   }
 
@@ -41,12 +39,12 @@ class ThreadWithSession extends Thread {
     final Object inStorage = TransactionSynchronizationManager.getResource(sessionFactory)
     if (inStorage != null) {
       ((SessionHolder) inStorage).session.flush()
-      return false;
+      return false
     } else {
       Session session = SessionFactoryUtils.getSession(sessionFactory, true)
       session.setFlushMode(FlushMode.AUTO)
       TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session))
-      return true;
+      return true
     }
   }
 

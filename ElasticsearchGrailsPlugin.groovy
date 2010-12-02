@@ -4,31 +4,20 @@ import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import static org.elasticsearch.search.builder.SearchSourceBuilder.*
 import static org.elasticsearch.client.Requests.*
 import static org.elasticsearch.index.query.xcontent.QueryBuilders.*
-import org.elasticsearch.action.search.SearchResponse
 import org.elasticsearch.action.search.SearchType
-import org.elasticsearch.search.SearchHit
-import org.springframework.beans.SimpleTypeConverter
-import org.springframework.beans.factory.FactoryBean
-import static org.elasticsearch.groovy.node.GNodeBuilder.*
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
-import org.springframework.context.ApplicationContext
-import org.elasticsearch.groovy.client.GClient
-import static org.elasticsearch.index.query.xcontent.QueryBuilders.termQuery
-import grails.converters.JSON
+import org.elasticsearch.client.Client
 import org.elasticsearch.client.Requests
 import org.elasticsearch.transport.RemoteTransportException
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.grails.plugins.elasticsearch.mapping.ElasticSearchMappingFactory
 import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
-import org.elasticsearch.client.Client
-import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
-import test.User
-import test.Tweet
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import grails.util.GrailsUtil
 import org.grails.plugins.elasticsearch.mapping.DomainInstancesRebuilder
+import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
+import org.grails.plugins.elasticsearch.JSONDomainFactory
+import org.grails.plugins.elasticsearch.JSONDomainFactory
 
 class ElasticsearchGrailsPlugin {
   // the plugin version
@@ -68,18 +57,20 @@ Based on Graeme Rocher spike.
     entityInterceptor(ElasticSearchInterceptor) {
       elasticSearchIndexService = ref("elasticSearchIndexService")
     }
-    elasticSearchNode(ClientNodeFactoryBean)
     elasticSearchHelper(ElasticSearchHelper) {
       elasticSearchNode = ref("elasticSearchNode")
     }
-
     elasticSearchContextHolder(ElasticSearchContextHolder) {
       config = esConfig
+    }
+    elasticSearchNode(ClientNodeFactoryBean) {
+      elasticSearchContextHolder = ref("elasticSearchContextHolder")
     }
     domainInstancesRebuilder(DomainInstancesRebuilder) {
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
       grailsApplication = ref("grailsApplication")
     }
+    jsonDomainFactory(JSONDomainFactory)
     customEditorRegistrar(CustomEditorRegistar)
   }
 
@@ -135,6 +126,7 @@ Based on Graeme Rocher spike.
     // This will eventually be done in the ElasticsearchGrailsPlugin
     def helper = applicationContext.getBean(ElasticSearchHelper)
     def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
+
     application.domainClasses.each { GrailsDomainClass domainClass ->
       if (domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))) {
         def indexValue = domainClass.packageName ?: domainClass.propertyName
@@ -148,14 +140,14 @@ Based on Graeme Rocher spike.
 
         helper.withElasticSearch { client ->
           try {
-            client.admin.indices.prepareCreate(indexValue).execute().actionGet()
+            client.admin().indices().prepareCreate(indexValue).execute().actionGet()
             // If the index already exists, ignore the exception
           } catch (IndexAlreadyExistsException iaee) {
           } catch (RemoteTransportException rte) {}
 
           def putMapping = Requests.putMappingRequest(indexValue)
           putMapping.mappingSource = elasticMapping.toString()
-          client.admin.indices.putMapping(putMapping).actionGet()
+          client.admin().indices().putMapping(putMapping).actionGet()
         }
       }
     }
@@ -170,26 +162,5 @@ Based on Graeme Rocher spike.
   def onConfigChange = { event ->
     // TODO Implement code that is executed when the project configuration changes.
     // The event is the same as for 'onChange'.
-  }
-}
-
-class ClientNodeFactoryBean implements FactoryBean {
-
-  Object getObject() {
-    org.elasticsearch.groovy.node.GNodeBuilder nb = nodeBuilder()
-    nb.settings {
-      node {
-        client = true
-      }
-    }
-    nb.node()
-  }
-
-  Class getObjectType() {
-    return org.elasticsearch.groovy.node.GNode
-  }
-
-  boolean isSingleton() {
-    return true
   }
 }

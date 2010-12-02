@@ -26,3 +26,15 @@ log4j = {
 elasticSearch {
   date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
 }
+
+environments {
+  development {
+    elasticSearch.client.mode = 'node' // vals : "local", "node", "transport"
+  }
+  test {
+    elasticSearch.client.mode = 'local'
+  }
+  production {
+    elasticSearch.client.mode = 'node'
+  }
+}
