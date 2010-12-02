@@ -14,6 +14,8 @@ import org.grails.plugins.elasticsearch.conversion.marshall.CollectionMarshaller
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 
 class JSONDomainFactory {
+  def elasticSearchContextHolder
+
   /**
    * The default marshallers, not defined by user
    */
@@ -54,6 +56,7 @@ class JSONDomainFactory {
         marshaller = new DefaultMarshaller(marshallingContext:marshallingContext)
       }
     }
+    marshaller.elasticSearchContextHolder = elasticSearchContextHolder
     marshaller.marshall(object)
   }
 
@@ -72,11 +75,14 @@ class JSONDomainFactory {
     def domainClass = getDomainClass(instance)
     def json = jsonBuilder().startObject()
     // TODO : add maxDepth in custom mapping (only for "seachable components")
-    // TODO : detect cyclic association
+    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)
     def marshallingContext = new DefaultMarshallingContext(maxDepth:5, parentFactory:this)
     marshallingContext.marshallStack.push(instance)
     // Build the json-formated map that will contain the data to index
     for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
+      if(!(prop.name in mappingProperties*.propertyName)){
+        continue
+      }
       def res = this.delegateMarshalling(instance."${prop.name}", marshallingContext)
       json.field(prop.name, res)
     }

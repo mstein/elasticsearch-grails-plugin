@@ -2,8 +2,7 @@ package test
 
 class Preferences {
   static searchable = {
-    avatarUrl boost:20
-    signature boost:10
+    only = 'signature'
   }
 
   Boolean showEmail

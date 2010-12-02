@@ -70,7 +70,9 @@ Based on Graeme Rocher spike.
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
       grailsApplication = ref("grailsApplication")
     }
-    jsonDomainFactory(JSONDomainFactory)
+    jsonDomainFactory(JSONDomainFactory) {
+      elasticSearchContextHolder = ref("elasticSearchContextHolder")
+    }
     customEditorRegistrar(CustomEditorRegistar)
   }
 
@@ -128,7 +130,7 @@ Based on Graeme Rocher spike.
     def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
     application.domainClasses.each { GrailsDomainClass domainClass ->
-      if (domainClass.hasProperty('searchable') && !(domainClass.getPropertyValue('searchable') instanceof Boolean && domainClass.getPropertyValue('searchable'))) {
+      if (domainClass.hasProperty('searchable') && domainClass.getPropertyValue('searchable')) {
         def indexValue = domainClass.packageName ?: domainClass.propertyName
         println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
         def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))

@@ -56,7 +56,7 @@ class ElasticSearchController {
     def tweets = Tweet.search("${params.message.search}").searchResults
     def tweetsMsg = 'Messages : '
     tweets.each {
-      tweetsMsg += "<br />Tweet from ${it.user?.firstname} ${it.user?.lastname} : ${it.message}"
+      tweetsMsg += "<br />Tweet from ${it.user?.firstname} ${it.user?.lastname} : ${it.message} ${it.tags ?: '<em>no tags</em>'}"
       //tweetsMsg += "(tags : ${it.tags?.collect{t -> t.name}})"
     }
     flash.notice = tweetsMsg

@@ -29,7 +29,7 @@ elasticSearch {
 
 environments {
   development {
-    elasticSearch.client.mode = 'node' // vals : "local", "node", "transport"
+    elasticSearch.client.mode = 'local' // vals : "local", "node", "transport"
   }
   test {
     elasticSearch.client.mode = 'local'

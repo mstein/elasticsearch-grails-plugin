@@ -2,6 +2,7 @@ package test
 
 class Tweet {
   static searchable = {
+    except = ['dateCreated', 'tags', 'user']
     message boost:2.0
   }
 
