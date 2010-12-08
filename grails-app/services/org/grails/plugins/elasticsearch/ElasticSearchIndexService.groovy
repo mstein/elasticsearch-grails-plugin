@@ -11,13 +11,13 @@ class ElasticSearchIndexService implements GrailsApplicationAware {
 
   GrailsApplication grailsApplication
   def elasticSearchHelper
-  def sessionFactoryInstance
+  def sessionFactory
   def jsonDomainFactory
+  def persistenceInterceptor
 
   boolean transactional = false
 
   void indexDomain(instance) {
-    sessionFactoryInstance = grailsApplication.mainContext.getBean('sessionFactory')
     indexInBackground(instance, 0)
   }
 
@@ -34,13 +34,13 @@ class ElasticSearchIndexService implements GrailsApplicationAware {
     }
   }
 
-  private Thread indexInBackground(instance, count) {
-    return ThreadWithSession.startWithSession(sessionFactoryInstance) {
+  private Thread indexInBackground(instance, attempts) {
+    return ThreadWithSession.startWithSession(sessionFactory, persistenceInterceptor) {
       try {
         elasticSearchHelper.withElasticSearch { Client client ->
           Class clazz = instance.class
           String name = GrailsNameUtils.getPropertyName(clazz)
-          def indexValue = clazz.getPackage().name ?: name
+          def indexValue = clazz.package.name ?: name
 
           def json = jsonDomainFactory.buildJSON(instance)
           client.index(
@@ -53,9 +53,9 @@ class ElasticSearchIndexService implements GrailsApplicationAware {
         }
       } catch (e) {
         e.printStackTrace()
-        if (count < 5) {
+        if (attempts < 5) {
           sleep 10000
-          indexInBackground(instance, ++count)
+          indexInBackground(instance, ++attempts)
         } else {
           GrailsUtil.deepSanitize(e)
           throw new IndexException("Failed to index domain instance [${instance}] after 5 retry attempts: ${e.message}", e)

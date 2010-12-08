@@ -2,7 +2,6 @@ package test
 
 class Tweet {
   static searchable = {
-    except = ['dateCreated', 'tags', 'user']
     message boost:2.0
   }
 
@@ -19,7 +18,7 @@ class Tweet {
   ]
 
   static constraints = {
-    tags nullable:true
+    tags nullable:true, cascade:'all'
   }
 
   String message = ''

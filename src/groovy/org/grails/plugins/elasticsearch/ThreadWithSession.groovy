@@ -7,13 +7,14 @@ import org.springframework.orm.hibernate3.SessionHolder
 import org.hibernate.Session
 
 class ThreadWithSession extends Thread {
-  public static Thread startWithSession(sessionFactory, Closure c) {
-    def sessionBound = false
+  public static Thread startWithSession(sessionFactory, persistenceInterceptor, Closure c) {
     def threadClosure = {
+      def sessionBound = false
       try {
         sessionBound = bindSession(sessionFactory)
+        persistenceInterceptor.init()
         c.delegate = delegate
-        c()
+        c.run()
 
         final SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory)
         if (sessionHolder != null && !FlushMode.MANUAL.equals(sessionHolder.session.flushMode)) {
@@ -25,13 +26,14 @@ class ThreadWithSession extends Thread {
         if (sessionBound) {
           unbindSession(sessionFactory)
         }
+        persistenceInterceptor.flush()
+        persistenceInterceptor.destroy()
       }
     }
     return ThreadWithSession.start(threadClosure)
   }
 
   // Bind session to the thread if not available
-
   private static boolean bindSession(sessionFactory) {
     if (sessionFactory == null) {
       throw new IllegalStateException("SessionFactory not provided.")
@@ -62,7 +64,7 @@ class ThreadWithSession extends Thread {
       throw e
     } finally {
       TransactionSynchronizationManager.unbindResource(sessionFactory)
-      SessionFactoryUtils.closeSession(sessionHolder.session)
+      SessionFactoryUtils.releaseSession(sessionHolder.session,sessionFactory)
     }
   }
 }

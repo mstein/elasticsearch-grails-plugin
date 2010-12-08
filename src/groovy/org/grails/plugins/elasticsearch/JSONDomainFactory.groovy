@@ -83,7 +83,7 @@ class JSONDomainFactory {
       if(!(prop.name in mappingProperties*.propertyName)){
         continue
       }
-      def res = this.delegateMarshalling(instance."${prop.name}", marshallingContext)
+      def res = delegateMarshalling(instance."${prop.name}", marshallingContext)
       json.field(prop.name, res)
     }
     marshallingContext.marshallStack.pop()

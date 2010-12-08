@@ -1,7 +1,9 @@
 package test
 
 class Tag {
-  static searchable = true
+  static searchable = {
+    except=['tweet']
+  }
   static belongsTo = [tweet:Tweet]
 
   String name

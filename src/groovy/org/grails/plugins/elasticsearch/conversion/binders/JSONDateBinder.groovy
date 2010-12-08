@@ -14,15 +14,13 @@ public class JSONDateBinder extends PropertyEditorSupport {
 
   public void setAsText(String s) throws IllegalArgumentException {
     if (s != null) {
-      formats.each { format ->
+      for(format in formats){
         // Need to create the SimpleDateFormat every time, since it's not thead-safe
         SimpleDateFormat df = new SimpleDateFormat(format)
         try {
           setValue(df.parse(s))
           return
-        } catch (ParseException e) {
-          // Ignore
-        }
+        } catch (ParseException e) {}
       }
     }
   }

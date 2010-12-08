@@ -1,4 +1,3 @@
-import org.grails.plugins.elasticsearch.ElasticSearchInterceptor
 import static org.grails.plugins.elasticsearch.ElasticSearchHelper.*
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import static org.elasticsearch.search.builder.SearchSourceBuilder.*
@@ -14,16 +13,17 @@ import org.grails.plugins.elasticsearch.mapping.ElasticSearchMappingFactory
 import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.mapping.DomainInstancesRebuilder
+import org.grails.plugins.elasticsearch.conversion.DomainInstancesRebuilder
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
-import org.grails.plugins.elasticsearch.JSONDomainFactory
+import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
+import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.JSONDomainFactory
 
 class ElasticsearchGrailsPlugin {
   // the plugin version
   def version = "0.1"
   // the version or versions of Grails the plugin is designed for
-  def grailsVersion = "1.3 > *"
+  def grailsVersion = "1.3.4 > *"
   // the other plugins this plugin depends on
   def dependsOn = [services: "1.3 > *"]
   def loadAfter = ['services']
@@ -54,9 +54,6 @@ Based on Graeme Rocher spike.
       throw new Exception('Elastic Search configuration not found.')
     }
 
-    entityInterceptor(ElasticSearchInterceptor) {
-      elasticSearchIndexService = ref("elasticSearchIndexService")
-    }
     elasticSearchHelper(ElasticSearchHelper) {
       elasticSearchNode = ref("elasticSearchNode")
     }
@@ -70,19 +67,26 @@ Based on Graeme Rocher spike.
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
       grailsApplication = ref("grailsApplication")
     }
+    customEditorRegistrar(CustomEditorRegistar)
     jsonDomainFactory(JSONDomainFactory) {
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
     }
-    customEditorRegistrar(CustomEditorRegistar)
+    auditListener(AuditEventListener)
+    hibernateEventListeners(HibernateEventListeners) {
+      listenerMap = ['post-insert': auditListener,
+              'post-update': auditListener,
+              'pre-delete': auditListener
+      ]
+    }
   }
 
   def onShutdown = { event ->
+    event.ctx.getBean("elasticSearchNode").stop()
     event.ctx.getBean("elasticSearchNode").close()
   }
 
   def doWithDynamicMethods = { ctx ->
     def helper = ctx.getBean(ElasticSearchHelper)
-    def elasticSearchContextHolder = ctx.getBean(ElasticSearchContextHolder)
     def domainInstancesRebuilder = ctx.getBean(DomainInstancesRebuilder)
 
     for (GrailsDomainClass domain in application.domainClasses) {
@@ -135,12 +139,10 @@ Based on Graeme Rocher spike.
         println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
         def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
         elasticSearchContextHolder.addMappingContext(domainClass, mappedProperties)
-        println "Converting into JSON..."
         def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(domainClass, mappedProperties)
         println elasticMapping.toString()
-        println 'Send custom mapping to the ElasticSearch instance'
 
-        helper.withElasticSearch { client ->
+        helper.withElasticSearch { Client client ->
           try {
             client.admin().indices().prepareCreate(indexValue).execute().actionGet()
             // If the index already exists, ignore the exception
@@ -150,6 +152,7 @@ Based on Graeme Rocher spike.
           def putMapping = Requests.putMappingRequest(indexValue)
           putMapping.mappingSource = elasticMapping.toString()
           client.admin().indices().putMapping(putMapping).actionGet()
+
         }
       }
     }
