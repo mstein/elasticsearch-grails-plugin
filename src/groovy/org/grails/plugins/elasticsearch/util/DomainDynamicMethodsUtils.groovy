@@ -9,9 +9,10 @@ import org.elasticsearch.client.Client
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.elasticsearch.client.Requests
+import org.apache.commons.logging.LogFactory
 
 class DomainDynamicMethodsUtils {
-  static LOG
+  static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.DomainDynamicMethodsUtils")
   /**
    * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
    * @param domainClasses
