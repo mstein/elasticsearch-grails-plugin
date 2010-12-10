@@ -13,12 +13,8 @@ class Tweet {
           tags:Tag
   ]
 
-  static mappedBy = [
-          tags:'tweet'
-  ]
-
   static constraints = {
-    tags nullable:true, cascade:'all'
+    tags nullable:true, cascade:'save, update'
   }
 
   String message = ''

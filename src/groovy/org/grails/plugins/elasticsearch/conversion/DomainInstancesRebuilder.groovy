@@ -6,23 +6,29 @@ import org.springframework.beans.SimpleTypeConverter
 import org.elasticsearch.search.SearchHit
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DefaultUnmarshallingContext
 import org.grails.plugins.elasticsearch.conversion.unmarshall.CycleReferenceSource
+import org.codehaus.groovy.grails.commons.GrailsApplication
 
 class DomainInstancesRebuilder {
   def elasticSearchContextHolder
-  def grailsApplication
+  GrailsApplication grailsApplication
 
-  public Collection buildResults(GrailsDomainClass domainClass, hits) {
+  public Collection buildResults(hits) {
     def typeConverter = new SimpleTypeConverter()
     BindDynamicMethod bind = new BindDynamicMethod()
-    def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping
     def unmarshallingContext = new DefaultUnmarshallingContext()
-
-    hits.collect { SearchHit hit ->
+    def results = []
+    for(SearchHit hit in hits){
+      def packageName = hit.index()
+      def domainClassName = packageName == hit.type() ? packageName : packageName + '.' + hit.type().substring(0, 1).toUpperCase() + hit.type().substring(1)
+      def domainClass = grailsApplication.getDomainClass(domainClassName)
+      if(!domainClass){
+        continue
+      }
+      /*def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping*/
       def identifier = domainClass.getIdentifier()
       def id = typeConverter.convertIfNecessary(hit.id(), identifier.getType())
       def instance = domainClass.newInstance()
       instance."${identifier.name}" = id
-
       def rebuiltProperties = [:]
       hit.source.each { name, value ->
         unmarshallingContext.unmarshallingStack.push(name)
@@ -33,8 +39,9 @@ class DomainInstancesRebuilder {
       def args = [instance, rebuiltProperties] as Object[]
       bind.invoke(instance, 'bind', args)
 
-      return instance
+      results << instance
     }
+    return results
   }
 
   private populateCyclicReference(instance, rebuiltProperties, unmarshallingContext) {
@@ -72,10 +79,9 @@ class DomainInstancesRebuilder {
           } else {
             currentProperty = currentProperty.getAt(it)
           }
-
         } catch (Exception e) {
-          println "/!\\ Error when trying to populate ${path}"
-          println "Cannot get ${it} on ${currentProperty} from ${rebuiltProperties}"
+          LOG.warn("/!\\ Error when trying to populate ${path}")
+          LOG.warn("Cannot get ${it} on ${currentProperty} from ${rebuiltProperties}")
           e.printStackTrace()
         }
       }

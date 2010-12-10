@@ -1,4 +1,3 @@
-import static org.grails.plugins.elasticsearch.ElasticSearchHelper.*
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import static org.elasticsearch.search.builder.SearchSourceBuilder.*
 import static org.elasticsearch.client.Requests.*
@@ -22,9 +21,10 @@ import org.springframework.context.ApplicationContext
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import grails.util.GrailsUtil
 import org.apache.commons.logging.LogFactory
+import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 
 class ElasticsearchGrailsPlugin {
-  static LOG = LogFactory.getLog("org.codehaus.groovy.grails.plugins.elasticSearch.ElasticsearchGrailsPlugin")
+  static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.ElasticsearchGrailsPlugin")
 
   // the plugin version
   def version = "0.1"
@@ -35,7 +35,11 @@ class ElasticsearchGrailsPlugin {
   def loadAfter = ['services']
   // resources that are excluded from plugin packaging
   def pluginExcludes = [
-          "grails-app/views/error.gsp"
+          "grails-app/views/error.gsp",
+          "grails-app/controllers/test/ElasticSearchController.groovy",
+          "grails-app/services/test/TestCaseService.groovy",
+          "grails-app/views/elasticSearch/index.gsp",
+          "grails-app/domain/test/*"
   ]
 
   // TODO Fill in these fields
@@ -76,93 +80,27 @@ Based on Graeme Rocher spike.
     }
     auditListener(AuditEventListener)
     hibernateEventListeners(HibernateEventListeners) {
-      listenerMap = ['post-insert': auditListener,
-              'post-update': auditListener,
-              'pre-delete': auditListener
+      listenerMap = [
+              'delete': auditListener,
+              'post-collection-update': auditListener,
+              'save-update':auditListener,
+              'flush':auditListener
       ]
     }
   }
 
   def onShutdown = { event ->
-    event.ctx.getBean("elasticSearchNode").stop()
-    event.ctx.getBean("elasticSearchNode").close()
+    event.ctx.getBean("elasticSearchNode").stop().close()
   }
 
   def doWithDynamicMethods = { ctx ->
-    def helper = ctx.getBean(ElasticSearchHelper)
-    def domainInstancesRebuilder = ctx.getBean(DomainInstancesRebuilder)
-
-    for (GrailsDomainClass domain in application.domainClasses) {
-      if (domain.getPropertyValue("searchable")) {
-        def domainCopy = domain
-        domain.metaClass.static.search = { String q, Map params = [from: 0, size: 60, explain: true] ->
-          helper.withElasticSearch { client ->
-            try {
-              def response = client.search(
-                      searchRequest(domainCopy.packageName ?: domainCopy.propertyName)
-                              .searchType(SearchType.DFS_QUERY_THEN_FETCH)
-                              .types(domainCopy.propertyName)
-                              .source(searchSource().query(queryString(q))
-                              .from(params.from ?: 0)
-                              .size(params.size ?: 60)
-                              .explain(params.containsKey('explain') ? params.explain : true))
-
-              ).actionGet()
-              def searchHits = response.hits()
-              def result = [:]
-              result.total = searchHits.totalHits()
-
-              println "Found ${result.total ?: 0} result(s)."
-
-              // Convert the hits back to their initial type
-              result.searchResults = domainInstancesRebuilder.buildResults(domainCopy, searchHits.hits())
-
-              return result
-            } catch (e) {
-              e.printStackTrace()
-              return [searchResult: [], total: 0]
-            }
-          }
-        }
-      }
-    }
+    // Define the custom ElasticSearch mapping for searchable domain classes
+    DomainDynamicMethodsUtils.resolveMapping(application.domainClasses, ctx)
+    DomainDynamicMethodsUtils.injectDynamicMethods(application.domainClasses, application, ctx)
   }
 
   def doWithApplicationContext = { applicationContext ->
     // Implement post initialization spring config (optional)
-
-    // Define the custom ElasticSearch mapping for searchable domain classes
-    // This will eventually be done in the ElasticsearchGrailsPlugin
-    def helper = applicationContext.getBean(ElasticSearchHelper)
-    def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
-
-    application.domainClasses.each { GrailsDomainClass domainClass ->
-      if (domainClass.hasProperty('searchable') && domainClass.getPropertyValue('searchable')) {
-        def indexValue = domainClass.packageName ?: domainClass.propertyName
-        println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
-        def closureMapper = new ClosureSearchableDomainClassMapper(domainClass, elasticSearchContextHolder.config)
-        def searchableClassMapping = closureMapper.getClassMapping(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
-        elasticSearchContextHolder.addMappingContext(searchableClassMapping)
-
-        if (searchableClassMapping.classMapping?.root) {
-          def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(searchableClassMapping)
-          println elasticMapping.toString()
-
-          helper.withElasticSearch { Client client ->
-            try {
-              client.admin().indices().prepareCreate(indexValue).execute().actionGet()
-              // If the index already exists, ignore the exception
-            } catch (IndexAlreadyExistsException iaee) {
-            } catch (RemoteTransportException rte) {}
-
-            def putMapping = Requests.putMappingRequest(indexValue)
-            putMapping.mappingSource = elasticMapping.toString()
-            client.admin().indices().putMapping(putMapping).actionGet()
-
-          }
-        }
-      }
-    }
   }
 
   def onChange = { event ->

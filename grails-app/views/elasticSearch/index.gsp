@@ -1,7 +1,7 @@
 %{--
   Test GSP
 --}%
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="test.Tweet; test.User" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
   <title>ElasticSearch Test</title>
@@ -14,6 +14,8 @@
     color: #7C9D00;
     font-weight: bolder;
     font-variant: small-caps;
+    clear:both;
+    display:block;
   }
 
   .box, .noticeBox {
@@ -26,10 +28,26 @@
     padding: 5px;
     margin-top: 10px;
     background-color: #FFFFFF;
+    overflow:auto;
   }
 
   .noticeBox {
     border: solid 1px #7C9D00;
+  }
+
+  .user-file {
+    float:left;
+    border:1px solid #a9a9a9;
+    width:300px;
+  }
+
+  .user-file strong {
+    color:#7C9D00;
+  }
+
+  .left {
+    float:left;
+    padding: 5px;
   }
   </style>
 </head>
@@ -39,22 +57,35 @@
     ${flash.notice}
   </div>
 </g:if>
-<div class="box">
-  <g:form controller="elasticSearch" action="createUsers">
-    <p>
-      <input type="submit" value="Create users"/>
-    </p>
-  </g:form>
-</div>
+<g:if test="${User.count() == 0}">
+  <div class="box">
+    <g:form controller="elasticSearch" action="createUsers">
+      <p>
+        <input type="submit" value="Create users"/>
+      </p>
+    </g:form>
+  </div>
+</g:if>
+<g:else>
+  <g:set var="allUsers" value="${User.all}"/>
+  <div class="box">
+    <span class="title">Available users</span>
+    <g:each var="u" in="${User.all}">
+      <div class="user-file">
+        <strong>Id: </strong>${u.id}<br/>
+        <strong>Firstname: </strong>${u.firstname}<br/>
+        <strong>Lastname: </strong>${u.lastname}<br/>
+        <strong>Activity: </strong>${u.activity}
+      </div>
+    </g:each>
+  </div>
+</g:else>
 <div class="box">
   <span class="title">Post a Tweet</span>
   <g:form controller="elasticSearch" action="postTweet">
     <p>
-      <label for="user-firstname">Firstname</label><br/>
-      <input type="text" name="user.firstname" id="user-firstname" value="John"/>
-      <br/>
-      <label for="user-lastname">Lastname</label><br/>
-      <input type="text" name="user.lastname" id="user-lastname" value="DA"/>
+      <label for="activity-user">User :</label><br/>
+      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John" />
     </p>
     <p>
       <label for="tweet">Tweet</label><br/>
@@ -70,28 +101,61 @@
   </g:form>
 </div>
 <div class="box">
-  <span class="title">Search for tweets</span>
-  <g:form controller="elasticSearch" action="searchForUserTweets">
-    %{--<p>
-      <label for="user-lastname-search">User lastname</label>
-      <br />
-      <input type="text" name="user.lastname.search" id="user-lastname-search" value="DA" disabled="disabled"/>
-    </p>--}%
+  <span class="title">Search</span>
+  <div class="left">
+    <g:form controller="elasticSearch" action="searchForUserTweets">
+      <p>
+        <label for="message-search">Search for tweets</label>
+        <br/>
+        <input type="text" name="message.search" id="message-search" style="width:250px;"/>
+        <input type="submit" value="Search"/>
+      </p>
+    </g:form>
+  </div>
+  <div class="left">
+    <g:form controller="elasticSearch" action="searchAll">
+      <p>
+        <label for="search-query">Search for anything</label>
+        <br/>
+        <input type="text" name="query" id="search-query" style="width:250px;"/>
+        <input type="submit" value="Search"/>
+      </p>
+
+    </g:form>
+  </div>
+</div>
+<div class="box">
+  <span class="title">Change user activity</span>
+  <g:form controller="elasticSearch" action="updateActivity">
     <p>
-      <label for="message-search">Query terms</label>
-      <br />
-      <input type="text" name="message.search" id="message-search" style="width:250px;"/>
+      <label for="activity-user">User :</label><br/>
+      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John" />
     </p>
     <p>
-      <input type="submit" value="Search"/>
+      <label for="message-search">New Activity</label>
+      <br />
+      <input type="text" name="user.activity" id="user-activity" style="width:250px;"/>
+    </p>
+    <p>
+      <input type="submit" value="Update"/>
     </p>
   </g:form>
 </div>
-<g:if test="${hits}">
-  Search results
-  <g:each in="${hits}" var="hit">
-    ${hit.source.user} : ${hit.source.tweet}
-  </g:each>
+<g:if test="${Tweet.count() > 0}">
+  <div class="box">
+    <span class="title">Manage Existing tweets</span>
+    <g:each var="tweet" in="${Tweet.all}">
+      <div class="tweet">
+        <strong>Tweet from ${tweet.user?.firstname} ${tweet.user?.lastname}</strong>
+        (<g:link controller="${controllerName}" action="deleteTweet" id="${tweet.id}">Delete</g:link>)<br />
+        <strong>Tags:</strong>
+        %{
+          out << tweet.tags?.collect{ t -> t.name }?.join(', ')
+        }% <br />
+        ${tweet.message.encodeAsHTML().replace('\n','<br/>')}
+      </div>
+    </g:each>
+  </div>
 </g:if>
 </body>
 </html>

@@ -23,6 +23,7 @@ class User {
   String lastname
   String firstname
   String password
+  String activity = 'Evildoer'
   String someThings = 'something'
   ArrayList<String> listOfThings = ['this', 'that', 'andthis']
 }

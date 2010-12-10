@@ -9,7 +9,7 @@ class SearchableClassPropertyMapping {
   Class propertyType
   /** Mapping attributes values, will be added in the ElasticSearch JSON mapping request */
   Map attributes = [:]
-  /** Special mapping attributes, only used by the plugin itself (eg: 'component', 'root') */
+  /** Special mapping attributes, only used by the plugin itself (eg: 'component', 'reference') */
   Map specialAttributes = [:]
 
   public SearchableClassPropertyMapping(GrailsDomainClassProperty property){
