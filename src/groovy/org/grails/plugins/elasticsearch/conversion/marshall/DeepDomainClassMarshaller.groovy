@@ -9,7 +9,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
   protected doMarshall(instance) {
     def marshallResult = [id: instance.id, 'class': instance.class?.name]
     def domainClass = getDomainClass(instance)
-    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)
+    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)?.propertiesMapping
     for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
       if(!(prop.name in mappingProperties*.propertyName)){
         continue
@@ -21,6 +21,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
       // Domain marshalling
       if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
         if (propertyValue.class.searchable) {
+          marshallingContext.lastParentPropertyName = prop.name
           marshallResult += [(prop.name): ([id: instance.id, 'class': propertyClassName] + this.marshall(propertyValue))]
         } else {
           marshallResult += [(prop.name): [id: instance.id, 'class': propertyClassName]]
@@ -28,6 +29,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
         // Non-domain marshalling
       } else {
+        marshallingContext.lastParentPropertyName = prop.name
         marshallResult += [(prop.name): marshallingContext.delegateMarshalling(propertyValue)]
       }
     }

@@ -1,15 +1,17 @@
 package org.grails.plugins.elasticsearch
 
+import org.elasticsearch.client.Client
+
 /**
  *
  * @author Graeme Rocher
  */
 class ElasticSearchHelper {
 
-  org.elasticsearch.node.Node elasticSearchNode
+  Client elasticSearchClient
 
   def withElasticSearch(Closure callable) {
-    callable.call(elasticSearchNode.client())
+    callable.call(elasticSearchClient)
   }
 
 }

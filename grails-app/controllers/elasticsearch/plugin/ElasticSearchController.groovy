@@ -42,8 +42,8 @@ class ElasticSearchController {
   }
 
   def createUsers = {
-    User u = new User(lastname:'DA', firstname:'John')
-    User u2 = new User(lastname:'DA', firstname:'Bernardo')
+    User u = new User(lastname:'DA', firstname:'John', password:'myPass')
+    User u2 = new User(lastname:'DA', firstname:'Bernardo', password:'password')
     u.save()
     u2.save()
     flash.notice = "User created"

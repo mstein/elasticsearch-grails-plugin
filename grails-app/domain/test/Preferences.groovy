@@ -3,6 +3,7 @@ package test
 class Preferences {
   static searchable = {
     only = 'signature'
+    root false
   }
 
   Boolean showEmail

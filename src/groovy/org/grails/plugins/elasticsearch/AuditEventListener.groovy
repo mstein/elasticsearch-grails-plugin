@@ -6,21 +6,20 @@ import org.hibernate.event.PostInsertEvent
 import org.hibernate.event.PostUpdateEvent
 import org.hibernate.event.PreDeleteEventListener
 import org.hibernate.event.PreDeleteEvent
+import org.grails.plugins.elasticsearch.util.ElasticSearchUtils
 
 class AuditEventListener implements PostInsertEventListener, PostUpdateEventListener, PreDeleteEventListener {
 
   void onPostInsert(PostInsertEvent postInsertEvent) {
     def clazz = postInsertEvent.entity?.class
-    if(clazz?.searchable) {
-      clazz.withNewSession {
-        ElasticSearchUtils.indexDomain(postInsertEvent.entity)
-      }
+    if (clazz?.searchable) {
+      ElasticSearchUtils.indexDomain(postInsertEvent.entity)
     }
   }
 
   void onPostUpdate(PostUpdateEvent postUpdateEvent) {
     def clazz = postUpdateEvent.entity?.class
-    if(clazz?.searchable) {
+    if (clazz?.searchable) {
       ElasticSearchUtils.indexDomain(postUpdateEvent.entity)
     }
   }

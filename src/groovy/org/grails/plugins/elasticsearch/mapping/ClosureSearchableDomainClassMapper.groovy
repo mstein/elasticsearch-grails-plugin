@@ -1,43 +1,48 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 
 class ClosureSearchableDomainClassMapper {
-  def CLASS_MAPPING_OPTIONS = ['all']
-  def SEARCHABLE_MAPPING_OPTIONS = ['boost', 'component']
+  static final CLASS_MAPPING_OPTIONS = ['all', 'root']
+  static final SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index']
+  static final SEARCHABLE_SPECIAL_MAPPING_OPTIONS = ['component']
 
-  Map mappingOptionsValues
+  def elasticSearcConfig
+
+  def classMapping
   def mappableProperties
   def mappedProperties = []
   def customMappedProperties = []
   def mappedClass
   GrailsDomainClass grailsDomainClass
   def searchableValues
-  def onlyMode = false
   def only
   def except
 
-  ClosureSearchableDomainClassMapper(GrailsDomainClass domainClass) {
+  ClosureSearchableDomainClassMapper(GrailsDomainClass domainClass, elasticSearcConfig) {
+    this.elasticSearcConfig = elasticSearcConfig
     mappableProperties = domainClass.getProperties()*.name
+    grailsDomainClass = domainClass
   }
 
-  def getPropertyMappings(GrailsDomainClass domainClass, Collection searchableDomainClasses, Boolean searchableValues) {
+  public SearchableClassMapping getClassMapping(GrailsDomainClass domainClass, Collection searchableDomainClasses, Boolean searchableValues) {
     assert searchableValues instanceof Boolean
     assert searchableValues
 
     grailsDomainClass = domainClass
     grailsDomainClass.properties.each { property ->
-      mappedProperties << this.getDefaultMapping(property)
+      if(elasticSearcConfig.defaultExcludedProperties && !(property.name in elasticSearcConfig.defaultExcludedProperties))
+        mappedProperties << this.getMapping(property)
     }
-
-    return mappedProperties
+    classMapping = ['root':true]
+    return new SearchableClassMapping(propertiesMapping: mappedProperties, classMapping: classMapping, domainClass: domainClass)
   }
 
-  def getPropertyMappings(GrailsDomainClass domainClass, Collection searchableDomainClasses, Object searchableValues) {
+  public SearchableClassMapping getClassMapping(GrailsDomainClass domainClass, Collection searchableDomainClasses, Object searchableValues) {
     assert searchableValues instanceof Closure
 
     grailsDomainClass = domainClass
+    classMapping = ['root':true]
 
     // Build user-defined specific mappings
     def closure = (Closure) searchableValues.clone()
@@ -70,25 +75,18 @@ class ClosureSearchableDomainClassMapper {
     mappedProperties = (mappedProperties ?: []) + customMappedProperties
     def defaultMappableProperties = mappableProperties - mappedProperties*.propertyName
     defaultMappableProperties.each {
-      mappedProperties << this.getDefaultMapping(grailsDomainClass.getPropertyByName(it))
+      mappedProperties << this.getMapping(grailsDomainClass.getPropertyByName(it))
     }
-    return mappedProperties
+    return new SearchableClassMapping(propertiesMapping: mappedProperties, classMapping: classMapping, domainClass: domainClass)
   }
 
   Object invokeMethod(String name, Object args) {
-    // Special cases (only, except, ...)
-    if (name.equals('only')) {
-      onlyMode = true
-      mappableProperties = args
-      return
-    }
-
     // Predefined mapping options
     if (CLASS_MAPPING_OPTIONS.contains(name)) {
       if (!args) {
         throw new IllegalArgumentException("${grailsDomainClass.propertyName} mapping declares ${name} : found no argument.")
       }
-      mappingOptionsValues[name] = args[0]
+      classMapping[name] = args[0]
       return
     }
 
@@ -98,26 +96,27 @@ class ClosureSearchableDomainClassMapper {
       throw new IllegalArgumentException("Unable to find property [${name}] used in [${grailsDomainClass.propertyName}#searchable].")
     }
     if (!mappableProperties.any { it == property.name }) {
-      if (onlyMode) {
-        throw new IllegalArgumentException("""Unable to map [${grailsDomainClass.propertyName}.${property.name}].
-          You can only customize the mapping of the properties you listed in the only field.""")
-      } else {
-        throw new IllegalArgumentException("Unable to map [${grailsDomainClass.propertyName}.${property.name}].")
-      }
+      throw new IllegalArgumentException("Unable to map [${grailsDomainClass.propertyName}.${property.name}].")
     }
 
-    def defaultMapping = this.getDefaultMapping(property)
+    def defaultMapping = this.getMapping(property)
     this.validateOptions(args[0])
-    defaultMapping.attributes += args[0]
+    defaultMapping.addAttributes(args[0])
     customMappedProperties << defaultMapping
   }
 
-  private SearchableClassPropertyMapping getDefaultMapping(property) {
-    new SearchableClassPropertyMapping(propertyName: property.name, propertyType: property.type)
+  private SearchableClassPropertyMapping getMapping(property) {
+    if(customMappedProperties){
+      SearchableClassPropertyMapping existingMapping = customMappedProperties.find { it.propertyName == property.name }
+      if(existingMapping){
+        return existingMapping
+      }
+    }
+    return new SearchableClassPropertyMapping(property)
   }
 
   private void validateOptions(propertyMapping) {
-    def invalidOptions = propertyMapping.keySet() - SEARCHABLE_MAPPING_OPTIONS
+    def invalidOptions = propertyMapping.keySet() - (SEARCHABLE_MAPPING_OPTIONS + SEARCHABLE_SPECIAL_MAPPING_OPTIONS)
     if (invalidOptions) {
       throw new IllegalArgumentException("Invalid options found in searchable mapping ${invalidOptions}.")
     }

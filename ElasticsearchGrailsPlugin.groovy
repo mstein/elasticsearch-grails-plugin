@@ -17,9 +17,15 @@ import org.grails.plugins.elasticsearch.conversion.DomainInstancesRebuilder
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
 import org.grails.plugins.elasticsearch.AuditEventListener
-import org.grails.plugins.elasticsearch.JSONDomainFactory
+import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
+import org.springframework.context.ApplicationContext
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import grails.util.GrailsUtil
+import org.apache.commons.logging.LogFactory
 
 class ElasticsearchGrailsPlugin {
+  static LOG = LogFactory.getLog("org.codehaus.groovy.grails.plugins.elasticSearch.ElasticsearchGrailsPlugin")
+
   // the plugin version
   def version = "0.1"
   // the version or versions of Grails the plugin is designed for
@@ -49,18 +55,15 @@ Based on Graeme Rocher spike.
   }
 
   def doWithSpring = {
-    def esConfig = application.config.containsKey("elasticSearch") ? application.config.elasticSearch : null
-    if(!esConfig) {
-      throw new Exception('Elastic Search configuration not found.')
-    }
+    def esConfig = getConfiguration(parentCtx, application)
 
     elasticSearchHelper(ElasticSearchHelper) {
-      elasticSearchNode = ref("elasticSearchNode")
+      elasticSearchClient = ref("elasticSearchClient")
     }
     elasticSearchContextHolder(ElasticSearchContextHolder) {
       config = esConfig
     }
-    elasticSearchNode(ClientNodeFactoryBean) {
+    elasticSearchClient(ClientNodeFactoryBean) {
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
     }
     domainInstancesRebuilder(DomainInstancesRebuilder) {
@@ -137,22 +140,26 @@ Based on Graeme Rocher spike.
       if (domainClass.hasProperty('searchable') && domainClass.getPropertyValue('searchable')) {
         def indexValue = domainClass.packageName ?: domainClass.propertyName
         println "Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure..."
-        def mappedProperties = (new ClosureSearchableDomainClassMapper(domainClass)).getPropertyMappings(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
-        elasticSearchContextHolder.addMappingContext(domainClass, mappedProperties)
-        def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(domainClass, mappedProperties)
-        println elasticMapping.toString()
+        def closureMapper = new ClosureSearchableDomainClassMapper(domainClass, elasticSearchContextHolder.config)
+        def searchableClassMapping = closureMapper.getClassMapping(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
+        elasticSearchContextHolder.addMappingContext(searchableClassMapping)
 
-        helper.withElasticSearch { Client client ->
-          try {
-            client.admin().indices().prepareCreate(indexValue).execute().actionGet()
-            // If the index already exists, ignore the exception
-          } catch (IndexAlreadyExistsException iaee) {
-          } catch (RemoteTransportException rte) {}
+        if (searchableClassMapping.classMapping?.root) {
+          def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(searchableClassMapping)
+          println elasticMapping.toString()
 
-          def putMapping = Requests.putMappingRequest(indexValue)
-          putMapping.mappingSource = elasticMapping.toString()
-          client.admin().indices().putMapping(putMapping).actionGet()
+          helper.withElasticSearch { Client client ->
+            try {
+              client.admin().indices().prepareCreate(indexValue).execute().actionGet()
+              // If the index already exists, ignore the exception
+            } catch (IndexAlreadyExistsException iaee) {
+            } catch (RemoteTransportException rte) {}
 
+            def putMapping = Requests.putMappingRequest(indexValue)
+            putMapping.mappingSource = elasticMapping.toString()
+            client.admin().indices().putMapping(putMapping).actionGet()
+
+          }
         }
       }
     }
@@ -167,5 +174,44 @@ Based on Graeme Rocher spike.
   def onConfigChange = { event ->
     // TODO Implement code that is executed when the project configuration changes.
     // The event is the same as for 'onChange'.
+  }
+
+  // Get a configuration instance
+  private getConfiguration(ApplicationContext applicationContext, GrailsApplication application) {
+    def config = application.config
+    // try to load it from class file and merge into GrailsApplication#config
+    // Config.groovy properties override the default one
+    try {
+      Class dataSourceClass = application.getClassLoader().loadClass("DefaultElasticSearch")
+      ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment())
+      Map binding = new HashMap()
+      binding.userHome = System.properties['user.home']
+      binding.grailsEnv = application.metadata["grails.env"]
+      binding.appName = application.metadata["app.name"]
+      binding.appVersion = application.metadata["app.version"]
+      configSlurper.binding = binding
+      def defaultConfig = configSlurper.parse(dataSourceClass)
+      config = defaultConfig.merge(config)
+      return config.elasticSearch
+    } catch (ClassNotFoundException e) {
+      LOG.debug("Not found: ${e.message}")
+    }
+    // try to get it from GrailsApplication#config
+    if (config.containsKey("elasticSearch")) {
+      if(!config.elasticSearch.date?.formats) {
+        config.elasticSearch.date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+      }
+      return config.elasticSearch
+    }
+
+    // No config found, add some default and obligatory properties
+    ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment())
+    config.merge(configSlurper.parse({
+            elasticSeatch {
+              date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+            }
+    }))
+
+    return config
   }
 }

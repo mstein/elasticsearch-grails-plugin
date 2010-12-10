@@ -1,4 +1,4 @@
-package org.grails.plugins.elasticsearch
+package org.grails.plugins.elasticsearch.exception
 
 /**
  * @author Graeme Rocher

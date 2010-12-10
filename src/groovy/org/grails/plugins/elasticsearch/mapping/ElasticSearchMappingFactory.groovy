@@ -2,12 +2,14 @@ package org.grails.plugins.elasticsearch.mapping
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import grails.converters.JSON
-import grails.web.JSONBuilder
-import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClassProperty
 
 class ElasticSearchMappingFactory {
   static SUPPORTED_FORMAT = ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
+
+  static JSON getElasticMapping(SearchableClassMapping scm){
+    ElasticSearchMappingFactory.getElasticMapping(scm.domainClass, scm.propertiesMapping)
+  }
 
   static JSON getElasticMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertyMappings) {
     def properties = domainClass.getProperties()

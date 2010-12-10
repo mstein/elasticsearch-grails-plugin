@@ -1,4 +1,4 @@
-package org.grails.plugins.elasticsearch
+package org.grails.plugins.elasticsearch.util
 
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 

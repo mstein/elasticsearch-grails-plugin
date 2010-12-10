@@ -1,4 +1,4 @@
-package org.grails.plugins.elasticsearch
+package org.grails.plugins.elasticsearch.util
 
 import org.springframework.orm.hibernate3.SessionFactoryUtils
 import org.springframework.transaction.support.TransactionSynchronizationManager

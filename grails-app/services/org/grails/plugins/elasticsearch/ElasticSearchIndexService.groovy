@@ -6,6 +6,8 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 import static org.elasticsearch.client.Requests.indexRequest
 import org.elasticsearch.client.Client
+import org.grails.plugins.elasticsearch.exception.IndexException
+import org.grails.plugins.elasticsearch.util.ThreadWithSession
 
 class ElasticSearchIndexService implements GrailsApplicationAware {
 

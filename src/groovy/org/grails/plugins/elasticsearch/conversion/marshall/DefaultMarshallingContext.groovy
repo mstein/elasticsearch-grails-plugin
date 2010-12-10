@@ -7,10 +7,7 @@ class DefaultMarshallingContext {
   def marshalled = [:]
   def unmarshalled = [:]
   def currentDepth = 0
-
-  public Boolean isMarshalled(type, id) {
-
-  }
+  def lastParentPropertyName = ''
 
   public delegateMarshalling(object){
     parentFactory.delegateMarshalling(object, this)

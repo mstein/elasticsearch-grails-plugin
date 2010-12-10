@@ -14,7 +14,7 @@ class DomainInstancesRebuilder {
   public Collection buildResults(GrailsDomainClass domainClass, hits) {
     def typeConverter = new SimpleTypeConverter()
     BindDynamicMethod bind = new BindDynamicMethod()
-    def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)
+    def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping
     def unmarshallingContext = new DefaultUnmarshallingContext()
 
     hits.collect { SearchHit hit ->

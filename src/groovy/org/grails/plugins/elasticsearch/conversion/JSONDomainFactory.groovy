@@ -1,4 +1,4 @@
-package org.grails.plugins.elasticsearch
+package org.grails.plugins.elasticsearch.conversion
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 import org.elasticsearch.common.xcontent.XContentBuilder
@@ -12,6 +12,7 @@ import org.grails.plugins.elasticsearch.conversion.marshall.DefaultMarshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.MapMarshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.CollectionMarshaller
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
+import org.grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
 
 class JSONDomainFactory {
   def elasticSearchContextHolder
@@ -35,15 +36,17 @@ class JSONDomainFactory {
       return null
     }
     def marshaller
-    def objectClass = object.class
+    def objectClass = object.getClass()
 
-    // TODO : support user custom marshaller (& marshaller registration)
+    // TODO : support user custom marshaller/converter (& marshaller registration)
     // Check for direct marshaller matching
     if(DEFAULT_MARSHALLERS[objectClass]) {
       marshaller = DEFAULT_MARSHALLERS[objectClass].newInstance()
       marshaller.marshallingContext = marshallingContext
     // Check for domain classes
     } else if(DomainClassArtefactHandler.isDomainClass(objectClass)) {
+      /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
+      SearchableClassPropertyMapping propMap = elasticSearchContextHolder.getMappingContext(domainClassName).getPropertyMapping(marshallingContext.lastParentPropertyName)*/
       marshaller = new DeepDomainClassMarshaller(marshallingContext:marshallingContext)
     } else {
       // Check for inherited marshaller matching
@@ -75,7 +78,7 @@ class JSONDomainFactory {
     def domainClass = getDomainClass(instance)
     def json = jsonBuilder().startObject()
     // TODO : add maxDepth in custom mapping (only for "seachable components")
-    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)
+    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)?.propertiesMapping
     def marshallingContext = new DefaultMarshallingContext(maxDepth:5, parentFactory:this)
     marshallingContext.marshallStack.push(instance)
     // Build the json-formated map that will contain the data to index
@@ -83,6 +86,7 @@ class JSONDomainFactory {
       if(!(prop.name in mappingProperties*.propertyName)){
         continue
       }
+      marshallingContext.lastParentPropertyName = prop.name
       def res = delegateMarshalling(instance."${prop.name}", marshallingContext)
       json.field(prop.name, res)
     }

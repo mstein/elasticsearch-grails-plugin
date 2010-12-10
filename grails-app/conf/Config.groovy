@@ -1,5 +1,4 @@
 // configuration for plugin testing - will not be included in the plugin zip
- 
 log4j = {
     // Example of changing the log pattern for the default console
     // appender:
@@ -22,14 +21,28 @@ log4j = {
 
     warn   'org.mortbay.log'
 }
-
 elasticSearch {
+  /**
+   * Date formats used by the unmarshaller of the JSON responses
+   */
   date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+
+  /**
+   * Hosts for remote ElasticSearch instances.
+   * Will only be used with the "transport" client mode.
+   * If the client mode is set to "transport" and no hosts are defined, ["localhost", 9300] will be used by default.
+   */
+  client.hosts = [
+          [host:'localhost', port:9300]
+  ]
 }
 
 environments {
   development {
-    elasticSearch.client.mode = 'node' // vals : "local", "node", "transport"
+    /**
+     * Possible values : "local", "node", "transport"
+     */
+    elasticSearch.client.mode = 'local'
   }
   test {
     elasticSearch.client.mode = 'local'
