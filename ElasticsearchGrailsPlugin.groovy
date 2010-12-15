@@ -1,15 +1,4 @@
-import org.codehaus.groovy.grails.commons.GrailsDomainClass;
-import static org.elasticsearch.search.builder.SearchSourceBuilder.*
-import static org.elasticsearch.client.Requests.*
-import static org.elasticsearch.index.query.xcontent.QueryBuilders.*
-import org.elasticsearch.action.search.SearchType
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
-import org.elasticsearch.client.Client
-import org.elasticsearch.client.Requests
-import org.elasticsearch.transport.RemoteTransportException
-import org.elasticsearch.indices.IndexAlreadyExistsException
-import org.grails.plugins.elasticsearch.mapping.ElasticSearchMappingFactory
-import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.conversion.DomainInstancesRebuilder
@@ -27,11 +16,15 @@ class ElasticsearchGrailsPlugin {
   static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.ElasticsearchGrailsPlugin")
 
   // the plugin version
-  def version = "0.1"
+  def version = "0.13.0"
   // the version or versions of Grails the plugin is designed for
   def grailsVersion = "1.3.4 > *"
   // the other plugins this plugin depends on
-  def dependsOn = [services: "1.3 > *"]
+  def dependsOn = [
+          services: "1.3 > *",
+          domainClass: "1.0 > *",
+          hibernate: "1.0 > *"
+  ]
   def loadAfter = ['services']
   // resources that are excluded from plugin packaging
   def pluginExcludes = [
@@ -90,7 +83,7 @@ Based on Graeme Rocher spike.
   }
 
   def onShutdown = { event ->
-    event.ctx.getBean("elasticSearchNode").stop().close()
+    event.ctx.getBean("elasticSearchClient").close()
   }
 
   def doWithDynamicMethods = { ctx ->
