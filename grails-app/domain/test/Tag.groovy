@@ -2,7 +2,7 @@ package test
 
 class Tag {
   static searchable = {
-    except=['tweet']
+    except=['boostValue']
   }
 
   String name

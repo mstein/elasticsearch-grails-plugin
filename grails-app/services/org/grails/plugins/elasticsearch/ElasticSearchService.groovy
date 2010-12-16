@@ -35,8 +35,8 @@ class ElasticSearchService implements GrailsApplicationAware {
         } else {
           request = searchRequest()
         }
-        if(params.type){
-          request.types(params.type)
+        if(params.types){
+          request.types(params.types)
         }
         request.searchType(SearchType.DFS_QUERY_THEN_FETCH)
                         .source(searchSource().query(queryString(query))
@@ -56,7 +56,7 @@ class ElasticSearchService implements GrailsApplicationAware {
         return result
       } catch (e) {
         e.printStackTrace()
-        return [searchResult: [], total: 0]
+        return [searchResults: [], total: 0]
       }
     }
   }

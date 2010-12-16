@@ -1,0 +1,34 @@
+h1. search
+
+h2. Purpose
+
+Search through an index for the specified search query.
+The returned result only contains hits for the correponding domain.
+{note}Only domains that are [root-mapped|guide:3.2 Class mapping] have this method injected.{note}
+
+h2. Examples
+
+{code}
+def res = MyDomain.search("${params.query}")
+{code}
+
+h4. Description
+
+@search@ signature:
+
+{code}
+def search(String query, Map params = [from: 0, size: 60, explain: true] )
+{code}
+
+h4. Parameters
+
+* @query@ - The search query. You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
+* @params@ - A list of additional parameters to customize the searching process
+** @from@ and @size@ - From (hit) and the size (number of hits) to return.
+** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
+
+h4. Returned value
+
+Return a @Map@ containing:
+* a @total@ entry, representing the total number of hits found
+* a @searchResults@ entry, containing the hits

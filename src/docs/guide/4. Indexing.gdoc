@@ -1,0 +1,4 @@
+The plugin is indexing automatically any searchable domains when GORM/Hibernate do a save or an update in the database.
+It also delete automatically from the index any document corresponding to a domain that is deleted from the database.
+So, you normally shouldn't have to worry about indexing, but we will add a few methods in the ElasticSearchService and in
+the domain classes to allow manual indexing and bulk indexing.
