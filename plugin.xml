@@ -1,0 +1,31 @@
+<plugin name='elasticsearch' version='0.13.0-a' grailsVersion='1.3.4 &gt; *'>
+  <author>Manuarii Stein</author>
+  <authorEmail>mstein@doc4web.com</authorEmail>
+  <title>ElasticSearch Plugin</title>
+  <description>\
+Integrates ElasticSearch with Grails, allowing to index domain instances or raw data.
+Based on Graeme Rocher spike.
+</description>
+  <documentation>http://grails.org/plugin/elasticsearch</documentation>
+  <resources>
+    <resource>BootStrap</resource>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>DefaultElasticSearch</resource>
+    <resource>UrlMappings</resource>
+    <resource>test.ElasticSearchController</resource>
+    <resource>test.Preferences</resource>
+    <resource>test.Tag</resource>
+    <resource>test.Tweet</resource>
+    <resource>test.User</resource>
+    <resource>org.grails.plugins.elasticsearch.ElasticSearchService</resource>
+    <resource>test.TestCaseService</resource>
+  </resources>
+  <dependencies>
+    <plugin name='services' version='1.3 &gt; *' />
+    <plugin name='domainClass' version='1.0 &gt; *' />
+    <plugin name='hibernate' version='1.0 &gt; *' />
+  </dependencies>
+  <behavior />
+</plugin>
