@@ -36,7 +36,7 @@ class ElasticsearchGrailsPlugin {
   ]
 
   // TODO Fill in these fields
-  def author = "Manuarii Stein"
+  def author = "Manuarii Stein, Stephane Maldini"
   def authorEmail = "mstein@doc4web.com"
   def title = "ElasticSearch Plugin"
   def description = '''\\
