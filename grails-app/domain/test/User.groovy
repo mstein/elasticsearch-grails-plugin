@@ -8,10 +8,12 @@ class User {
     listOfThings index:'no'
     someThings index:'no'
     tweets component:true
+//    role converter:test.EnumConverter
   }
 
   static constraints = {
     tweets cascade:'all'
+    role nullable:false
   }
   static hasMany = [
           tweets:Tweet
@@ -26,4 +28,9 @@ class User {
   String activity = 'Evildoer'
   String someThings = 'something'
   ArrayList<String> listOfThings = ['this', 'that', 'andthis']
+  Role role = Role.ORDINARY
+
+  enum Role {
+      ORDINARY, ADMIN
+  }
 }

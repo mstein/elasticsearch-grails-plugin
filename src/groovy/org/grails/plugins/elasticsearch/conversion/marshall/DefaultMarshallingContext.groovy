@@ -1,7 +1,9 @@
 package org.grails.plugins.elasticsearch.conversion.marshall
 
+import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
+
 class DefaultMarshallingContext {
-  def parentFactory
+  JSONDomainFactory parentFactory
   def maxDepth = 5
   Stack marshallStack = new Stack()
   def marshalled = [:]

@@ -36,4 +36,18 @@ class SearchableClassPropertyMapping {
   public Boolean isComponent(){
     specialAttributes.any { k, v -> k == 'component' && v }
   }
+
+    public def getConverter() {
+        specialAttributes.converter
+    }
+
+
+    public String toString ( ) {
+    return "SearchableClassPropertyMapping{" +
+    "propertyName='" + propertyName + '\'' +
+    ", propertyType=" + propertyType +
+    ", attributes=" + attributes +
+    ", specialAttributes=" + specialAttributes +
+    '}' ;
+    }
 }
