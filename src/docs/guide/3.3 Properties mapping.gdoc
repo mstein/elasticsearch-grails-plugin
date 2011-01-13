@@ -1,0 +1,12 @@
+You can customize the mapping for each domain properties using the closure mapping.
+The syntax is simple:
+{code}static searchable = {
+    propertyName option1:value, option2:value, ...
+}{code}
+*Available options*
+{table}
+*Option name* | *Description*
+boost | A decimal boost value. With a positive value, promotes search results for hits in this property; with a negative value, demotes search results that hit this property.
+index | How or if the property is made into searchable element. One of @"no"@, @"not_analyzed"@ or @"analyzed"@
+component | To use only on domain (or collection of domains), make the property a searchable component. Note: not required for now, please read [this note|guide:3.4 Searchable Component-Reference note]
+{table}

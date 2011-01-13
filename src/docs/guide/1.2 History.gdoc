@@ -1,0 +1,17 @@
+h4. History
+
+* December 16, 2010
+** initial 0.13.0a release
+
+h4. Authors
+
+Manuarii Stein
+Stephane Maldini
+
+h4. Licence
+
+doc4web Consulting provides this plugin without any guarantees under Apache Software Licence 2.
+
+h4. Previous work
+
+Graeme Rocher started the first draft which this plugin is based on.
