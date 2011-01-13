@@ -8,7 +8,7 @@ class User {
     listOfThings index:'no'
     someThings index:'no'
     tweets component:true
-//    role converter:test.EnumConverter
+    role converter:test.RoleConverter
   }
 
   static constraints = {

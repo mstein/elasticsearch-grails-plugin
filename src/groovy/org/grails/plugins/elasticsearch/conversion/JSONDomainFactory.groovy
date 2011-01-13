@@ -66,8 +66,6 @@ class JSONDomainFactory {
                 if (converter instanceof Class) {
                     if (PropertyEditor.isAssignableFrom(converter)) {
                         marshaller = new PropertyEditorMarshaller(propertyEditorClass:converter)
-                    } else if (Marshaller.isAssignableFrom(converter)) {
-                        marshaller = converter.newInstance()
                     }
                 }
             }

@@ -5,7 +5,7 @@ import org.codehaus.groovy.grails.commons.GrailsDomainClass
 class ClosureSearchableDomainClassMapper {
   static final CLASS_MAPPING_OPTIONS = ['all', 'root']
   static final SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index']
-  static final SEARCHABLE_SPECIAL_MAPPING_OPTIONS = ['component','converter']
+  static final SEARCHABLE_SPECIAL_MAPPING_OPTIONS = ['component','converter','reference']
 
   def elasticSearcConfig
 

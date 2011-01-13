@@ -56,7 +56,7 @@ class ElasticSearchController {
           resMsg += "<strong>Tweet</strong> \"${it.message}\" from ${it.user.firstname} ${it.user.lastname}<br />"
           break
         case User:
-          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname}<br />"
+          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname} ${it.role}<br />"
           break
         default:
           resMsg += "<strong>Other</strong> ${it}<br />"
