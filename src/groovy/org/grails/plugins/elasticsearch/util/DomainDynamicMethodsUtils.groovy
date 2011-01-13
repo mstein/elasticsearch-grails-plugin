@@ -71,7 +71,7 @@ class DomainDynamicMethodsUtils {
         def domainCopy = domain
         // Only inject the search method if the domain is mapped as "root"
         if (elasticSearchContextHolder.getMappingContext(domainCopy)?.classMapping?.root) {
-          domain.metaClass.static.search = { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, type: domainCopy.propertyName] ->
+          domain.metaClass.static.search = { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.propertyName] ->
             elasticSearchService.search(q, params)
           }
         }
