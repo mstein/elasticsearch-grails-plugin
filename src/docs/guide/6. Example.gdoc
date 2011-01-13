@@ -65,7 +65,7 @@ class Tag {
 
 h3. The controller
 h4. A action triggering indexation
-@ElasticSearchController@ (@testCaseService@ is just dealing with GORM instruction):
+@ElasticSearchController@ (@testCaseService@ is just dealing with GORM instructions):
 {code}
 class ElasticSearchController {
   def elasticSearchService
@@ -92,7 +92,7 @@ class ElasticSearchController {
 }
 {code}
 With this code (considering that there are already @User@ in the database), new Tweets will be indexed automatically,
-and corresponding @User@ indexed documents will be updated since we have set the @tweets@ association as components.
+and corresponding @User@ indexed documents will be updated since we have set the @tweets@ association as component.
 
 h4. Searching for Tweets
 {code}

@@ -21,7 +21,6 @@ class ElasticsearchGrailsPlugin {
   def grailsVersion = "1.3.4 > *"
   // the other plugins this plugin depends on
   def dependsOn = [
-          services: "1.3 > *",
           domainClass: "1.0 > *",
           hibernate: "1.0 > *"
   ]
