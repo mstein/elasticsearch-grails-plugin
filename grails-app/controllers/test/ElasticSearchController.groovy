@@ -56,7 +56,11 @@ class ElasticSearchController {
           resMsg += "<strong>Tweet</strong> \"${it.message}\" from ${it.user.firstname} ${it.user.lastname}<br />"
           break
         case User:
-          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname} ${it.role}<br />"
+          def pics = it.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }.join(',')
+          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname} ${it.role} ${pics}<br />"
+          break
+        case Photo:
+          resMsg += "<img width=\"40\" height=\"40\" src=\"${it.url}\"/><br/>"
           break
         default:
           resMsg += "<strong>Other</strong> ${it}<br />"

@@ -28,7 +28,6 @@ class ElasticSearchService implements GrailsApplicationAware {
 
   def search(String query, Map params = [from: 0, size: 60, explain: true] ) {
     elasticSearchHelper.withElasticSearch { Client client ->
-      try {
         def request
         if(params.indices){
           request = searchRequest(params.indices)
@@ -51,13 +50,13 @@ class ElasticSearchService implements GrailsApplicationAware {
         LOG.info("Found ${result.total ?: 0} result(s).")
 
         // Convert the hits back to their initial type
-        result.searchResults = domainInstancesRebuilder.buildResults(searchHits.hits())
+        result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
 
         return result
-      } catch (e) {
-        e.printStackTrace()
-        return [searchResults: [], total: 0]
-      }
+//      } catch (e) {
+//        e.printStackTrace()
+//        return [searchResults: [], total: 0]
+//      }
     }
   }
 
@@ -97,13 +96,18 @@ class ElasticSearchService implements GrailsApplicationAware {
 
   private Thread indexInBackground(instance, attempts) {
     return ThreadWithSession.startWithSession(sessionFactory, persistenceInterceptor) {
+      def json
+        try {
+            json = jsonDomainFactory.buildJSON(instance)
+        } catch (e) {
+            throw new IndexException("Failed to marshall domain instance [${instance}]", e)
+        }
       try {
         elasticSearchHelper.withElasticSearch { Client client ->
           Class clazz = instance.class
           String name = GrailsNameUtils.getPropertyName(clazz)
           def indexValue = clazz.package.name ?: name
 
-          def json = jsonDomainFactory.buildJSON(instance)
           client.index(
                   indexRequest(indexValue)
                           .type(name)

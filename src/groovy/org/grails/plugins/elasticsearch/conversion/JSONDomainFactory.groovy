@@ -30,6 +30,7 @@ import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import java.beans.PropertyEditor
 import org.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.Marshaller
+import org.grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
 
 class JSONDomainFactory {
     def elasticSearchContextHolder
@@ -52,32 +53,54 @@ class JSONDomainFactory {
         if (object == null) {
             return null
         }
-        def marshaller
+        def marshaller = null
         def objectClass = object.getClass()
 
-        // Check if we arrived from searchable domain class.
-        def parentObject = marshallingContext.marshallStack.peek()
-        if (parentObject && marshallingContext.lastParentPropertyName && DomainClassArtefactHandler.isDomainClass(parentObject.getClass())) {
-            def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(parentObject))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
-            def converter = propertyMapping?.converter
-            // Property has converter information. Lets see how we can apply it.
-            if (converter) {
-                // Property editor?
-                if (converter instanceof Class) {
-                    if (PropertyEditor.isAssignableFrom(converter)) {
-                        marshaller = new PropertyEditorMarshaller(propertyEditorClass:converter)
+        // Resolve collections.
+        // Check for direct marshaller matching
+        if (object instanceof Collection) {
+            marshaller = new CollectionMarshaller()
+        }
+
+
+        if (!marshaller && DEFAULT_MARSHALLERS[objectClass]) {
+            marshaller = DEFAULT_MARSHALLERS[objectClass].newInstance()
+        }
+
+        if (!marshaller) {
+
+            // Check if we arrived from searchable domain class.
+            def parentObject = marshallingContext.marshallStack.peek()
+            // Parent could be a persistent collection. In this case,
+            // try grandparent as a workaround.
+            if (parentObject instanceof Collection) {
+                def collection = marshallingContext.marshallStack.pop()
+                parentObject = marshallingContext.marshallStack.peek()
+                marshallingContext.marshallStack.push(collection)
+            }
+            if (parentObject && marshallingContext.lastParentPropertyName && DomainClassArtefactHandler.isDomainClass(parentObject.getClass())) {
+                GrailsDomainClass domainClass = getDomainClass(parentObject)
+                def propertyMapping = elasticSearchContextHolder.getMappingContext(domainClass)?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+                def converter = propertyMapping?.converter
+                // Property has converter information. Lets see how we can apply it.
+                if (converter) {
+                    // Property editor?
+                    if (converter instanceof Class) {
+                        if (PropertyEditor.isAssignableFrom(converter)) {
+                            marshaller = new PropertyEditorMarshaller(propertyEditorClass:converter)
+                        }
                     }
+                } else if (propertyMapping?.reference) {
+                    def refClass = propertyMapping.getBestGuessReferenceType()
+                    marshaller = new SearchableReferenceMarshaller(refClass:refClass)
                 }
             }
         }
 
         if (!marshaller) {
             // TODO : support user custom marshaller/converter (& marshaller registration)
-            // Check for direct marshaller matching
-            if (DEFAULT_MARSHALLERS[objectClass]) {
-                marshaller = DEFAULT_MARSHALLERS[objectClass].newInstance()
-                // Check for domain classes
-            } else if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
+            // Check for domain classes
+            if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
                 /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
              SearchableClassPropertyMapping propMap = elasticSearchContextHolder.getMappingContext(domainClassName).getPropertyMapping(marshallingContext.lastParentPropertyName)*/
                 marshaller = new DeepDomainClassMarshaller()

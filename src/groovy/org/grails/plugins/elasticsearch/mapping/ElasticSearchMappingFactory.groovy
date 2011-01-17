@@ -16,18 +16,17 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import grails.converters.JSON
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClassProperty
 
 class ElasticSearchMappingFactory {
 
     static SUPPORTED_FORMAT = ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
 
-    static JSON getElasticMapping(SearchableClassMapping scm) {
+    static Map getElasticMapping(SearchableClassMapping scm) {
         ElasticSearchMappingFactory.getElasticMapping(scm.domainClass, scm.propertiesMapping)
     }
 
-    static JSON getElasticMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertyMappings) {
+    static Map getElasticMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertyMappings) {
         def properties = domainClass.getProperties()
         def mapBuilder = [
                 (domainClass.propertyName): [
@@ -48,17 +47,21 @@ class ElasticSearchMappingFactory {
                 }
                 if (!(prop.typePropertyName in SUPPORTED_FORMAT)) {
                     // Use 'string' type for properties with custom converter.
+                    // Arrays are automatically resolved by ElasticSearch, so no worries.
                     if (customMapping.converter) {
                         propType = 'string'
                     } else {
                         propType = 'object'
                     }
+                    if (customMapping.reference) {
+                        propType = 'long'
+                    }
                 }
                 propOptions.type = propType
-                mapBuilder."${domainClass.propertyName}".properties << ["${prop.name}": propOptions]
+                mapBuilder."${domainClass.propertyName}".properties << [(prop.name): propOptions]
             }
         }
 
-        return mapBuilder as JSON
+        return mapBuilder
     }
 }

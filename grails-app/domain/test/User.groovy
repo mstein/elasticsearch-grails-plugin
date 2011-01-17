@@ -8,6 +8,7 @@ class User {
     listOfThings index:'no'
     someThings index:'no'
     tweets component:true
+    photos reference:true
     role converter:test.RoleConverter
   }
 
@@ -16,7 +17,8 @@ class User {
     role nullable:false
   }
   static hasMany = [
-          tweets:Tweet
+          tweets:Tweet,
+          photos:Photo
   ]
   static mappedBy = [
           tweets:'user'

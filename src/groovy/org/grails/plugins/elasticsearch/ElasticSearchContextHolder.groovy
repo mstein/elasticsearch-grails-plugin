@@ -8,7 +8,7 @@ class ElasticSearchContextHolder {
   Map<String, SearchableClassMapping> mapping = [:]
 
   public void addMappingContext(SearchableClassMapping scm){
-    mapping[scm.domainClass.propertyName] = scm
+    mapping[scm.domainClass.fullName] = scm
   }
 
   SearchableClassMapping getMappingContext(String type) {
@@ -16,6 +16,7 @@ class ElasticSearchContextHolder {
   }
 
   SearchableClassMapping getMappingContext(GrailsDomainClass domainClass) {
-    mapping[domainClass.propertyName]
+    mapping[domainClass.fullName]
   }
+
 }

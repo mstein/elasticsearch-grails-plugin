@@ -1,7 +1,6 @@
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.conversion.DomainInstancesRebuilder
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
 import org.grails.plugins.elasticsearch.AuditEventListener
@@ -11,6 +10,8 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 import grails.util.GrailsUtil
 import org.apache.commons.logging.LogFactory
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
 
 class ElasticsearchGrailsPlugin {
   static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.ElasticsearchGrailsPlugin")
@@ -62,8 +63,16 @@ Based on Graeme Rocher spike.
     elasticSearchClient(ClientNodeFactoryBean) {
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
     }
-    domainInstancesRebuilder(DomainInstancesRebuilder) {
+    searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
+      elasticSearchContext = ref("elasticSearchContextHolder")
+      grailsApplication = ref("grailsApplication")
+      elasticSearchClient = ref("elasticSearchClient")
+      config = esConfig
+      bean.initMethod = 'configureAndInstallMappings'
+    }
+    domainInstancesRebuilder(DomainClassUnmarshaller) {
       elasticSearchContextHolder = ref("elasticSearchContextHolder")
+      elasticSearchClient = ref("elasticSearchClient")
       grailsApplication = ref("grailsApplication")
     }
     customEditorRegistrar(CustomEditorRegistar)
@@ -87,7 +96,6 @@ Based on Graeme Rocher spike.
 
   def doWithDynamicMethods = { ctx ->
     // Define the custom ElasticSearch mapping for searchable domain classes
-    DomainDynamicMethodsUtils.resolveMapping(application.domainClasses, ctx)
     DomainDynamicMethodsUtils.injectDynamicMethods(application.domainClasses, application, ctx)
   }
 
