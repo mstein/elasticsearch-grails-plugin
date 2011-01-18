@@ -24,18 +24,18 @@ class IndexRequestBuffer {
     deleteRequests = Collections.synchronizedSet([] as Set)
   }
 
-  def addIndexRequest(domainInstance){
+  synchronized def addIndexRequest(domainInstance){
     indexRequests << domainInstance
   }
 
-  def addDeleteRequest(domainInstance){
+  synchronized def addDeleteRequest(domainInstance){
     deleteRequests << domainInstance
   }
   /**
    * Execute pending requests and clear both index & delete pending queues.
    * @return
    */
-  void executeRequests(){
+  synchronized void executeRequests(){
     // If there are domain instances that are both in the index requests & delete requests list,
     // they are directly deleted.
     def notToIndex = indexRequests.intersect(deleteRequests)

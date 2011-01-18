@@ -26,7 +26,7 @@ import java.util.*;
 public class SearchableClassPropertyMapping {
 
     public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("boost", "index"));
-    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll"));
+    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth"));
 
     /** Grails attributes of this property */
     GrailsDomainClassProperty grailsProperty;

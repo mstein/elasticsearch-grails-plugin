@@ -29,6 +29,7 @@ import static org.elasticsearch.client.Requests.searchRequest
 import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
 import static org.elasticsearch.index.query.xcontent.QueryBuilders.queryString
 import org.apache.log4j.Logger
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 
 public class ElasticSearchService implements GrailsApplicationAware {
 
@@ -87,7 +88,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * VERY SLOW until bulk indexing is done.
      * @param options indexing options
      */
-    public void index(Map options) {
+    public void index(Map options = [:]) {
         def clazz = options?.class
         def mappings = []
         if (clazz) {
@@ -96,6 +97,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             mappings = elasticSearchContextHolder.mapping
         }
         mappings.each { scm ->
+            LOG.debug("Indexing all instances of ${scm.domainClass}")
             scm.domainClass.getAll().each { indexDomain(it) }
         }
     }
@@ -135,8 +137,9 @@ public class ElasticSearchService implements GrailsApplicationAware {
             try {
                 elasticSearchHelper.withElasticSearch { Client client ->
                     Class clazz = instance.class
+                    SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
+                    def indexValue = scm.indexName
                     String name = GrailsNameUtils.getPropertyName(clazz)
-                    def indexValue = clazz.package.name ?: name
 
                     client.index(
                             indexRequest(indexValue).type(name).id(instance.id.toString()).source(json)

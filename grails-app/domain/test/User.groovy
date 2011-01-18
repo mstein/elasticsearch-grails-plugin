@@ -24,6 +24,11 @@ class User {
           tweets:'user'
   ]
 
+  static mapping = {
+          table 'test_user'
+  }
+
+
   String lastname
   String firstname
   String password

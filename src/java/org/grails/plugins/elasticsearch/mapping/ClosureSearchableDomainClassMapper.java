@@ -29,7 +29,7 @@ import java.util.*;
 
 class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
     /** Options applied to searchable class itself */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all","root"));
+    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all","root","only","except"));
 
     /** Class mapping properties */
     private Boolean all;
@@ -55,6 +55,26 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         for(GrailsDomainClassProperty prop : domainClass.getProperties()) {
             this.mappableProperties.add(prop.getName());
         }
+    }
+
+    public void setAll(Boolean all) {
+        this.all = all;
+    }
+
+    public void setRoot(Boolean root) {
+        this.root = root;
+    }
+
+    public void setOnly(Object only) {
+        this.only = only;
+    }
+
+    public void setExcept(Object except) {
+        this.except = except;
+    }
+
+    public void root(Boolean rootFlag) {
+        this.root = rootFlag;
     }
 
     /**
@@ -137,15 +157,15 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
      */
     public Object invokeMethod(String name, Object args) {
         // Predefined mapping options
-        if (CLASS_MAPPING_OPTIONS.contains(name)) {
-            if (args == null || ObjectUtils.isEmpty((Object[])args)) {
-                throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.");
-            }
-            Field target = ReflectionUtils.findField(this.getClass(), name);
-            ReflectionUtils.makeAccessible(target);
-            ReflectionUtils.setField(target, this, ((Object[])args)[0]);
-            return null;
-        }
+//        if (CLASS_MAPPING_OPTIONS.contains(name)) {
+//            if (args == null || ObjectUtils.isEmpty((Object[])args)) {
+//                throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.");
+//            }
+//            Field target = ReflectionUtils.findField(this.getClass(), name);
+//            ReflectionUtils.makeAccessible(target);
+//            ReflectionUtils.setField(target, this, ((Object[])args)[0]);
+//            return null;
+//        }
 
         // Custom properties mapping options
         GrailsDomainClassProperty property = grailsDomainClass.getPropertyByName(name);

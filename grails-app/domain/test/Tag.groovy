@@ -7,4 +7,8 @@ class Tag {
 
   String name
   Integer boostValue = 1
+
+  static mapping = {
+      table 'test_tag'
+  }
 }

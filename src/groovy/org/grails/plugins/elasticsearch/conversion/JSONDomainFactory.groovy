@@ -123,7 +123,7 @@ class JSONDomainFactory {
 
     private static GrailsDomainClass getDomainClass(instance) {
         def grailsApplication = ApplicationHolder.application
-        grailsApplication.domainClasses.find {it.naturalName == instance.class?.simpleName}
+        grailsApplication.domainClasses.find {it.clazz == instance.class}
     }
 
     /**

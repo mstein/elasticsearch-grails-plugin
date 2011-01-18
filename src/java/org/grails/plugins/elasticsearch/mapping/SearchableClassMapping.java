@@ -78,7 +78,8 @@ public class SearchableClassMapping {
     public String getIndexName() {
         String name = domainClass.getPackageName();
         if (name == null || name.length() == 0) {
-            name = domainClass.getPropertyName();
+            // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
+            name = domainClass.getPropertyName().toLowerCase();
         }
         return name;
     }
