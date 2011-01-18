@@ -26,9 +26,10 @@ public class SearchableClassMapping {
     /** All searchable properties */
     private Collection<SearchableClassPropertyMapping> propertiesMapping;
     /** Owning domain class */
-    GrailsDomainClass domainClass;
+    private GrailsDomainClass domainClass;
     /** Searchable root? */
-    private Boolean root;
+    private boolean root = true;
+    private boolean all = true;
 
     public SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass;
@@ -82,4 +83,7 @@ public class SearchableClassMapping {
         return name;
     }
 
+    public boolean isAll() {
+        return all;
+    }
 }

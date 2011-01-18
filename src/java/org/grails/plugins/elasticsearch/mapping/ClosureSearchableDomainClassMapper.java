@@ -79,6 +79,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
 
         Collection<SearchableClassPropertyMapping> mappedProperties = new ArrayList<SearchableClassPropertyMapping>();
         for(GrailsDomainClassProperty property : grailsDomainClass.getProperties()) {
+            //noinspection unchecked
             List<String> defaultExcludedProperties = (List<String>) esConfig.get("defaultExcludedProperties");
             if (defaultExcludedProperties == null || !defaultExcludedProperties.contains(property.getName())) {
                 mappedProperties.add(new SearchableClassPropertyMapping(property));
@@ -162,7 +163,8 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
             propertyMapping = new SearchableClassPropertyMapping(property);
             customMappedProperties.put(name, propertyMapping);
         }
-        propertyMapping.addAttributes(((Object[])args)[0]);
+        //noinspection unchecked
+        propertyMapping.addAttributes((Map<String, Object>) ((Object[])args)[0]);
         return null;
     }
 

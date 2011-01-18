@@ -13,55 +13,69 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.plugins.elasticsearch.mapping
+package org.grails.plugins.elasticsearch.mapping;
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClassProperty
+import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
 
-class ElasticSearchMappingFactory {
+import java.util.*;
 
-    static SUPPORTED_FORMAT = ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
+/**
+ * Build ElasticSearch class mapping based on attributes provided by closure.
+ */
+public class ElasticSearchMappingFactory {
 
-    static Map getElasticMapping(SearchableClassMapping scm) {
-        ElasticSearchMappingFactory.getElasticMapping(scm.domainClass, scm.propertiesMapping)
-    }
+    private static final Set<String> SUPPORTED_FORMAT = new HashSet<String>(Arrays.asList(
+            "string", "integer", "long", "float", "double", "boolean", "null", "date"));
 
-    static Map getElasticMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertyMappings) {
-        def properties = domainClass.getProperties()
-        def mapBuilder = [
-                (domainClass.propertyName): [
-                        properties: [:]
-                ]
-        ]
+    public static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
+        Map<String, Object> elasticTypeMappingProperties = new LinkedHashMap<String, Object>();
+
+        if (!scm.isAll()) {
+            // "_all" : {"enabled" : true}
+            elasticTypeMappingProperties.put("_all",
+                Collections.singletonMap("enabled", false));
+        }
+
         // Map each domain properties in supported format, or object for complex type
-        properties.each {DefaultGrailsDomainClassProperty prop ->
-            if (prop.name in propertyMappings*.propertyName) {
-                def propType = prop.typePropertyName
-                def propOptions = [:]
+        for(GrailsDomainClassProperty prop : scm.getDomainClass().getProperties()) {
+            // Does it have custom mapping?
+            SearchableClassPropertyMapping scpm = scm.getPropertyMapping(prop.getName());
+            if (scpm != null) {
+                String propType = prop.getTypePropertyName();
+                Map<String, Object> propOptions = new LinkedHashMap<String, Object>();
                 // Add the custom mapping (searchable static property in domain model)
-                def customMapping = propertyMappings.find {it.propertyName == prop.name}
-                if (customMapping) {
-                    customMapping.attributes.each { key, value ->
-                        propOptions."${key}" = value
-                    }
-                }
-                if (!(prop.typePropertyName in SUPPORTED_FORMAT)) {
+                propOptions.putAll(scpm.getAttributes());
+                if (!(SUPPORTED_FORMAT.contains(prop.getTypePropertyName()))) {
                     // Use 'string' type for properties with custom converter.
                     // Arrays are automatically resolved by ElasticSearch, so no worries.
-                    if (customMapping.converter) {
-                        propType = 'string'
+                    if (scpm.getConverter() != null) {
+                        propType = "string";
                     } else {
-                        propType = 'object'
+                        propType = "object";
                     }
-                    if (customMapping.reference) {
-                        propType = 'long'
+
+                    if (scpm.getReference() != null) {
+                        propType = "long";      // fixme: think about composite ids.
                     }
                 }
-                propOptions.type = propType
-                mapBuilder."${domainClass.propertyName}".properties << [(prop.name): propOptions]
+                propOptions.put("type", propType);
+                // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
+                if (scm.isAll()) {
+                    if (scpm.shouldExcludeFromAll()) {
+                        propOptions.put("include_in_all", false);
+                    } else {
+                        propOptions.put("include_in_all", true);
+                    }
+                }
+                elasticTypeMappingProperties.put(prop.getName(), propOptions);
             }
         }
 
-        return mapBuilder
+        Map<String, Object> mapping = new LinkedHashMap<String, Object>();
+        mapping.put(scm.getDomainClass().getPropertyName(),
+                Collections.singletonMap("properties", elasticTypeMappingProperties));
+
+        return mapping;
     }
+
 }

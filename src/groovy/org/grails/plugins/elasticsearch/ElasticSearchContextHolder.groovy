@@ -19,4 +19,7 @@ class ElasticSearchContextHolder {
     mapping[domainClass.fullName]
   }
 
+  SearchableClassMapping getMappingContextByType(Class clazz) {
+    mapping.values().find { scm -> scm.domainClass.clazz == clazz }
+  }
 }
