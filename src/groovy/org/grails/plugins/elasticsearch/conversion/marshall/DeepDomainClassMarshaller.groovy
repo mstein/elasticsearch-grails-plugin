@@ -9,9 +9,13 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
   protected doMarshall(instance) {
     def marshallResult = [id: instance.id, 'class': instance.class?.name]
     def domainClass = getDomainClass(instance)
-    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)?.propertiesMapping
+    def scm = elasticSearchContextHolder.getMappingContext(domainClass)
+    if (!scm) {
+        throw new IllegalStateException("Domain class ${domainClass} is not searchable.")
+    }
     for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
-      if(!(prop.name in mappingProperties*.propertyName)){
+      def propertyMapping = scm.getPropertyMapping(prop.name)
+      if (!propertyMapping) {
         continue
       }
       def propertyClassName = instance."${prop.name}"?.class?.name
@@ -20,11 +24,11 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
       // Domain marshalling
       if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
-        if (propertyValue.class.searchable) {
+        if (propertyValue.class.searchable) {   // todo fixme - will throw exception when no searchable field.
           marshallingContext.lastParentPropertyName = prop.name
-          marshallResult += [(prop.name): ([id: instance.id, 'class': propertyClassName] + this.marshall(propertyValue))]
+          marshallResult += [(prop.name): ([id: instance.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(instance, propertyMapping.maxDepth))]//this.marshall(propertyValue))]
         } else {
-          marshallResult += [(prop.name): [id: instance.id, 'class': propertyClassName]]
+          marshallResult += [(prop.name): [id: instance.ident(), 'class': propertyClassName]]
         }
 
         // Non-domain marshalling

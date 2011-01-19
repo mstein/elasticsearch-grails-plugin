@@ -38,6 +38,8 @@ elasticSearch {
   client.hosts = [
           [host: 'localhost', port: 9300]
   ]
+
+  //disableAutoIndex = true
 }
 
 environments {

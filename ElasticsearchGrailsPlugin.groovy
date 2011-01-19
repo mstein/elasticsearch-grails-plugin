@@ -100,13 +100,16 @@ Based on Graeme Rocher spike.
         auditListener(AuditEventListener) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
         }
-        hibernateEventListeners(HibernateEventListeners) {
-            listenerMap = [
-                    'delete': auditListener,
-                    'post-collection-update': auditListener,
-                    'save-update': auditListener,
-                    'flush': auditListener
-            ]
+        if (!esConfig.disableAutoIndex) {
+            // do not install audit listener if auto-indexing is disabled.
+            hibernateEventListeners(HibernateEventListeners) {
+                listenerMap = [
+                        'delete': auditListener,
+                        'post-collection-update': auditListener,
+                        'save-update': auditListener,
+                        'flush': auditListener
+                ]
+            }
         }
     }
 

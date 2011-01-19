@@ -32,7 +32,11 @@ import org.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarsha
 import org.grails.plugins.elasticsearch.conversion.marshall.Marshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
 
+/**
+ * Marshall objects as JSON.
+ */
 class JSONDomainFactory {
+
     def elasticSearchContextHolder
 
     /**
@@ -49,7 +53,7 @@ class JSONDomainFactory {
      * @param marshallingContext The marshalling context associate with the current marshalling process
      * @return Object The result of the marshall operation.
      */
-    public delegateMarshalling(object, marshallingContext) {
+    public delegateMarshalling(object, marshallingContext, maxDepth = 0) {
         if (object == null) {
             return null
         }
@@ -70,14 +74,7 @@ class JSONDomainFactory {
         if (!marshaller) {
 
             // Check if we arrived from searchable domain class.
-            def parentObject = marshallingContext.marshallStack.peek()
-            // Parent could be a persistent collection. In this case,
-            // try grandparent as a workaround.
-            if (parentObject instanceof Collection) {
-                def collection = marshallingContext.marshallStack.pop()
-                parentObject = marshallingContext.marshallStack.peek()
-                marshallingContext.marshallStack.push(collection)
-            }
+            def parentObject = marshallingContext.peekDomainObject()
             if (parentObject && marshallingContext.lastParentPropertyName && DomainClassArtefactHandler.isDomainClass(parentObject.getClass())) {
                 GrailsDomainClass domainClass = getDomainClass(parentObject)
                 def propertyMapping = elasticSearchContextHolder.getMappingContext(domainClass)?.getPropertyMapping(marshallingContext.lastParentPropertyName)
@@ -93,6 +90,8 @@ class JSONDomainFactory {
                 } else if (propertyMapping?.reference) {
                     def refClass = propertyMapping.getBestGuessReferenceType()
                     marshaller = new SearchableReferenceMarshaller(refClass:refClass)
+                } else if (propertyMapping?.component) {
+                    marshaller = new DeepDomainClassMarshaller()
                 }
             }
         }
@@ -118,6 +117,7 @@ class JSONDomainFactory {
 
         marshaller.marshallingContext = marshallingContext
         marshaller.elasticSearchContextHolder = elasticSearchContextHolder
+        marshaller.maxDepth = maxDepth
         marshaller.marshall(object)
     }
 
@@ -136,9 +136,10 @@ class JSONDomainFactory {
         def domainClass = getDomainClass(instance)
         def json = jsonBuilder().startObject()
         // TODO : add maxDepth in custom mapping (only for "seachable components")
-        def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)?.propertiesMapping
+        def scm = elasticSearchContextHolder.getMappingContext(domainClass)
+        def mappingProperties = scm?.propertiesMapping
         def marshallingContext = new DefaultMarshallingContext(maxDepth: 5, parentFactory: this)
-        marshallingContext.marshallStack.push(instance)
+        marshallingContext.push(instance)
         // Build the json-formated map that will contain the data to index
         for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
             if (!(prop.name in mappingProperties*.propertyName)) {
@@ -148,7 +149,7 @@ class JSONDomainFactory {
             def res = delegateMarshalling(instance."${prop.name}", marshallingContext)
             json.field(prop.name, res)
         }
-        marshallingContext.marshallStack.pop()
+        marshallingContext.pop()
         json.endObject()
     }
 }

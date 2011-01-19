@@ -87,6 +87,16 @@ public class SearchableClassPropertyMapping {
         }
     }
 
+    public int getMaxDepth() {
+        Object maxDepth = specialAttributes.get("maxDepth");
+        if (maxDepth != null) {
+            return (Integer)maxDepth;
+        } else {
+            return 0;
+        }
+    }
+
+
 
     public Class getBestGuessReferenceType() {
         // is type defined explicitly?

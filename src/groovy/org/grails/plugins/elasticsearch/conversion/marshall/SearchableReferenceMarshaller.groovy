@@ -39,7 +39,7 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
         def grailsApplication = ApplicationHolder.application
         def domainClass = grailsApplication.domainClasses.find {it.clazz == refClass}
         assert domainClass : "Class ${refClass} is not a Grails domain class."
-        // todo incapsulate me
+        // todo encapsulate me
         def scm = marshallingContext.parentFactory.elasticSearchContextHolder.getMappingContext(domainClass)
         assert scm
         BeanWrapper beanWrapper = new BeanWrapperImpl(object);

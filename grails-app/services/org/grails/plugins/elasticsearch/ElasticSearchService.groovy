@@ -139,7 +139,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
                     Class clazz = instance.class
                     SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
                     def indexValue = scm.indexName
-                    String name = GrailsNameUtils.getPropertyName(clazz)
+                    String name = scm.elasticTypeName
 
                     client.index(
                             indexRequest(indexValue).type(name).id(instance.id.toString()).source(json)

@@ -16,6 +16,7 @@
 
 package org.grails.plugins.elasticsearch.mapping;
 
+import grails.util.GrailsNameUtils;
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 
@@ -82,6 +83,13 @@ public class SearchableClassMapping {
             name = domainClass.getPropertyName().toLowerCase();
         }
         return name;
+    }
+
+    /**
+     * @return type name for ES mapping.
+     */
+    public String getElasticTypeName() {
+        return GrailsNameUtils.getPropertyName(domainClass.getClazz());
     }
 
     public boolean isAll() {
