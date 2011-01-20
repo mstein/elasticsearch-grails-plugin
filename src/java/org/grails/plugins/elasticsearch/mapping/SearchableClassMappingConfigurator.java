@@ -66,15 +66,15 @@ public class SearchableClassMappingConfigurator {
             if (scm.isRoot()) {
                 Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm);
 
-                LOG.debug(elasticMapping.toString());
-
                 // todo wait for success, maybe retry.
                 try {
                     elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
                             .execute().actionGet();
+                    LOG.debug(elasticMapping.toString());
+
                     // If the index already exists, ignore the exception
                 } catch (IndexAlreadyExistsException iaee) {
-                    LOG.debug(iaee.getMessage());
+                    LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.");
                 } catch (RemoteTransportException rte) {
                     LOG.debug(rte.getMessage());
                 }
@@ -91,12 +91,14 @@ public class SearchableClassMappingConfigurator {
         List<SearchableClassMapping> mappings = new ArrayList<SearchableClassMapping>();
         for(GrailsClass clazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
             GrailsDomainClass domainClass = (GrailsDomainClass) clazz;
-            LOG.debug("Custom mapping for searchable detected in [" + domainClass.getPropertyName() + "] class, resolving the closure...");
-            ClosureSearchableDomainClassMapper closureMapper = new ClosureSearchableDomainClassMapper(domainClass, config);
+            ClosureSearchableDomainClassMapper closureMapper = new ClosureSearchableDomainClassMapper(grailsApplication, domainClass, config);
             SearchableClassMapping searchableClassMapping = closureMapper.buildClassMapping();
             if (searchableClassMapping != null) {
                 elasticSearchContext.addMappingContext(searchableClassMapping);
                 mappings.add(searchableClassMapping);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Mapped [" + domainClass.getName() + "] with properties [" + searchableClassMapping.getPropertiesMapping() + "]");
+                }
             }
         }
 

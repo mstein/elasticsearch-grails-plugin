@@ -155,6 +155,9 @@ public class SearchableClassPropertyMapping {
         return grailsProperty.getName();
     }
 
+    public GrailsDomainClassProperty getGrailsProperty() {
+        return grailsProperty;
+    }
 
     public Map<String,Object> getAttributes() {
         return Collections.unmodifiableMap(attributes);

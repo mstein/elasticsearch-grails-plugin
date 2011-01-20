@@ -65,7 +65,7 @@ class ClientNodeFactoryBean implements FactoryBean {
             def client = nb.node().client()
             // Wait for the cluster to become alive.
             LOG.info "Waiting for ElasticSearch green status."
-            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
+//            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
             return client
         }
     }

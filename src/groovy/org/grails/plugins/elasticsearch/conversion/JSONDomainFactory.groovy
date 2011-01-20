@@ -137,19 +137,17 @@ class JSONDomainFactory {
         def json = jsonBuilder().startObject()
         // TODO : add maxDepth in custom mapping (only for "seachable components")
         def scm = elasticSearchContextHolder.getMappingContext(domainClass)
-        def mappingProperties = scm?.propertiesMapping
         def marshallingContext = new DefaultMarshallingContext(maxDepth: 5, parentFactory: this)
         marshallingContext.push(instance)
         // Build the json-formated map that will contain the data to index
-        for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
-            if (!(prop.name in mappingProperties*.propertyName)) {
-                continue
-            }
-            marshallingContext.lastParentPropertyName = prop.name
-            def res = delegateMarshalling(instance."${prop.name}", marshallingContext)
-            json.field(prop.name, res)
+        scm.propertiesMapping.each { scpm ->
+            marshallingContext.lastParentPropertyName = scpm.propertyName
+            def res = delegateMarshalling(instance."${scpm.propertyName}", marshallingContext)
+           json.field(scpm.propertyName, res)
         }
         marshallingContext.pop()
         json.endObject()
+        json.close()
+        json
     }
 }

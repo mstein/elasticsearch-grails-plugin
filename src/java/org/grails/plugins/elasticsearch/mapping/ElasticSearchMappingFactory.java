@@ -15,8 +15,6 @@
  */
 package org.grails.plugins.elasticsearch.mapping;
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
-
 import java.util.*;
 
 /**
@@ -37,38 +35,35 @@ public class ElasticSearchMappingFactory {
         }
 
         // Map each domain properties in supported format, or object for complex type
-        for(GrailsDomainClassProperty prop : scm.getDomainClass().getProperties()) {
+        for(SearchableClassPropertyMapping scpm : scm.getPropertiesMapping()) {
             // Does it have custom mapping?
-            SearchableClassPropertyMapping scpm = scm.getPropertyMapping(prop.getName());
-            if (scpm != null) {
-                String propType = prop.getTypePropertyName();
-                Map<String, Object> propOptions = new LinkedHashMap<String, Object>();
-                // Add the custom mapping (searchable static property in domain model)
-                propOptions.putAll(scpm.getAttributes());
-                if (!(SUPPORTED_FORMAT.contains(prop.getTypePropertyName()))) {
-                    // Use 'string' type for properties with custom converter.
-                    // Arrays are automatically resolved by ElasticSearch, so no worries.
-                    if (scpm.getConverter() != null) {
-                        propType = "string";
-                    } else {
-                        propType = "object";
-                    }
+            String propType = scpm.getGrailsProperty().getTypePropertyName();
+            Map<String, Object> propOptions = new LinkedHashMap<String, Object>();
+            // Add the custom mapping (searchable static property in domain model)
+            propOptions.putAll(scpm.getAttributes());
+            if (!(SUPPORTED_FORMAT.contains(scpm.getGrailsProperty().getTypePropertyName()))) {
+                // Use 'string' type for properties with custom converter.
+                // Arrays are automatically resolved by ElasticSearch, so no worries.
+                if (scpm.getConverter() != null) {
+                    propType = "string";
+                } else {
+                    propType = "object";
+                }
 
-                    if (scpm.getReference() != null) {
-                        propType = "long";      // fixme: think about composite ids.
-                    }
+                if (scpm.getReference() != null) {
+                    propType = "long";      // fixme: think about composite ids.
                 }
-                propOptions.put("type", propType);
-                // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
-                if (scm.isAll()) {
-                    if (scpm.shouldExcludeFromAll()) {
-                        propOptions.put("include_in_all", false);
-                    } else {
-                        propOptions.put("include_in_all", true);
-                    }
-                }
-                elasticTypeMappingProperties.put(prop.getName(), propOptions);
             }
+            propOptions.put("type", propType);
+            // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
+            if (scm.isAll()) {
+                if (scpm.shouldExcludeFromAll()) {
+                    propOptions.put("include_in_all", false);
+                } else {
+                    propOptions.put("include_in_all", true);
+                }
+            }
+            elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions);
         }
 
         Map<String, Object> mapping = new LinkedHashMap<String, Object>();

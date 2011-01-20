@@ -15,21 +15,15 @@
  */
 package org.grails.plugins.elasticsearch
 
-import grails.util.GrailsNameUtils
-import grails.util.GrailsUtil
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
-import static org.elasticsearch.client.Requests.indexRequest
 import org.elasticsearch.client.Client
-import org.grails.plugins.elasticsearch.exception.IndexException
-import org.grails.plugins.elasticsearch.util.ThreadWithSession
-import static org.elasticsearch.client.Requests.deleteRequest
 import org.elasticsearch.action.search.SearchType
 import static org.elasticsearch.client.Requests.searchRequest
 import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
 import static org.elasticsearch.index.query.xcontent.QueryBuilders.queryString
 import org.apache.log4j.Logger
-import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import org.elasticsearch.index.query.xcontent.XContentQueryBuilder
 
 public class ElasticSearchService implements GrailsApplicationAware {
 
@@ -38,12 +32,44 @@ public class ElasticSearchService implements GrailsApplicationAware {
     GrailsApplication grailsApplication
     def elasticSearchHelper
     def sessionFactory
-    def jsonDomainFactory
     def persistenceInterceptor
     def domainInstancesRebuilder
     def elasticSearchContextHolder
+    def indexRequestQueue
 
     boolean transactional = false
+
+    // todo make it more Groovish, ie allow passing a building closure instead
+    def search(XContentQueryBuilder qb, Map params = [:]) {
+        elasticSearchHelper.withElasticSearch { Client client ->
+            def request
+            if (params.indices) {
+                request = searchRequest(params.indices)
+            } else {
+                request = searchRequest()
+            }
+            if (params.types) {
+                request.types(params.types)
+            }
+            request.searchType(SearchType.DFS_QUERY_THEN_FETCH)
+                    .source(searchSource()
+                    .query(qb)
+                    .from(params.from ?: 0)
+                    .size(params.size ?: 60)
+                    .explain(params.containsKey('explain') ? params.explain : true))
+            def response = client.search(request).actionGet()
+            def searchHits = response.hits()
+            def result = [:]
+            result.total = searchHits.totalHits()
+
+            LOG.info("Found ${result.total ?: 0} result(s).")
+
+            // Convert the hits back to their initial type
+            result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
+
+            return result
+        }
+    }
 
     def search(String query, Map params = [from: 0, size: 60, explain: true]) {
         elasticSearchHelper.withElasticSearch { Client client ->
@@ -75,14 +101,6 @@ public class ElasticSearchService implements GrailsApplicationAware {
         }
     }
 
-    void indexDomain(instance) {
-        indexInBackground(instance, 0)
-    }
-
-    void deleteDomain(instance) {
-        deleteInBackground(instance, 0)
-    }
-
     /**
      * Index ALL searchable instances.
      * VERY SLOW until bulk indexing is done.
@@ -94,68 +112,18 @@ public class ElasticSearchService implements GrailsApplicationAware {
         if (clazz) {
             mappings << elasticSearchContextHolder.getMappingContextByType(clazz)
         } else {
-            mappings = elasticSearchContextHolder.mapping
+            mappings = elasticSearchContextHolder.mapping.values()
         }
+        int count = 0
         mappings.each { scm ->
-            LOG.debug("Indexing all instances of ${scm.domainClass}")
-            scm.domainClass.getAll().each { indexDomain(it) }
-        }
-    }
-
-    private Thread deleteInBackground(instance, attempts) {
-        return Thread.start {
-            try {
-                elasticSearchHelper.withElasticSearch { Client client ->
-                    Class clazz = instance.class
-                    String name = GrailsNameUtils.getPropertyName(clazz)
-                    def indexValue = clazz.package.name ?: name
-                    client.delete(
-                            deleteRequest(indexValue).id(instance.id.toString()).type(name)
-                    )
-                    LOG.info("Deleted domain document type ${name} of id ${instance.id}")
-                }
-            } catch (e) {
-                if (attempts < 5) {
-                    sleep 10000
-                    indexInBackground(instance, ++attempts)
-                } else {
-                    GrailsUtil.deepSanitize(e)
-                    throw new IndexException("Failed to delete domain index [${instance}] after 5 retry attempts: ${e.message}", e)
-                }
+            if (scm.root) {
+                // only index root instances.
+                LOG.debug("Indexing all instances of ${scm.domainClass}")
+                scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "getAll", null).each { indexRequestQueue.addIndexRequest(it); count++ }
             }
         }
-    }
-
-    private Thread indexInBackground(instance, attempts) {
-        return ThreadWithSession.startWithSession(sessionFactory, persistenceInterceptor) {
-            def json
-            try {
-                json = jsonDomainFactory.buildJSON(instance)
-            } catch (e) {
-                throw new IndexException("Failed to marshall domain instance [${instance}]", e)
-            }
-            try {
-                elasticSearchHelper.withElasticSearch { Client client ->
-                    Class clazz = instance.class
-                    SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
-                    def indexValue = scm.indexName
-                    String name = scm.elasticTypeName
-
-                    client.index(
-                            indexRequest(indexValue).type(name).id(instance.id.toString()).source(json)
-                    )
-                    LOG.info("Indexed domain type ${name} of id ${instance.id} and source ${json.string()}")
-                }
-            } catch (e) {
-                if (attempts < 5) {
-                    sleep 10000
-                    indexInBackground(instance, ++attempts)
-                } else {
-                    GrailsUtil.deepSanitize(e)
-                    throw new IndexException("Failed to index domain instance [${instance}] after 5 retry attempts: ${e.message}", e)
-                }
-            }
-        }
+        log.debug "Bulk index: ${count} instances."
+        indexRequestQueue.executeRequests();
     }
 
 }

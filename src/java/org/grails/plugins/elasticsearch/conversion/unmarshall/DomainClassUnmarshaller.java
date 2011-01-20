@@ -54,11 +54,10 @@ public class DomainClassUnmarshaller {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext();
         List results = new ArrayList();
         for(SearchHit hit : hits) {
-            String packageName = hit.index();
-            String domainClassName = packageName.equals(hit.type()) ? packageName : packageName + '.' + hit.type().substring(0, 1).toUpperCase() + hit.type().substring(1);
+            String domainClassName = hit.index().equals(hit.type()) ? DefaultGroovyMethods.capitalize(hit.index()) : (hit.index() + '.' + DefaultGroovyMethods.capitalize(hit.type()));
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainClassName);
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type());
+                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: " + domainClassName);
                 continue;
             }
 
@@ -224,7 +223,6 @@ public class DomainClassUnmarshaller {
                             .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
                             .actionGet();
                 parseResult = unmarshallDomain(refDomainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
-                System.err.println("Unmarshalled to " + parseResult);
             }
         }
         if (parseResult != null) {

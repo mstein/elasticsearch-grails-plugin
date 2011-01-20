@@ -28,6 +28,7 @@ import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
 import org.apache.log4j.Logger
+import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticsearchGrailsPlugin {
 
@@ -80,6 +81,11 @@ Based on Graeme Rocher spike.
         elasticSearchClient(ClientNodeFactoryBean) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
         }
+        indexRequestQueue(IndexRequestQueue) {
+            elasticSearchContextHolder = ref("elasticSearchContextHolder")
+            elasticSearchClient = ref("elasticSearchClient")
+            jsonDomainFactory = ref("jsonDomainFactory")
+        }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref("elasticSearchContextHolder")
             grailsApplication = ref("grailsApplication")
@@ -99,14 +105,18 @@ Based on Graeme Rocher spike.
         }
         auditListener(AuditEventListener) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
+            indexRequestQueue = ref("indexRequestQueue")
         }
+
         if (!esConfig.disableAutoIndex) {
             // do not install audit listener if auto-indexing is disabled.
             hibernateEventListeners(HibernateEventListeners) {
                 listenerMap = [
-                        'delete': auditListener,
+                        'post-delete': auditListener,
                         'post-collection-update': auditListener,
-                        'save-update': auditListener,
+//                        'save-update': auditListener,
+                        'post-update': auditListener,
+                        'post-insert': auditListener,
                         'flush': auditListener
                 ]
             }

@@ -51,7 +51,7 @@ public class SearchableClassMapping {
     }
 
     public void setRoot(Boolean root) {
-        this.root = root;
+        this.root = root != null && root;
     }
 
     public Collection<SearchableClassPropertyMapping> getPropertiesMapping() {

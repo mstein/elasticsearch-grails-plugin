@@ -1,6 +1,6 @@
 package test
 
-class User {
+class User extends SuperUser {
   static searchable = {
     except = 'password'
     lastname boost:20
@@ -18,7 +18,8 @@ class User {
   }
   static hasMany = [
           tweets:Tweet,
-          photos:Photo
+          photos:Photo,
+          listOfThings:String
   ]
   static mappedBy = [
           tweets:'user'
