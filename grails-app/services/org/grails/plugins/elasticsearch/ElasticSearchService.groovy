@@ -49,6 +49,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 request = searchRequest()
             }
             if (params.types) {
+                // todo convert Class to elastic type. client may not be aware of elastic type names.
                 request.types(params.types)
             }
             request.searchType(SearchType.DFS_QUERY_THEN_FETCH)
@@ -62,7 +63,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             def result = [:]
             result.total = searchHits.totalHits()
 
-            LOG.info("Found ${result.total ?: 0} result(s).")
+            LOG.debug("Search returned ${result.total ?: 0} result(s).")
 
             // Convert the hits back to their initial type
             result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
@@ -122,7 +123,6 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "getAll", null).each { indexRequestQueue.addIndexRequest(it); count++ }
             }
         }
-        log.debug "Bulk index: ${count} instances."
         indexRequestQueue.executeRequests();
     }
 

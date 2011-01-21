@@ -162,4 +162,5 @@ public class SearchableClassPropertyMapping {
     public Map<String,Object> getAttributes() {
         return Collections.unmodifiableMap(attributes);
     }
+
 }

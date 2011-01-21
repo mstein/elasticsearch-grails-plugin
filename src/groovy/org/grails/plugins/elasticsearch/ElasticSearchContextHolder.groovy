@@ -26,4 +26,8 @@ class ElasticSearchContextHolder {
     def isRootClass(Class clazz) {
         mapping.values().any { scm -> scm.domainClass.clazz == clazz && scm.root }
     }
+
+    Class findMappedClassByElasticType(String elasticTypeName) {
+        mapping.values().find { scm -> scm.elasticTypeName == elasticTypeName }?.domainClass?.clazz
+    }
 }

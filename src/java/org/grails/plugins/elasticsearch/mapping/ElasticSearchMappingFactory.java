@@ -15,6 +15,9 @@
  */
 package org.grails.plugins.elasticsearch.mapping;
 
+import org.codehaus.groovy.grails.commons.GrailsClassUtils;
+import org.springframework.util.ClassUtils;
+
 import java.util.*;
 
 /**
@@ -24,6 +27,14 @@ public class ElasticSearchMappingFactory {
 
     private static final Set<String> SUPPORTED_FORMAT = new HashSet<String>(Arrays.asList(
             "string", "integer", "long", "float", "double", "boolean", "null", "date"));
+
+    private static Class JODA_TIME_BASE;
+
+    static {
+        try {
+            JODA_TIME_BASE = Class.forName("org.joda.time.ReadableInstant");
+        } catch (ClassNotFoundException e) { }
+    }
 
     public static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
         Map<String, Object> elasticTypeMappingProperties = new LinkedHashMap<String, Object>();
@@ -42,9 +53,19 @@ public class ElasticSearchMappingFactory {
             // Add the custom mapping (searchable static property in domain model)
             propOptions.putAll(scpm.getAttributes());
             if (!(SUPPORTED_FORMAT.contains(scpm.getGrailsProperty().getTypePropertyName()))) {
-                // Use 'string' type for properties with custom converter.
-                // Arrays are automatically resolved by ElasticSearch, so no worries.
-                if (scpm.getConverter() != null) {
+                // Handle embedded persistent collections, ie List<String> listOfThings
+                if (scpm.getGrailsProperty().isBasicCollectionType()) {
+                    String basicType = ClassUtils.getShortName(scpm.getGrailsProperty().getReferencedPropertyType()).toLowerCase(Locale.ENGLISH);
+                    if (SUPPORTED_FORMAT.contains(basicType)) {
+                        propType = basicType;
+                    }
+                } else if (isDateType(scpm.getGrailsProperty().getReferencedPropertyType())) {
+                    propType = "date";
+                } else if (GrailsClassUtils.isJdk5Enum(scpm.getGrailsProperty().getReferencedPropertyType())) {
+                    propType = "string";
+                } else if (scpm.getConverter() != null) {
+                    // Use 'string' type for properties with custom converter.
+                    // Arrays are automatically resolved by ElasticSearch, so no worries.
                     propType = "string";
                 } else {
                     propType = "object";
@@ -67,10 +88,14 @@ public class ElasticSearchMappingFactory {
         }
 
         Map<String, Object> mapping = new LinkedHashMap<String, Object>();
-        mapping.put(scm.getDomainClass().getPropertyName(),
+        mapping.put(scm.getElasticTypeName(),
                 Collections.singletonMap("properties", elasticTypeMappingProperties));
 
         return mapping;
+    }
+
+    private static boolean isDateType(Class type) {
+        return (JODA_TIME_BASE != null && JODA_TIME_BASE.isAssignableFrom(type)) || java.util.Date.class.isAssignableFrom(type);
     }
 
 }

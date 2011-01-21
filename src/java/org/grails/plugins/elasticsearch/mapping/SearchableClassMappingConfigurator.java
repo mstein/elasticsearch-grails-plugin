@@ -23,6 +23,9 @@ import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
 import org.codehaus.groovy.grails.commons.GrailsApplication;
 import org.codehaus.groovy.grails.commons.GrailsClass;
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
@@ -30,10 +33,7 @@ import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.transport.RemoteTransportException;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Build searchable mappings, configure ElasticSearch indexes,
@@ -61,30 +61,46 @@ public class SearchableClassMappingConfigurator {
      * @param mappings searchable class mappings to be install.
      */
     public void installMappings(Collection<SearchableClassMapping> mappings) {
+        Set<String> installedIndices = new HashSet<String>();
+        Map<String, Object> settings = new HashMap<String, Object>();
+//        settings.put("number_of_shards", 5);        // must have 5 shards to be Green.
+//        settings.put("number_of_replicas", 2);
+
         for(SearchableClassMapping scm : mappings) {
 
             if (scm.isRoot()) {
                 Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm);
 
                 // todo wait for success, maybe retry.
-                try {
-                    elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
-                            .execute().actionGet();
-                    LOG.debug(elasticMapping.toString());
+                if (!installedIndices.contains(scm.getIndexName())) {
+                    try {
+                        elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
+                                .setSettings(settings)
+                                .execute().actionGet();
+                        installedIndices.add(scm.getIndexName());
+                        LOG.debug(elasticMapping.toString());
 
-                    // If the index already exists, ignore the exception
-                } catch (IndexAlreadyExistsException iaee) {
-                    LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.");
-                } catch (RemoteTransportException rte) {
-                    LOG.debug(rte.getMessage());
+                        // If the index already exists, ignore the exception
+                    } catch (IndexAlreadyExistsException iaee) {
+                        LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.");
+                    } catch (RemoteTransportException rte) {
+                        LOG.debug(rte.getMessage());
+                    }
                 }
 
-                PutMappingRequest putMapping = Requests.putMappingRequest(scm.getIndexName());
-                putMapping.source(elasticMapping);
-                elasticSearchClient.admin().indices().putMapping(putMapping).actionGet();
+                // todo when conflict is detected, delete old mapping
+                // (this will delete all indexes as well, so should warn user)
+                elasticSearchClient.admin().indices().putMapping(
+                        new PutMappingRequest(scm.getIndexName())
+                                .type(scm.getElasticTypeName())
+                                .source(elasticMapping)
+                ).actionGet();
             }
 
         }
+        
+        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet();
+        LOG.debug("Cluster status: " + response.getStatus());
     }
 
     private Collection<SearchableClassMapping> buildMappings() {

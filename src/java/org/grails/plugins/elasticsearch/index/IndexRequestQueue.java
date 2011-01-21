@@ -17,6 +17,9 @@ package org.grails.plugins.elasticsearch.index;
 
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.elasticsearch.action.ActionListener;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Client;
@@ -33,10 +36,11 @@ import java.util.*;
 
 /**
  * Holds objects to be indexed.
- * We don't want to hold object references, so all domain instances have to be JSONed before
- * putting into queue.
- *
- * This is shared class, so need to be thread-safe.
+ * <br/>
+ * It looks like we need to keep object references in memory until they indexed properly.
+ * If indexing fails, all failed objects are retried. Still no support for max number of retries (todo)
+ * NOTE: if cluster state is RED, everything will probably fail and keep retrying forever.
+ * NOTE: This is shared class, so need to be thread-safe.
  */
 public class IndexRequestQueue {
 
@@ -123,15 +127,16 @@ public class IndexRequestQueue {
         for (Map.Entry<IndexEntityKey, Object> entry : toIndex.entrySet()) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(entry.getKey().getClazz());
             XContentBuilder json = toJSON(entry.getValue());
+
             bulkRequestBuilder.add(
                     new IndexRequest(scm.getIndexName())
                             .type(scm.getElasticTypeName())
-                            .id(entry.getKey().getId().toString())      // how about composite keys?
+                            .id(entry.getKey().getId())      // how about composite keys?
                             .source(json));
             if (LOG.isDebugEnabled()) {
                 try {
-                    LOG.debug("Indexed domain type " + entry.getKey().getClazz() + " of id " + entry.getKey().getId() +
-                            " and source " + json.string());
+                    LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
+                            ") of id " + entry.getKey().getId() + " and source " + json.string());
                 } catch (IOException e) {}
             }
         }
@@ -142,13 +147,14 @@ public class IndexRequestQueue {
             bulkRequestBuilder.add(
                         new DeleteRequest(scm.getIndexName())
                                 .type(scm.getElasticTypeName())
-                                .id(key.getId().toString())
+                                .id(key.getId())
             );
         }
 
         if (bulkRequestBuilder.numberOfActions() > 0) {
             try {
-                bulkRequestBuilder.execute().actionGet();
+                bulkRequestBuilder.setRefresh(false).execute()
+                        .addListener(new OperationBatch(0, toIndex, toDelete));
             } catch (Exception e) {
                 throw new IndexException("Failed to index/delete " + bulkRequestBuilder.numberOfActions(), e);
             }
@@ -156,10 +162,82 @@ public class IndexRequestQueue {
 
     }
 
+    class OperationBatch implements ActionListener<BulkResponse> {
+
+        private int attempts;
+        private Map<IndexEntityKey, Object> toIndex;
+        private Set<IndexEntityKey> toDelete;
+
+        OperationBatch(int attempts, Map<IndexEntityKey, Object> toIndex, Set<IndexEntityKey> toDelete) {
+            this.attempts = attempts;
+            this.toIndex = toIndex;
+            this.toDelete = toDelete;
+        }
+
+        public void onResponse(BulkResponse bulkResponse) {
+            for(BulkItemResponse item : bulkResponse.items()) {
+                if (!item.isFailed()) {
+                    // remove successful ones.
+                    Class<?> entityClass = elasticSearchContextHolder.findMappedClassByElasticType(item.getType());
+                    if (entityClass == null) {
+                        LOG.error("Elastic type [" + item.getType() + "] is not mapped.");
+                        continue;
+                    }
+                    IndexEntityKey key = new IndexEntityKey(item.getId(), entityClass);
+                    toIndex.remove(key);
+                    toDelete.remove(key);
+                }
+            }
+            if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
+                LOG.error(bulkResponse.buildFailureMessage());
+                push();
+            } else {
+                LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
+            }
+        }
+
+        public void onFailure(Throwable e) {
+            // Everything failed. Re-push all.
+            LOG.error("Bulk request failure", e);
+            push();
+        }
+
+
+        /**
+         * Push specified entities to be retried.
+         */
+        public void push() {
+            LOG.debug("Pushing retry: " + toIndex.size() + " indexing, " + toDelete.size() + " deletes.");
+            for (Map.Entry<IndexEntityKey, Object> entry : toIndex.entrySet()) {
+                synchronized (this) {
+                    if (!indexRequests.containsKey(entry.getKey())) {
+                        // Do not overwrite existing stuff in the queue.
+                        indexRequests.put(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+            for(IndexEntityKey key : toDelete) {
+                synchronized (this) {
+                    if (!deleteRequests.contains(key)) {
+                        deleteRequests.add(key);
+                    }
+                }
+            }
+
+            executeRequests();
+        }
+    }
+
     class IndexEntityKey implements Serializable {
 
-        private final Serializable id;
+        /** stringified id. */
+        private final String id;
         private final Class clazz;
+
+        IndexEntityKey(String id, Class clazz) {
+            this.id = id;
+            this.clazz = clazz;
+        }
 
         IndexEntityKey(Object instance) {
             this.clazz = instance.getClass();
@@ -167,10 +245,10 @@ public class IndexRequestQueue {
             if (scm == null) {
                 throw new IllegalArgumentException("Class " + clazz + " is not a searchable domain class.");
             }
-            this.id = (Serializable) InvokerHelper.invokeMethod(instance, "ident", null);
+            this.id = (InvokerHelper.invokeMethod(instance, "ident", null)).toString();
         }
 
-        public Serializable getId() {
+        public String getId() {
             return id;
         }
 

@@ -44,6 +44,10 @@ class ElasticSearchController {
     redirect(action: 'index')
   }
 
+  def searchUserTerm = {
+      
+  }
+
   def searchAll = {
     def res = elasticSearchService.search("${params.query}").searchResults
     def resMsg = '<strong>Global search result(s):</strong><br />'

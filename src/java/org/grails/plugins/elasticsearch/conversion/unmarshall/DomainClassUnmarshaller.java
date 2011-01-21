@@ -219,6 +219,7 @@ public class DomainClassUnmarshaller {
                 String indexName = elasticSearchContextHolder.getMappingContext(refDomainClass).getIndexName();
                 String name = GrailsNameUtils.getPropertyName(refClass);
                 GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
+                            .operationThreaded(false)
                             .type(name)
                             .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
                             .actionGet();

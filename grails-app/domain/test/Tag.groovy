@@ -2,6 +2,7 @@ package test
 
 class Tag {
   static searchable = {
+    root false
     except=['boostValue']
   }
 
