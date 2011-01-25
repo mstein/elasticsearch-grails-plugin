@@ -27,7 +27,9 @@ import org.apache.log4j.Logger
 class ClientNodeFactoryBean implements FactoryBean {
     def elasticSearchContextHolder
     static SUPPORTED_MODES = ['local', 'transport', 'node']
-    static LOG = Logger.getLogger(ClientNodeFactoryBean)
+    private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
+
+    def node
 
     Object getObject() {
         // Retrieve client mode, default is "node"
@@ -38,6 +40,11 @@ class ClientNodeFactoryBean implements FactoryBean {
 
         def nb = nodeBuilder()
         def transportClient = null
+        def dataPath = elasticSearchContextHolder.config.path.data
+        if (dataPath) {
+            nb.settings.put('path.data', dataPath as String)
+            LOG.info "Using ElasticSearch data path: ${dataPath}"
+        }
         switch (clientMode) {
             case 'local':
                 nb.local(true)
@@ -61,10 +68,10 @@ class ClientNodeFactoryBean implements FactoryBean {
             return transportClient
         } else {
             // Avoiding this:
-            // http://groups.google.com/a/elasticsearch.com/group/users/browse_thread/thread/2bb5d8dd6dd9b80b/e7db9e63fc305133?show_docid=e7db9e63fc305133&fwc=1
-            def client = nb.node().client()
+            node = nb.node()
+            def client = node.client()
             // Wait for the cluster to become alive.
-            LOG.info "Waiting for ElasticSearch green status."
+            LOG.info "Waiting for ElasticSearch GREEN status."
 //            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
             return client
         }
@@ -76,5 +83,12 @@ class ClientNodeFactoryBean implements FactoryBean {
 
     boolean isSingleton() {
         return true
+    }
+
+    def shutdown() {
+        if (elasticSearchContextHolder.config.client.mode == 'local' && node) {
+            LOG.info "Stopping embedded ElasticSearch."
+            node.stop()
+        }
     }
 }

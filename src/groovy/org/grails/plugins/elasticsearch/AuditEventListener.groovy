@@ -45,7 +45,6 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
         def clazz = postCollectionUpdateEvent.affectedOwnerOrNull?.class
         // Todo : optimize reindexing requests
         if (elasticSearchContextHolder.isRootClass(clazz)) {
-//            println "=========== onPostUpdateCollection ${postCollectionUpdateEvent.affectedOwnerOrNull}"
             indexRequestQueue.addIndexRequest(postCollectionUpdateEvent.affectedOwnerOrNull)
         }
     }

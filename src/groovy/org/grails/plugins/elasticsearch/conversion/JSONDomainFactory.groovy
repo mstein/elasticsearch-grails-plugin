@@ -31,6 +31,7 @@ import java.beans.PropertyEditor
 import org.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.Marshaller
 import org.grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
+import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 
 /**
  * Marshall objects as JSON.
@@ -123,7 +124,7 @@ class JSONDomainFactory {
 
     private static GrailsDomainClass getDomainClass(instance) {
         def grailsApplication = ApplicationHolder.application
-        grailsApplication.domainClasses.find {it.clazz == instance.class}
+        grailsApplication.domainClasses.find {it.clazz == GrailsHibernateUtil.unwrapIfProxy(instance).class}
     }
 
     /**

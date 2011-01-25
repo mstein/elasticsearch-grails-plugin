@@ -19,6 +19,7 @@ package org.grails.plugins.elasticsearch.conversion.marshall
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.springframework.beans.BeanWrapper
 import org.springframework.beans.BeanWrapperImpl
+import org.codehaus.groovy.runtime.InvokerHelper
 
 /**
  * Marshall only searchable class ID.
@@ -42,8 +43,7 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
         // todo encapsulate me
         def scm = marshallingContext.parentFactory.elasticSearchContextHolder.getMappingContext(domainClass)
         assert scm
-        BeanWrapper beanWrapper = new BeanWrapperImpl(object);
-        return beanWrapper.getPropertyValue(domainClass.identifier.name)
+        return InvokerHelper.invokeMethod(object, "ident", null)
     }
 
 

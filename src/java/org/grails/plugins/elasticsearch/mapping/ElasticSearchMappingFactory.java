@@ -16,6 +16,7 @@
 package org.grails.plugins.elasticsearch.mapping;
 
 import org.codehaus.groovy.grails.commons.GrailsClassUtils;
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 import org.springframework.util.ClassUtils;
 
 import java.util.*;
@@ -73,6 +74,11 @@ public class ElasticSearchMappingFactory {
 
                 if (scpm.getReference() != null) {
                     propType = "long";      // fixme: think about composite ids.
+                } else if (scpm.isComponent()) {
+                    // Proceed with nested mapping.
+                    // todo limit depth to avoid endless recursion?
+                    propType = "object";
+                    propOptions.putAll(getElasticMapping(scpm.getComponentPropertyMapping()));
                 }
             }
             propOptions.put("type", propType);

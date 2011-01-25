@@ -127,7 +127,6 @@ public class IndexRequestQueue {
         for (Map.Entry<IndexEntityKey, Object> entry : toIndex.entrySet()) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(entry.getKey().getClazz());
             XContentBuilder json = toJSON(entry.getValue());
-
             bulkRequestBuilder.add(
                     new IndexRequest(scm.getIndexName())
                             .type(scm.getElasticTypeName())

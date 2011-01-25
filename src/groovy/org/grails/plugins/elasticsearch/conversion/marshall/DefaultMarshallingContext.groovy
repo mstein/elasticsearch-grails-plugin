@@ -32,7 +32,7 @@ class DefaultMarshallingContext {
      * @param instance instance to push
      */
     public push(instance) {
-        def depth = marshallStack.empty ? this.maxDepth : marshallStack.peek().maxDepth - 1
+        def depth = 5 //marshallStack.empty ? this.maxDepth : marshallStack.peek().maxDepth - 1
         if (depth <= 0) {
             return false
         }

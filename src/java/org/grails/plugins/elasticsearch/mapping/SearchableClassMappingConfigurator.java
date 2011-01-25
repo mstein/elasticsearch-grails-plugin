@@ -16,7 +16,6 @@
 
 package org.grails.plugins.elasticsearch.mapping;
 
-import grails.converters.JSON;
 import groovy.util.ConfigObject;
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
@@ -25,10 +24,8 @@ import org.codehaus.groovy.grails.commons.GrailsClass;
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.Requests;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.transport.RemoteTransportException;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
@@ -112,8 +109,15 @@ public class SearchableClassMappingConfigurator {
             if (searchableClassMapping != null) {
                 elasticSearchContext.addMappingContext(searchableClassMapping);
                 mappings.add(searchableClassMapping);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Mapped [" + domainClass.getName() + "] with properties [" + searchableClassMapping.getPropertiesMapping() + "]");
+            }
+        }
+
+        // Inject cross-referenced component mappings.
+        for(SearchableClassMapping scm : mappings) {
+            for(SearchableClassPropertyMapping scpm : scm.getPropertiesMapping()) {
+                if (scpm.isComponent()) {
+                    Class<?> componentType = scpm.getGrailsProperty().getReferencedPropertyType();
+                    scpm.setComponentPropertyMapping(elasticSearchContext.getMappingContextByType(componentType));
                 }
             }
         }

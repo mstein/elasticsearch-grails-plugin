@@ -118,7 +118,8 @@ public class DomainClassUnmarshaller {
             if (index < size - 1) {
                 try {
                     if (currentProperty instanceof Collection) {
-                        currentProperty = DefaultGroovyMethods.getAt((List) currentProperty, DefaultGroovyMethods.toInteger(part));
+                        //noinspection unchecked
+                        currentProperty = DefaultGroovyMethods.getAt(((Collection<Object>) currentProperty).iterator(), DefaultGroovyMethods.toInteger(part));
                     } else {
                         currentProperty = DefaultGroovyMethods.getAt(currentProperty, part);
                     }
@@ -137,7 +138,7 @@ public class DomainClassUnmarshaller {
             Integer.parseInt(last);
             ((Collection) currentProperty).add(value);
         } catch (NumberFormatException e) {
-            DefaultGroovyMethods.putAt(currentProperty, "last", value);
+            DefaultGroovyMethods.putAt(currentProperty, last, value);
         }
     }
 

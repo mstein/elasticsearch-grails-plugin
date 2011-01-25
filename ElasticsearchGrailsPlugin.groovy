@@ -78,8 +78,9 @@ Based on Graeme Rocher spike.
         elasticSearchContextHolder(ElasticSearchContextHolder) {
             config = esConfig
         }
-        elasticSearchClient(ClientNodeFactoryBean) {
+        elasticSearchClient(ClientNodeFactoryBean) { bean ->
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
+            bean.destroyMethod = 'shutdown'
         }
         indexRequestQueue(IndexRequestQueue) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")

@@ -119,6 +119,11 @@ public class SearchableClassPropertyMapping {
         if (this.isComponent() && this.getReference() != null) {
             throw new IllegalArgumentException("Property " + grailsProperty.getName() + " cannot be 'component' and 'reference' at once.");
         }
+
+        if (this.isComponent() && this.componentPropertyMapping == null) {
+            throw new IllegalArgumentException("Property " + grailsProperty.getName() + " is mapped as component, but dependent mapping is not injected.");
+        }
+
         // Are we referencing searchable class?
         if (this.getReference() != null) {
             Class myReferenceType = getBestGuessReferenceType();
@@ -163,4 +168,13 @@ public class SearchableClassPropertyMapping {
         return Collections.unmodifiableMap(attributes);
     }
 
+    private SearchableClassMapping componentPropertyMapping;
+
+    public SearchableClassMapping getComponentPropertyMapping() {
+        return componentPropertyMapping;
+    }
+
+    void setComponentPropertyMapping(SearchableClassMapping componentPropertyMapping) {
+        this.componentPropertyMapping = componentPropertyMapping;
+    }
 }
