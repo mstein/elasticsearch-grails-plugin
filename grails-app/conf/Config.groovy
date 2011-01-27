@@ -21,8 +21,9 @@ log4j = {
 
   warn 'org.mortbay.log'
 
-  /*debug 'org.grails.plugins.elasticSearch'*/
-  info 'org.grails.plugins.elasticSearch'
+  debug 'org.grails.plugins.elasticsearch'
+//  debug 'org.grails.plugins.elasticSearch'
+//  debug 'org.elasticsearch'
 }
 elasticSearch {
   /**
@@ -38,6 +39,8 @@ elasticSearch {
   client.hosts = [
           [host: 'localhost', port: 9300]
   ]
+
+  disableAutoIndex = false
 }
 
 environments {

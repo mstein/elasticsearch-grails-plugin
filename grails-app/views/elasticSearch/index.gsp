@@ -75,6 +75,7 @@
         <strong>Id: </strong>${u.id}<br/>
         <strong>Firstname: </strong>${u.firstname}<br/>
         <strong>Lastname: </strong>${u.lastname}<br/>
+        <strong>Role: </strong>${u.role}<br/>
         <strong>Activity: </strong>${u.activity}
       </div>
     </g:each>

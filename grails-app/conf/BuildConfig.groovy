@@ -26,7 +26,7 @@ grails.project.dependency.resolution = {
   }
   dependencies {
     // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
-    runtime 'org.elasticsearch:elasticsearch:0.13.0'
+    runtime 'org.elasticsearch:elasticsearch:0.14.2'
     runtime 'org.elasticsearch:elasticsearch-client-groovy:0.11.0-SNAPSHOT'
   }
 }
