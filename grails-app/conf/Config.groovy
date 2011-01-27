@@ -48,10 +48,13 @@ environments {
     /**
      * Possible values : "local", "node", "transport"
      */
-    elasticSearch.client.mode = 'local'
+    elasticSearch.client.mode = 'node'
   }
   test {
-    elasticSearch.client.mode = 'local'
+    elasticSearch {
+          client.mode = 'local'
+          index.store.type = 'memory' // store local node in memory and not on disk
+    }
   }
   production {
     elasticSearch.client.mode = 'node'
