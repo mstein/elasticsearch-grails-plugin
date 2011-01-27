@@ -95,10 +95,6 @@ public class ElasticSearchService implements GrailsApplicationAware {
             result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
 
             return result
-//      } catch (e) {
-//        e.printStackTrace()
-//        return [searchResults: [], total: 0]
-//      }
         }
     }
 
