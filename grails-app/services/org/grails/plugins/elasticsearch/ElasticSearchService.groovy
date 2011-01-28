@@ -23,7 +23,11 @@ import static org.elasticsearch.client.Requests.searchRequest
 import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
 import static org.elasticsearch.index.query.xcontent.QueryBuilders.queryString
 import org.apache.log4j.Logger
-import org.elasticsearch.index.query.xcontent.XContentQueryBuilder
+import org.elasticsearch.action.search.SearchRequest
+import org.elasticsearch.search.builder.SearchSourceBuilder
+import org.elasticsearch.search.highlight.HighlightBuilder
+import org.elasticsearch.search.SearchHit
+import org.grails.plugins.elasticsearch.util.GXContentBuilder
 
 public class ElasticSearchService implements GrailsApplicationAware {
 
@@ -39,34 +43,63 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
     boolean transactional = false
 
-    // todo make it more Groovish, ie allow passing a building closure instead
-    def search(XContentQueryBuilder qb, Map params = [:]) {
+    /**
+     * Search using Query DSL builder.
+     * @param params search params
+     * @param closure query closure
+     * @return search results
+     */
+    def search(Map params, Closure query) {
+        SearchRequest request = new SearchRequest()
+        request.searchType SearchType.DFS_QUERY_THEN_FETCH
+        if (params.indices) {
+            request.indices(params.indices as String[])
+        }
+        if (params.types) {
+            // todo convert Class to elastic type. client may not be aware of elastic type names.
+            request.types(params.types as String[])
+        }
+        SearchSourceBuilder source = new SearchSourceBuilder()
+        if (params.from) {
+            source.from(params.from as int)
+        }
+        if (params.size) {
+            source.size(params.size as int)
+        }
+        source.explain(params.explain ?: true)
+        source.query(new GXContentBuilder().buildAsBytes(query))
+        if (params.highlight) {
+            def highlighter = new HighlightBuilder()
+            // params.highlight is expected to provide a Closure.
+            def highlightBuilder = params.highlight
+            highlightBuilder.delegate = highlighter
+            highlightBuilder.resolveStrategy = Closure.DELEGATE_FIRST
+            highlightBuilder.call()
+            source.highlight highlighter
+        }
+
+        request.source source
+
         elasticSearchHelper.withElasticSearch { Client client ->
-            def request
-            if (params.indices) {
-                request = searchRequest(params.indices)
-            } else {
-                request = searchRequest()
-            }
-            if (params.types) {
-                // todo convert Class to elastic type. client may not be aware of elastic type names.
-                request.types(params.types)
-            }
-            request.searchType(SearchType.DFS_QUERY_THEN_FETCH)
-                    .source(searchSource()
-                    .query(qb)
-                    .from(params.from ?: 0)
-                    .size(params.size ?: 60)
-                    .explain(params.containsKey('explain') ? params.explain : true))
             def response = client.search(request).actionGet()
             def searchHits = response.hits()
             def result = [:]
             result.total = searchHits.totalHits()
 
-            LOG.debug("Search returned ${result.total ?: 0} result(s).")
+            LOG.debug "Search returned ${result.total ?: 0} result(s)."
 
             // Convert the hits back to their initial type
             result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
+
+            // Extract highlight information.
+            // Right now simply give away raw results...
+            if (params.highlight) {
+                def highlightResults = []
+                for(SearchHit hit : searchHits) {
+                    highlightResults << hit.highlightFields
+                }
+                result.highlight = highlightResults
+            }
 
             return result
         }

@@ -177,4 +177,12 @@ public class SearchableClassPropertyMapping {
     void setComponentPropertyMapping(SearchableClassMapping componentPropertyMapping) {
         this.componentPropertyMapping = componentPropertyMapping;
     }
+
+    /**
+     * @return true if field is analyzed. NOTE it doesn't have to be stored.
+     */
+    public boolean isAnalyzed() {
+        String index = (String) attributes.get("index");
+        return (index == null || index.equals("analyzed"));
+    }
 }
