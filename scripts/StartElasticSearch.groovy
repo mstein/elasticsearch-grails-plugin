@@ -3,7 +3,7 @@ includeTargets << grailsScript("Init")
 target(main: "The description of the script goes here!") {
     def elasticSearchHome = System.getenv("ELASTIC_SEARCH_HOME")
 	if (!elasticSearchHome){
-		println("Cannot ElasticSearch start service. Please set the env variable 'ELASTIC_SEARCH_HOME'.")
+		println("Cannot start ElasticSearch service. Please set the env variable 'ELASTIC_SEARCH_HOME'.")
 		exit 1
 	}
 	else {

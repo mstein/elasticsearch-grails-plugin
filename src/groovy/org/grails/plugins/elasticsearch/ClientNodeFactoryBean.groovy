@@ -47,6 +47,13 @@ class ClientNodeFactoryBean implements FactoryBean {
         }
         switch (clientMode) {
             case 'local':
+                def storeType = elasticSearchContextHolder.config.index.store.type
+                if (storeType) {
+                    nb.settings().put('index.store.type', storeType as String)
+                    LOG.debug "Local ElasticSearch client with store type of ${storeType} configured."
+                } else {
+                    LOG.debug "Local ElasticSearch client with default store type configured."
+                }
                 nb.local(true)
                 break;
             case 'transport':

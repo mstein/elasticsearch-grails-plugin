@@ -102,8 +102,6 @@ public class IndexRequestQueue {
      * Execute pending requests and clear both index & delete pending queues.
      */
     public void executeRequests() {
-        // If there are domain instances that are both in the index requests & delete requests list,
-        // they are directly deleted.
         Map<IndexEntityKey, Object> toIndex = new LinkedHashMap<IndexEntityKey, Object>();
         Set<IndexEntityKey> toDelete = new HashSet<IndexEntityKey>();
 
@@ -115,6 +113,8 @@ public class IndexRequestQueue {
             deleteRequests.clear();
         }
 
+        // If there are domain instances that are both in the index requests & delete requests list,
+        // they are directly deleted.
         toIndex.keySet().removeAll(toDelete);
 
         if (toIndex.isEmpty() && toDelete.isEmpty()) {
