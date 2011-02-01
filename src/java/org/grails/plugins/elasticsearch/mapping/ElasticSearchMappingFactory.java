@@ -96,6 +96,10 @@ public class ElasticSearchMappingFactory {
                     propOptions.put("include_in_all", true);
                 }
             }
+            // todo only enable this through configuration...
+            if (propType.equals("string") && scpm.isAnalyzed()) {
+                propOptions.put("term_vector", "with_positions_offsets");
+            }
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions);
         }
 

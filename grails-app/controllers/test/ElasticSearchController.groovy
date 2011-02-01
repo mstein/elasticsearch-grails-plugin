@@ -34,6 +34,9 @@ class ElasticSearchController {
   }
 
   def searchForUserTweets = {
+    /*def tweets = Tweet.search(){
+        queryString(query: params.message.search)
+    }.searchResults*/
     def tweets = Tweet.search("${params.message.search}").searchResults
     def tweetsMsg = 'Messages : '
     tweets.each {
@@ -48,26 +51,64 @@ class ElasticSearchController {
       
   }
 
+  def manualIndex = {
+      def nUser = new User(lastname:'Smith',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      def nUser2 = new User(lastname:'Smith2',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      nUser.id = 1234
+      nUser2.id = 2345
+      elasticSearchService.index(nUser, nUser2)
+
+      flash.notice = 'Indexed a transient user.'
+      redirect(action:'index')
+  }
+
+  def manualIndexAllUser = {
+    User.index()
+    //elasticSearchService.index(User)
+    flash.notice = 'Reindexed all users.'
+    redirect(action:'index')
+  }
+
   def searchAll = {
-    def res = elasticSearchService.search("${params.query}").searchResults
-    def resMsg = '<strong>Global search result(s):</strong><br />'
-    res.each {
-      switch(it){
+    def highlighter = {
+      field 'message', 0, 0
+      preTags '<strong>'
+      postTags '</strong>'
+    }
+    // minimalistic test for Query DSL.
+    def result = elasticSearchService.search(highlight:highlighter) {
+      queryString(query: params.query)
+    }
+    def highlight = result.highlight
+    def resMsg = "<strong>${params.query?.encodeAsHTML()}</strong> search result(s): <strong>${result.total}</strong><br />"
+    result.searchResults.eachWithIndex { obj, count ->
+      switch(obj){
         case Tag:
-          resMsg += "<strong>Tag</strong> ${it.name}<br />"
+          resMsg += "<strong>Tag</strong> ${obj.name.encodeAsHTML()}<br />"
           break
         case Tweet:
-          resMsg += "<strong>Tweet</strong> \"${it.message}\" from ${it.user.firstname} ${it.user.lastname}<br />"
+          resMsg += "<strong>Tweet</strong> \"${highlight[count].message.fragments?.getAt(0)}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
-          def pics = it.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',')
-          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname} ${it.role} ${pics}<br />"
+          def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''
+          resMsg += "<strong>User</strong> ${obj.firstname} ${obj.lastname} ${obj.role} ${pics}<br />"
+          if(obj.anArray) {
+              resMsg += "->${obj.anArray}"
+          }
           break
         case Photo:
-          resMsg += "<img width=\"40\" height=\"40\" src=\"${it.url}\"/><br/>"
+          resMsg += "<img width=\"40\" height=\"40\" src=\"${obj.url}\"/><br/>"
           break
         default:
-          resMsg += "<strong>Other</strong> ${it}<br />"
+          resMsg += "<strong>Other</strong> ${obj}<br />"
           break
       }
 
