@@ -217,14 +217,16 @@ public class DomainClassUnmarshaller {
 
                 // As a simplest scenario recover object directly from ElasticSearch.
                 // todo add first-level caching and cycle ref checking
-                String indexName = elasticSearchContextHolder.getMappingContext(refDomainClass).getIndexName();
-                String name = GrailsNameUtils.getPropertyName(refClass);
-                GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
-                            .operationThreaded(false)
-                            .type(name)
-                            .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
-                            .actionGet();
-                parseResult = unmarshallDomain(refDomainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
+                if(propertyValue != null){
+                    String indexName = elasticSearchContextHolder.getMappingContext(refDomainClass).getIndexName();
+                    String name = GrailsNameUtils.getPropertyName(refClass);
+                    GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
+                                .operationThreaded(false)
+                                .type(name)
+                                .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
+                                .actionGet();
+                    parseResult = unmarshallDomain(refDomainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
+                }
             }
         }
         if (parseResult != null) {

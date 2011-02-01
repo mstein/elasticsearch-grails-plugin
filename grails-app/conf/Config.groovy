@@ -48,7 +48,7 @@ environments {
     /**
      * Possible values : "local", "node", "transport"
      */
-    elasticSearch.client.mode = 'node'
+    elasticSearch.client.mode = 'local'
   }
   test {
     elasticSearch {

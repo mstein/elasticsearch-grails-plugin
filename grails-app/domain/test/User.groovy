@@ -4,17 +4,20 @@ class User extends SuperUser {
   static searchable = {
     except = 'password'
     lastname boost:20
-    firstname boost:15, index:'not_analyzed'
-    listOfThings index:'no'
+    firstname boost:15, index:'not_analyzed', excludeFromAll:true
+    listOfThings index:'not_analyzed', excludeFromAll:true
     someThings index:'no'
     tweets component:true
     photos reference:true
     role converter:test.RoleConverter
+    indexButDoNotSearchOnThis index:'no', excludeFromAll:true
   }
 
   static constraints = {
     tweets cascade:'all'
     role nullable:false
+    anArray nullable:true
+    photos nullable:true
   }
   static hasMany = [
           tweets:Tweet,
@@ -35,7 +38,10 @@ class User extends SuperUser {
   String password
   String activity = 'Evildoer'
   String someThings = 'something'
-  ArrayList<String> listOfThings = ['this', 'that', 'andthis']
+  ArrayList<String> listOfThings = ['this is a list of things', 'with that', 'and this']
+  Integer[] listOfInt = [1, 2, 3, 4, 5] as Integer[]
+  String indexButDoNotSearchOnThis
+  String[] anArray
   Role role = Role.ORDINARY
 
   enum Role {
