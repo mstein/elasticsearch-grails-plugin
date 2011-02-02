@@ -147,11 +147,21 @@ class GXContentBuilder extends GroovyObjectSupport {
 
         if (current instanceof List) {
             current << n
-        }
-        else {
-            current[methodName] = n
+        } else {
+            if (current[methodName]) {
+                // already has node.
+                // do not override existing nodes, instead convert to Lists.
+                if (!(current[methodName] instanceof List)) {
+                    current[methodName] = [current[methodName]]
+                }
+                current[methodName] << n
+            } else {
+                current[methodName] = n
+            }
         }
         current = n
+        callable.delegate = this
+        callable.resolveStrategy = Closure.DELEGATE_FIRST
         callable.call()
         current = nestingStack.pop()
     }

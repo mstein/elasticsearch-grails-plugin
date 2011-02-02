@@ -158,6 +158,22 @@ public class DomainClassUnmarshaller {
                 return null;
             }
 
+            // Searchable reference.
+            if (scpm.getReference() != null) {
+                Class<?> refClass = scpm.getBestGuessReferenceType();
+                GrailsDomainClass refDomainClass = null;
+                for(GrailsClass dClazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
+                    if (dClazz.getClazz().equals(refClass)) {
+                        refDomainClass = (GrailsDomainClass) dClazz;
+                        break;
+                    }
+                }
+                if (refDomainClass == null) {
+                    throw new IllegalStateException("Found reference to non-domain class: " + refClass);
+                }
+                return unmarshallReference(refDomainClass, data, unmarshallingContext);
+            }
+
             if (data.containsKey("class")) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
@@ -202,29 +218,6 @@ public class DomainClassUnmarshaller {
                                 " using " + scpm.getConverter(), e);
                     }
                 }
-            } else if (scpm.getReference() != null) {
-                Class<?> refClass = scpm.getBestGuessReferenceType();
-                GrailsDomainClass refDomainClass = null;
-                for(GrailsClass dClazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
-                    if (dClazz.getClazz().equals(refClass)) {
-                        refDomainClass = (GrailsDomainClass) dClazz;
-                        break;
-                    }
-                }
-                if (refDomainClass == null) {
-                    throw new IllegalStateException("Found reference to non-domain class: " + refClass);
-                }
-
-                // As a simplest scenario recover object directly from ElasticSearch.
-                // todo add first-level caching and cycle ref checking
-                String indexName = elasticSearchContextHolder.getMappingContext(refDomainClass).getIndexName();
-                String name = GrailsNameUtils.getPropertyName(refClass);
-                GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
-                            .operationThreaded(false)
-                            .type(name)
-                            .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
-                            .actionGet();
-                parseResult = unmarshallDomain(refDomainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
             }
         }
         if (parseResult != null) {
@@ -232,6 +225,22 @@ public class DomainClassUnmarshaller {
         } else {
             return propertyValue;
         }
+    }
+
+
+    private Object unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
+        // As a simplest scenario recover object directly from ElasticSearch.
+        // todo add first-level caching and cycle ref checking
+        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).getIndexName();
+        String name = elasticSearchContextHolder.getMappingContext(domainClass).getElasticTypeName();
+        // A property value is expected to be a map in the form [id:ident]
+        Object id = data.get("id");
+        GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
+                .operationThreaded(false)
+                .type(name)
+                .id(typeConverter.convertIfNecessary(id, String.class)))
+                .actionGet();
+        return unmarshallDomain(domainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
     }
 
 

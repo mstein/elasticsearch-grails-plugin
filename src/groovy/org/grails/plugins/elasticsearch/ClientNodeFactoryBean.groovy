@@ -54,6 +54,12 @@ class ClientNodeFactoryBean implements FactoryBean {
                 } else {
                     LOG.debug "Local ElasticSearch client with default store type configured."
                 }
+                def queryParsers = elasticSearchContextHolder.config.index.queryparser
+                if (queryParsers) {
+                    queryParsers.each { type, clz ->
+                        nb.settings().put("index.queryparser.types.${type}".toString(), clz)
+                    }
+                }
                 nb.local(true)
                 break;
             case 'transport':

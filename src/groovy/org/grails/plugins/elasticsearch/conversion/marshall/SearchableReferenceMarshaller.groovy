@@ -43,7 +43,7 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
         // todo encapsulate me
         def scm = marshallingContext.parentFactory.elasticSearchContextHolder.getMappingContext(domainClass)
         assert scm
-        return InvokerHelper.invokeMethod(object, "ident", null)
+        return [id:InvokerHelper.invokeMethod(object, "ident", null)]
     }
 
 

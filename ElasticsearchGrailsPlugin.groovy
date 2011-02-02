@@ -35,7 +35,7 @@ class ElasticsearchGrailsPlugin {
     static LOG = Logger.getLogger(ElasticsearchGrailsPlugin)
 
     // the plugin version
-    def version = "0.14.2-a"
+    def version = "0.14.2-e"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.3.4 > *"
     // the other plugins this plugin depends on
@@ -86,6 +86,8 @@ Based on Graeme Rocher spike.
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
             elasticSearchClient = ref("elasticSearchClient")
             jsonDomainFactory = ref("jsonDomainFactory")
+            persistenceInterceptor = ref("persistenceInterceptor")
+            sessionFactory = ref("sessionFactory")
         }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref("elasticSearchContextHolder")
@@ -106,7 +108,6 @@ Based on Graeme Rocher spike.
         }
         auditListener(AuditEventListener) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
-            indexRequestQueue = ref("indexRequestQueue")
         }
 
         if (!esConfig.disableAutoIndex) {

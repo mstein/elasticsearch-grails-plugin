@@ -45,13 +45,31 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
     /**
      * Search using Query DSL builder.
+     * Supported parameters:
+     * <ul>
+     * <li><strong>searchType</strong> ES search type, see {@link SearchType}
+     * <li><strong>indices</strong> defines which indices to use for search, by default searches all indices
+     * <li><strong>types</strong>
+     * <li><strong>from</strong>
+     * <li><strong>size</strong>
+     * <li><strong>explain</strong>
+     * <li><strong>highlight</strong> - a closure ({@link HighlightBuilder} defining highlighting settings.
+     * </ul>
      * @param params search params
      * @param closure query closure
      * @return search results
      */
     def search(Map params, Closure query) {
         SearchRequest request = new SearchRequest()
-        request.searchType SearchType.DFS_QUERY_THEN_FETCH
+        def searchType = SearchType.DFS_QUERY_THEN_FETCH
+        if (params.searchType) {
+            if (params.searchType instanceof SearchType) {
+                searchType = params.searchType
+            } else {
+                searchType = SearchType.fromString(params.searchType)
+            }
+        }
+        request.searchType(searchType)
         if (params.indices) {
             request.indices(params.indices as String[])
         }
@@ -67,7 +85,10 @@ public class ElasticSearchService implements GrailsApplicationAware {
             source.size(params.size as int)
         }
         source.explain(params.explain ?: true)
+        // 'query' closure is NOT supposed to contain query root.
+        // it is added automagically.
         source.query(new GXContentBuilder().buildAsBytes(query))
+
         if (params.highlight) {
             def highlighter = new HighlightBuilder()
             // params.highlight is expected to provide a Closure.
@@ -75,10 +96,10 @@ public class ElasticSearchService implements GrailsApplicationAware {
             highlightBuilder.delegate = highlighter
             highlightBuilder.resolveStrategy = Closure.DELEGATE_FIRST
             highlightBuilder.call()
-            source.highlight highlighter
+            source.highlight(highlighter)
         }
 
-        request.source source
+        request.source(source)
 
         elasticSearchHelper.withElasticSearch { Client client ->
             def response = client.search(request).actionGet()
@@ -100,6 +121,8 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 }
                 result.highlight = highlightResults
             }
+
+            // todo extract explanations if explain is set to true.
 
             return result
         }

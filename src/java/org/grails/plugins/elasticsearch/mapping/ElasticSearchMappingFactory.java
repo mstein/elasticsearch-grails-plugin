@@ -73,17 +73,35 @@ public class ElasticSearchMappingFactory {
                 }
 
                 if (scpm.getReference() != null) {
-                    propType = "long";      // fixme: think about composite ids.
+                    propType = "object";      // fixme: think about composite ids.
                 } else if (scpm.isComponent()) {
                     // Proceed with nested mapping.
                     // todo limit depth to avoid endless recursion?
                     propType = "object";
-                    propOptions.putAll(getElasticMapping(scpm.getComponentPropertyMapping()));
+                    //noinspection unchecked
+                    propOptions.putAll((Map<String, Object>)
+                            (getElasticMapping(scpm.getComponentPropertyMapping()).values().iterator().next()));
+
+                }
+
+                // Once it is an object, we need to add id & class mappings, otherwise
+                // ES will fail with NullPointer.
+                if (scpm.isComponent() || scpm.getReference() != null) {
+                    @SuppressWarnings({"unchecked"})
+                    Map<String, Object> props = (Map<String, Object>) propOptions.get("properties");
+                    if (props == null) {
+                        props = new LinkedHashMap<String, Object>();
+                        propOptions.put("properties", props);
+                    }
+                    props.put("id", defaultDescriptor("long", "no", true));
+                    props.put("class", defaultDescriptor("string", "no", true));
+                    props.put("ref", defaultDescriptor("string", "no", true));
                 }
             }
             propOptions.put("type", propType);
             // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
-            if (scm.isAll()) {
+            if (!propType.equals("object") && scm.isAll()) {
+                // does it make sense to include objects into _all?
                 if (scpm.shouldExcludeFromAll()) {
                     propOptions.put("include_in_all", false);
                 } else {
@@ -106,6 +124,14 @@ public class ElasticSearchMappingFactory {
 
     private static boolean isDateType(Class type) {
         return (JODA_TIME_BASE != null && JODA_TIME_BASE.isAssignableFrom(type)) || java.util.Date.class.isAssignableFrom(type);
+    }
+
+    private static Map<String, Object> defaultDescriptor(String type, String index, boolean excludeFromAll) {
+        Map<String, Object> props = new LinkedHashMap<String, Object>();
+        props.put("type", type);
+        props.put("index", index);
+        props.put("include_in_all", !excludeFromAll);
+        return props;
     }
 
 }

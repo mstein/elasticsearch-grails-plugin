@@ -2,7 +2,7 @@ package test
 
 class Tweet {
   static searchable = {
-    message boost:2.0
+    message boost:3.0
     tags component:true
     user reference:true
   }

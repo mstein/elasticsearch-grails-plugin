@@ -18,10 +18,7 @@ package org.grails.plugins.elasticsearch.mapping;
 
 import groovy.util.ConfigObject;
 import org.apache.log4j.Logger;
-import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
-import org.codehaus.groovy.grails.commons.GrailsApplication;
-import org.codehaus.groovy.grails.commons.GrailsClass;
-import org.codehaus.groovy.grails.commons.GrailsDomainClass;
+import org.codehaus.groovy.grails.commons.*;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
@@ -63,6 +60,18 @@ public class SearchableClassMappingConfigurator {
 //        settings.put("number_of_shards", 5);        // must have 5 shards to be Green.
 //        settings.put("number_of_replicas", 2);
 
+        // Look for default index settings.
+        Map esConfig = (Map) ConfigurationHolder.getConfig().getProperty("elasticSearch");
+        if (esConfig != null) {
+            @SuppressWarnings({"unchecked"})
+            Map<String, Object> indexDefaults = (Map<String, Object>) esConfig.get("index");
+            if (indexDefaults != null) {
+                for(Map.Entry<String, Object> entry : indexDefaults.entrySet()) {
+                    settings.put("index." + entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
         for(SearchableClassMapping scm : mappings) {
 
             if (scm.isRoot()) {
@@ -87,6 +96,9 @@ public class SearchableClassMappingConfigurator {
 
                 // todo when conflict is detected, delete old mapping
                 // (this will delete all indexes as well, so should warn user)
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping);
+                }
                 elasticSearchClient.admin().indices().putMapping(
                         new PutMappingRequest(scm.getIndexName())
                                 .type(scm.getElasticTypeName())

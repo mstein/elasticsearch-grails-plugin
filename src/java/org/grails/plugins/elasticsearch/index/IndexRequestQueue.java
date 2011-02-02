@@ -16,6 +16,8 @@
 package org.grails.plugins.elasticsearch.index;
 
 import org.apache.log4j.Logger;
+import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil;
+import org.codehaus.groovy.grails.support.PersistenceContextInterceptor;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -29,6 +31,9 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory;
 import org.grails.plugins.elasticsearch.exception.IndexException;
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -49,6 +54,8 @@ public class IndexRequestQueue {
     private JSONDomainFactory jsonDomainFactory;
     private ElasticSearchContextHolder elasticSearchContextHolder;
     private Client elasticSearchClient;
+    private PersistenceContextInterceptor persistenceInterceptor;
+    private SessionFactory sessionFactory;
 
     /**
      * A map containing the pending index requests.
@@ -78,9 +85,27 @@ public class IndexRequestQueue {
         this.elasticSearchClient = elasticSearchClient;
     }
 
+    public void setPersistenceInterceptor(PersistenceContextInterceptor persistenceInterceptor) {
+        this.persistenceInterceptor = persistenceInterceptor;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
     public void addIndexRequest(Object instance) {
-        synchronized (this) {
-            indexRequests.put(new IndexEntityKey(instance), instance);
+        addIndexRequest(instance, null);
+    }
+
+    public void addIndexRequest(Object instance, Serializable id) {
+        try {
+            synchronized (this) {
+                IndexEntityKey key = id == null ? new IndexEntityKey(instance) :
+                        new IndexEntityKey(id.toString(), GrailsHibernateUtil.unwrapIfProxy(instance).getClass());
+                indexRequests.put(key, toJSON(instance).copiedBytes());
+            }
+        } catch (IOException e) {
+            throw new IndexException("Unable to index instance " + instance, e);
         }
     }
 
@@ -126,17 +151,26 @@ public class IndexRequestQueue {
         // Execute index requests
         for (Map.Entry<IndexEntityKey, Object> entry : toIndex.entrySet()) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(entry.getKey().getClazz());
-            XContentBuilder json = toJSON(entry.getValue());
-            bulkRequestBuilder.add(
-                    new IndexRequest(scm.getIndexName())
-                            .type(scm.getElasticTypeName())
-                            .id(entry.getKey().getId())      // how about composite keys?
-                            .source(json));
-            if (LOG.isDebugEnabled()) {
-                try {
-                    LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
-                            ") of id " + entry.getKey().getId() + " and source " + json.string());
-                } catch (IOException e) {}
+//            XContentBuilder json = toJSON(entry.getValue());
+//            byte[] json = (byte[]) entry.getValue();
+            persistenceInterceptor.init();
+            try {
+                Session session = SessionFactoryUtils.getSession(sessionFactory, true);
+                XContentBuilder json = toJSON(session.get(entry.getKey().getClazz(), Long.parseLong(entry.getKey().getId())));
+
+                bulkRequestBuilder.add(
+                        new IndexRequest(scm.getIndexName())
+                                .type(scm.getElasticTypeName())
+                                .id(entry.getKey().getId())      // how about composite keys?
+                                .source(json));
+                if (LOG.isDebugEnabled()) {
+                    try {
+                        LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
+                                ") of id " + entry.getKey().getId() + " and source " + json.string());//new String(json, "UTF-8"));
+                    } catch (IOException e) {}
+                }
+            } finally {
+                persistenceInterceptor.destroy();
             }
         }
 
@@ -175,8 +209,11 @@ public class IndexRequestQueue {
 
         public void onResponse(BulkResponse bulkResponse) {
             for(BulkItemResponse item : bulkResponse.items()) {
-                if (!item.isFailed()) {
-                    // remove successful ones.
+                boolean removeFromQueue = item.isFailed()
+                        || item.getFailureMessage().indexOf("UnavailableShardsException") >= 0;
+                // On shard failure, do not re-push.
+                if (removeFromQueue) {
+                    // remove successful OR fatal ones.
                     Class<?> entityClass = elasticSearchContextHolder.findMappedClassByElasticType(item.getType());
                     if (entityClass == null) {
                         LOG.error("Elastic type [" + item.getType() + "] is not mapped.");
@@ -186,9 +223,11 @@ public class IndexRequestQueue {
                     toIndex.remove(key);
                     toDelete.remove(key);
                 }
+                if (item.isFailed()) {
+                    LOG.error("Failed bulk item: " + item.getFailureMessage());
+                }
             }
             if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
-                LOG.error(bulkResponse.buildFailureMessage());
                 push();
             } else {
                 LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
@@ -239,7 +278,7 @@ public class IndexRequestQueue {
         }
 
         IndexEntityKey(Object instance) {
-            this.clazz = instance.getClass();
+            this.clazz = GrailsHibernateUtil.unwrapIfProxy(instance).getClass();
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(this.clazz);
             if (scm == null) {
                 throw new IllegalArgumentException("Class " + clazz + " is not a searchable domain class.");

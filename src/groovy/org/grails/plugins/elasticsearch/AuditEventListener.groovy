@@ -27,19 +27,28 @@ import org.hibernate.event.PostUpdateEvent
 import org.hibernate.event.PostDeleteEventListener
 import org.hibernate.event.PostDeleteEvent
 import org.codehaus.groovy.grails.orm.hibernate.events.SaveOrUpdateEventListener
+import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ApplicationContext
+import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class AuditEventListener extends SaveOrUpdateEventListener implements PostCollectionUpdateEventListener,
                                                                       PostInsertEventListener, PostUpdateEventListener,
                                                                       PostDeleteEventListener,
-                                                                      FlushEventListener {
+                                                                      FlushEventListener,
+                                                                      ApplicationContextAware
+                                                                        {
 
     def elasticSearchContextHolder
     
+    def applicationContext
+
     /**
      * Index & Delete requests are execute once per flush.
      * Before a flush event, the requests are store in callsBuffer and then executed once onFlush() is called.
      */
-    def indexRequestQueue
+    IndexRequestQueue getIndexRequestQueue() {
+        applicationContext.getBean("indexRequestQueue", IndexRequestQueue)
+    }
 
     void onPostUpdateCollection(PostCollectionUpdateEvent postCollectionUpdateEvent) {
         def clazz = postCollectionUpdateEvent.affectedOwnerOrNull?.class
@@ -52,7 +61,7 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
     void onPostInsert(PostInsertEvent event) {
         def clazz = event.entity?.class
         if (elasticSearchContextHolder.isRootClass(clazz)) {
-            indexRequestQueue.addIndexRequest(event.entity)
+            indexRequestQueue.addIndexRequest(event.entity, event.id)
         }
     }
 
@@ -78,5 +87,10 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
         // When a flush occurs, execute the pending requests in the buffer (the buffer is cleared automatically)
         indexRequestQueue.executeRequests()
     }
+
+    void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext
+    }
+
 
 }
