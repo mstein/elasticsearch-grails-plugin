@@ -101,7 +101,7 @@ class ClientNodeFactoryBean implements FactoryBean {
     def shutdown() {
         if (elasticSearchContextHolder.config.client.mode == 'local' && node) {
             LOG.info "Stopping embedded ElasticSearch."
-            node.stop()
+            node.close()        // close() seems to be more appropriate than stop()
         }
     }
 }

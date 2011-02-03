@@ -209,7 +209,7 @@ public class IndexRequestQueue {
 
         public void onResponse(BulkResponse bulkResponse) {
             for(BulkItemResponse item : bulkResponse.items()) {
-                boolean removeFromQueue = item.isFailed()
+                boolean removeFromQueue = !item.isFailed()
                         || item.getFailureMessage().indexOf("UnavailableShardsException") >= 0;
                 // On shard failure, do not re-push.
                 if (removeFromQueue) {
