@@ -8,28 +8,47 @@ The returned result may contain different type of domain.
 h2. Examples
 
 {code}
+def highlighter = {
+  field 'message', 0, 0
+  preTags '<strong>'
+  postTags '</strong>'
+}
+
 def res = elasticSearchService.search("${params.query}")
+def res = elasticSearchService.search("${params.query}", [from:0, size:30, highlighter:highlighter])
+def res = elasticSearchService.search(){
+    queryString("${params.query}")
+}
+def res = elasticSearchService.search(from:0, size:30, indices:"tweet") {
+    queryString("${params.query}")
+}
 {code}
 
 h4. Description
 
-@search@ signature:
+@search@ signatures:
 
 {code}
-def search(String query, Map params = [from: 0, size: 60, explain: true] )
+def search(Closure query, Map params)
+def search(Map params, Closure query)
+def search(String query, Map params)
 {code}
 
 h4. Parameters
 
-* @query@ - The search query. You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
+* @query@ - The search query.
+** As a @String@, the query is parsed by the Lucene query parser for advanced searching.
+** Can also be a @Closure@, using the Groovy Query DSL of the ElasticSearch groovy client.
 * @params@ - A list of additional parameters to customize the searching process
 ** @from@ and @size@ - From (hit) and the size (number of hits) to return.
 ** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
 ** @indices@ - Limit the search only to the specified indices (may be a @String@, or @Collection@ of @String@)
 ** @types@ - Limit the search only to the specified types (domains) (may be a @String@, or @Collection@ of @String@).
+** @highlighter@ - A @Closure@ containing the highlighting settings.
 
 h4. Returned value
 
 Return a @Map@ containing:
-* a @total@ entry, representing the total number of hits found
-* a @searchResults@ entry, containing the hits
+* a @total@ entry, representing the total number of hits found.
+* a @searchResults@ entry, containing the hits.
+* a @highlight@ entry if the @highlighter@ parameter was set.
