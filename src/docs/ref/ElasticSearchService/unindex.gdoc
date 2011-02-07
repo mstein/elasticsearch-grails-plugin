@@ -1,0 +1,50 @@
+h1. unindex
+
+h2. Purpose
+
+Remove domain instances from the ElasticSearch indices.
+Internally, the plugin uses the Bulk API of ElasticSearch to performe the delete requests.
+
+h2. Examples
+
+{code:groovy}
+// Unindex all searchable instances
+elasticSearchService.unindex()
+
+// Unindex a specific domain instance
+MyDomain md = new MyDomain(value:'that')
+md.save()
+elasticSearchService.unindex(md)
+
+// Unindex a collection of domain instances
+def ds = [new MyDomain(value:'that'), new MyOtherDomain(name:'this'), new MyDomain(value:'thatagain')]
+ds*.save()
+elasticSearchService.unindex(ds)
+
+// Unindex all instances of the specified domain class
+elasticSearchService.unindex(MyDomain)
+elasticSearchService.unindex(class:MyDomain)
+elasticSearchService.unindex(MyDomain, MyOtherDomain)
+elasticSearchService.unindex([MyDomain, MyOtherDomain])
+{code}
+
+h4. Description
+
+@unindex@ signatures:
+
+{code:groovy}
+def unindex()
+def unindex(Map params)
+def unindex(Collection<Domain> domains)
+def unindex(Domain... domain)
+def unindex(Collection<Class> classes)
+def unindex(Class... class)
+{code}
+
+h4. Parameters
+
+* @Map@ params - A map containing the @Class@ (or @Collection@ of @Class@) of the domain. Will unindex ALL persisted instances of the specified class(es).
+* @Collection<Domain>@ domains - A @Collection@ of domain instances to unindex.
+* @Domain...@ domain - Same as @Collection<Domain>@, but with an ellipsis.
+* @Collection<Class>@ classes - A @Collection@ of @Class@ of the domain to unindex. Will unindex ALL persisted instances of the specified classes.
+* @Class...@ classes - Same as @Collection<Class>@, but with an ellipsis.

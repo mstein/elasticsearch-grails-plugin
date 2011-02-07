@@ -9,7 +9,20 @@ The returned result only contains hits for the correponding domain.
 h2. Examples
 
 {code}
+def highlighter = {
+  field 'message', 0, 0
+  preTags '<strong>'
+  postTags '</strong>'
+}
+
 def res = MyDomain.search("${params.query}")
+def res = MyDomain.search("${params.query}", [from:0, size:30, highlighter:highlighter])
+def res = MyDomain.search(){
+    queryString("${params.query}")
+}
+def res = MyDomain.search(from:0, size:30) {
+    queryString("${params.query}")
+}
 {code}
 
 h4. Description
@@ -17,7 +30,9 @@ h4. Description
 @search@ signature:
 
 {code}
-def search(String query, Map params = [from: 0, size: 60, explain: true] )
+def search(Closure query, Map params)
+def search(Map params, Closure query)
+def search(String query, Map params)
 {code}
 
 h4. Parameters
@@ -26,9 +41,11 @@ h4. Parameters
 * @params@ - A list of additional parameters to customize the searching process
 ** @from@ and @size@ - From (hit) and the size (number of hits) to return.
 ** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
+** @highlighter@ - A @Closure@ containing the highlighting settings.
 
 h4. Returned value
 
 Return a @Map@ containing:
 * a @total@ entry, representing the total number of hits found
 * a @searchResults@ entry, containing the hits
+* a @highlight@ entry if the @highlighter@ parameter was set.

@@ -1,0 +1,42 @@
+h1. unindex
+
+h2. Purpose
+
+Remove specific domain instances from the ElasticSearch indices.
+Internally, the plugin uses the Bulk API of ElasticSearch to perform the delete requests.
+{note}Only domains that are [root-mapped|guide:3.2 Class mapping] have this method injected.{note}
+
+h2. Examples
+
+{code:groovy}
+// Unindex all instances of the MyDomain domain class
+MyDomain.unindex()
+
+// Unindex a specific domain instance
+MyDomain md = MyDomain.get(1)
+md.unindex()
+
+// Index a collection of domain instances
+def ds = MyDomain.findAllByValue('that')
+MyDomain.unindex(ds)
+{code}
+
+h4. Description
+
+@unindex@ signatures:
+
+{code:groovy}
+// Unindex a specific domain instance
+def unindex()
+// Unindex ALL instances of a domain class
+static unindex()
+// Unindex a Collection of domain instances
+static unindex(Collection<Domain> domains)
+// Same with an ellipsis
+static unindex(Domain... domain)
+{code}
+
+h4. Parameters
+
+* @Collection<Domain>@ domains - A @Collection@ of domain instances to unindex.
+* @Domain...@ domain - Same as @Collection<Domain>@, but with an ellipsis.

@@ -1,0 +1,50 @@
+h1. index
+
+h2. Purpose
+
+Index domain instances to ElasticSearch.
+Internally, the plugin uses the Bulk API of ElasticSearch to perform the index requests.
+
+h2. Examples
+
+{code:groovy}
+// Index all searchable instances
+elasticSearchService.index()
+
+// Index a specific domain instance
+MyDomain md = new MyDomain(value:'that')
+md.save()
+elasticSearchService.index(md)
+
+// Index a collection of domain instances
+def ds = [new MyDomain(value:'that'), new MyOtherDomain(name:'this'), new MyDomain(value:'thatagain')]
+ds*.save()
+elasticSearchService.index(ds)
+
+// Index all instances of the specified domain class
+elasticSearchService.index(MyDomain)
+elasticSearchService.index(class:MyDomain)
+elasticSearchService.index(MyDomain, MyOtherDomain)
+elasticSearchService.index([MyDomain, MyOtherDomain])
+{code}
+
+h4. Description
+
+@index@ signatures:
+
+{code:groovy}
+def index()
+def index(Map params)
+def index(Collection<Domain> domains)
+def index(Domain... domain)
+def index(Collection<Class> classes)
+def index(Class... class)
+{code}
+
+h4. Parameters
+
+* @Map@ params - A map containing the @Class@ (or @Collection@ of @Class@) of the domain. Will index ALL persisted instances of the specified class(es).
+* @Collection<Domain>@ domains - A @Collection@ of domain instances to index.
+* @Domain...@ domain - Same as @Collection<Domain>@, but with an ellipsis.
+* @Collection<Class>@ classes - A @Collection@ of @Class@ of the domain to index. Will index ALL persisted instances of the specified classes.
+* @Class...@ classes - Same as @Collection<Class>@, but with an ellipsis.
