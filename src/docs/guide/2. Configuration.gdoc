@@ -1,19 +1,19 @@
 The plugin provide a default configuration, but you may add your own settings in your *Config.groovy* script.
 
 h4. Client mode
-You can set the plugin in 3 different modes, detailled on the [official ElasticSearch doc|http://www.elasticsearch.com/docs/elasticsearch/java_api/client/].
+You can set the plugin in 3 different modes, detailled on the [official ElasticSearch doc|http://www.elasticsearch.org/guide/reference/java-api/client.html].
 The mode is defined with the following config key:
 
 {code}elasticSearch.client.mode = '<mode>'{code}
 
 *Possible values:*
-* *node*: The plugin create its own node and join the ElasticSearch cluster as a client node (@node.client = true@).
-This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
-* *local*: The plugin create its own local (to the JVM) node. Does not require any running ElasticSearch instance. Useful for
-development or testing.
-* *transport*: The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.
+{table}
+*Value* | *Description*
+node | The plugin create its own node and join the ElasticSearch cluster as a client node (@node.client = true@). This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
+local | The plugin create its own local (to the JVM) node. Does not require any running ElasticSearch instance. Useful for development or testing.
+transport | The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.
+{table}
 "Transport" mode needs you to provide the host address and port. You can define one or multiple hosts with the following config key:
-
 {code}elasticSearch.client.hosts = [
        [host:'192.168.0.3', port:9300],
        [host:'228.168.0.4', port:9300]
@@ -29,6 +29,19 @@ Note : future version of the plugin may change how formats are manipulated.
 List of domain class properties to automatically ignore (will not be indexed) if their name match one of those.
 This will only apply to default-mapped domain class, with the static @searchable@ property set to "true", and will
 not be considered when using closure mapping.
+* @elasticSearch.disableAutoIndex@
+A boolean determining if the plugin should reflect any database save/update/delete automatically on the indices.
+Default to @false@.
+* @elasticSearch.index.store.type@
+Determine the way how the indices will be store.
+More details on the possible values on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/store.html].
+{table}
+Possible value | Description
+memory | Stores the index in memory. Useful for testing.
+mmapfs | Stores the shard index on the file system (maps to Lucene MMapDirectory) using mmap.
+niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.
+simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
+{table}
 
 h4. Default configuration script
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).
@@ -58,6 +71,12 @@ elasticSearch {
    * This does not apply for classes using mapping by closure
    */
   defaultExcludedProperties = ["password"]
+
+  /**
+   * Determines if the plugin should reflect any database save/update/delete automatically
+   * on the ES instance. Default to false.
+   */
+  disableAutoIndex = false
 }
 
 environments {
@@ -69,7 +88,10 @@ environments {
     elasticSearch.client.mode = 'local'
   }
   test {
-    elasticSearch.client.mode = 'local'
+      elasticSearch {
+          client.mode = 'local'
+          index.store.type = 'memory' // store local node in memory and not on disk
+      }
   }
   production {
     elasticSearch.client.mode = 'node'
