@@ -114,6 +114,8 @@ public class SearchableClassPropertyMapping {
 
     /**
      * Validate searchable mappings for this property.
+     * NOTE: We can leave the validation of the options from SEARCHABLE_MAPPING_OPTIONS to ElasticSearch
+     * as it will throw an error if a mapping value is invalid.
      */
     public void validate(ElasticSearchContextHolder contextHolder) {
         if (this.isComponent() && this.getReference() != null) {

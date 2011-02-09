@@ -35,9 +35,9 @@ class ElasticsearchGrailsPlugin {
     static LOG = Logger.getLogger(ElasticsearchGrailsPlugin)
 
     // the plugin version
-    def version = "0.14.2-i"
+    def version = "0.14.2-j"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "1.3.4 > *"
+    def grailsVersion = "1.3.6 > *"
     // the other plugins this plugin depends on
     def dependsOn = [
             domainClass: "1.0 > *",

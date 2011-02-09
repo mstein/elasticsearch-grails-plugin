@@ -2,13 +2,28 @@ package test
 
 class TestCaseService {
   public createUsers(){
-    User u = new User(lastname:'DA', firstname:'John', password:'myPass', inheritedProperty: 'my value')
-    User u2 = new User(lastname:'DA', firstname:'Bernardo', password:'password', inheritedProperty: 'another value')
+    User u = new User(lastname:'DA',
+            firstname:'John',
+            password:'myPass',
+            inheritedProperty: 'my value',
+            indexButDoNotSearchOnThis: 'alea jacta est',
+            anArray:['array', 'of', 'string'])
+    User u2 = new User(lastname:'DA',
+            firstname:'Bernardo',
+            password:'password',
+            inheritedProperty: 'another value',
+            indexButDoNotSearchOnThis: 'try to search me')
+    User u3 = new User(lastname:'Doe',
+            firstname:'This is my firstname',
+            password:'password',
+            inheritedProperty: 'another value again',
+            indexButDoNotSearchOnThis: 'Unbelievable value')
     u.addToPhotos(new Photo(url:'http://farm6.static.flickr.com/5208/5247108096_171f46b1ca.jpg'))
     u2.addToPhotos(new Photo(url:'http://farm6.static.flickr.com/5041/5246505607_a3e85c411e.jpg'))
     u2.addToPhotos(new Photo(url:'http://www.landscape-photo.org.uk/albums/userpics/10001/99/normal_Chicken_hawk.jpg'))
     u.save(failOnError:true)
     u2.save(failOnError:true)
+    u3.save(failOnError:true)
   }
 
   public deleteTweet(Long id){

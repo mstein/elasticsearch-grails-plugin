@@ -27,7 +27,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
       if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
         if (propertyValue.class.searchable) {   // todo fixme - will throw exception when no searchable field.
           marshallingContext.lastParentPropertyName = prop.name
-          marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]//this.marshall(propertyValue))]
+          marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
         } else {
           marshallResult += [(prop.name): [id: propertyValue.ident(), 'class': propertyClassName]]
         }

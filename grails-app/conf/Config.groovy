@@ -51,10 +51,7 @@ environments {
         /**
          * Possible values : "local", "node", "transport"
          */
-        elasticSearch {
-            client.mode = 'local'
-            index.queryparser = []
-        }
+        elasticSearch.client.mode = 'local'
     }
     test {
         elasticSearch {
@@ -62,6 +59,7 @@ environments {
             index.store.type = 'memory' // store local node in memory and not on disk
         }
     }
+
     production {
         elasticSearch.client.mode = 'node'
     }

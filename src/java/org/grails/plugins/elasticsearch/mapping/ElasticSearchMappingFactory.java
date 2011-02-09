@@ -60,6 +60,12 @@ public class ElasticSearchMappingFactory {
                     if (SUPPORTED_FORMAT.contains(basicType)) {
                         propType = basicType;
                     }
+                // Handle arrays
+                } else if (scpm.getGrailsProperty().getReferencedPropertyType().isArray()) {
+                    String basicType = ClassUtils.getShortName(scpm.getGrailsProperty().getReferencedPropertyType().getComponentType()).toLowerCase(Locale.ENGLISH);
+                    if (SUPPORTED_FORMAT.contains(basicType)) {
+                        propType = basicType;
+                    }
                 } else if (isDateType(scpm.getGrailsProperty().getReferencedPropertyType())) {
                     propType = "date";
                 } else if (GrailsClassUtils.isJdk5Enum(scpm.getGrailsProperty().getReferencedPropertyType())) {

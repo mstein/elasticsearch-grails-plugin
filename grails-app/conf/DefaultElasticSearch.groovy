@@ -30,6 +30,12 @@ elasticSearch {
    * This does not apply for classes using mapping by closure
    */
   defaultExcludedProperties = ["password"]
+
+  /**
+   * Determines if the plugin should reflect any database save/update/delete automatically
+   * on the ES instance. Default to false.
+   */
+  disableAutoIndex = false
 }
 
 environments {

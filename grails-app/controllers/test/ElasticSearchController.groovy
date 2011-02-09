@@ -34,6 +34,9 @@ class ElasticSearchController {
   }
 
   def searchForUserTweets = {
+    /*def tweets = Tweet.search(){
+        queryString(query: params.message.search)
+    }.searchResults*/
     def tweets = Tweet.search("${params.message.search}").searchResults
     def tweetsMsg = 'Messages : '
     tweets.each {
@@ -46,6 +49,32 @@ class ElasticSearchController {
 
   def searchUserTerm = {
       
+  }
+
+  def manualIndex = {
+      def nUser = new User(lastname:'Smith',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      def nUser2 = new User(lastname:'Smith2',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      nUser.id = 1234
+      nUser2.id = 2345
+      elasticSearchService.index(nUser, nUser2)
+
+      flash.notice = 'Indexed a transient user.'
+      redirect(action:'index')
+  }
+
+  def manualIndexAllUser = {
+    User.index()
+    //elasticSearchService.index(User)
+    flash.notice = 'Reindexed all users.'
+    redirect(action:'index')
   }
 
   def searchAll = {
@@ -79,8 +108,11 @@ class ElasticSearchController {
           resMsg += "<strong>Tweet</strong> \"${highlight[count].message.fragments?.getAt(0)}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
-          def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }.join(',')
+          def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''
           resMsg += "<strong>User</strong> ${obj.firstname} ${obj.lastname} ${obj.role} ${pics}<br />"
+          if(obj.anArray) {
+              resMsg += "->${obj.anArray}"
+          }
           break
         case Photo:
           resMsg += "<img width=\"40\" height=\"40\" src=\"${obj.url}\"/><br/>"
