@@ -52,6 +52,7 @@ environments {
          * Possible values : "local", "node", "transport"
          */
         elasticSearch.client.mode = 'local'
+        elasticSearch.bulkIndexOnStartup = true
     }
     test {
         elasticSearch {
@@ -64,3 +65,5 @@ environments {
         elasticSearch.client.mode = 'node'
     }
 }
+grails.views.default.codec="none" // none, html, base64
+grails.views.gsp.encoding="UTF-8"

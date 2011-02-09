@@ -32,7 +32,7 @@ import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticsearchGrailsPlugin {
 
-    static LOG = Logger.getLogger(ElasticsearchGrailsPlugin)
+    static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
     def version = "0.14.2-j"
@@ -136,6 +136,11 @@ Based on Graeme Rocher spike.
 
     def doWithApplicationContext = { applicationContext ->
         // Implement post initialization spring config (optional)
+        def esConfig = getConfiguration(parentCtx, application)
+        if (esConfig.bulkIndexOnStartup) {
+            LOG.debug "Performing bulk index."
+            applicationContext.elasticSearchService.index()
+        }
     }
 
     def onChange = { event ->
