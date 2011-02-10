@@ -17,6 +17,7 @@ package org.grails.plugins.elasticsearch.index;
 
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil;
+import org.codehaus.groovy.grails.orm.hibernate.support.HibernatePersistenceContextInterceptor;
 import org.codehaus.groovy.grails.support.PersistenceContextInterceptor;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.elasticsearch.action.ActionListener;
@@ -31,9 +32,12 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory;
 import org.grails.plugins.elasticsearch.exception.IndexException;
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping;
+import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -47,14 +51,14 @@ import java.util.*;
  * NOTE: if cluster state is RED, everything will probably fail and keep retrying forever.
  * NOTE: This is shared class, so need to be thread-safe.
  */
-public class IndexRequestQueue {
+public class IndexRequestQueue implements InitializingBean {
 
     private static final Logger LOG = Logger.getLogger(IndexRequestQueue.class);
 
     private JSONDomainFactory jsonDomainFactory;
     private ElasticSearchContextHolder elasticSearchContextHolder;
     private Client elasticSearchClient;
-    private PersistenceContextInterceptor persistenceInterceptor;
+    private HibernatePersistenceContextInterceptor persistenceInterceptor;
     private SessionFactory sessionFactory;
 
     /**
@@ -85,12 +89,17 @@ public class IndexRequestQueue {
         this.elasticSearchClient = elasticSearchClient;
     }
 
-    public void setPersistenceInterceptor(PersistenceContextInterceptor persistenceInterceptor) {
-        this.persistenceInterceptor = persistenceInterceptor;
-    }
-
     public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
+    }
+
+    /**
+     */
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(sessionFactory);
+        persistenceInterceptor = new HibernatePersistenceContextInterceptor();
+        persistenceInterceptor.setSessionFactory(sessionFactory);
+        persistenceInterceptor.setReadOnly();
     }
 
     public void addIndexRequest(Object instance) {
@@ -98,14 +107,10 @@ public class IndexRequestQueue {
     }
 
     public void addIndexRequest(Object instance, Serializable id) {
-        try {
-            synchronized (this) {
-                IndexEntityKey key = id == null ? new IndexEntityKey(instance) :
-                        new IndexEntityKey(id.toString(), GrailsHibernateUtil.unwrapIfProxy(instance).getClass());
-                indexRequests.put(key, toJSON(instance).copiedBytes());
-            }
-        } catch (IOException e) {
-            throw new IndexException("Unable to index instance " + instance, e);
+        synchronized (this) {
+            IndexEntityKey key = id == null ? new IndexEntityKey(instance) :
+                    new IndexEntityKey(id.toString(), GrailsHibernateUtil.unwrapIfProxy(instance).getClass());
+            indexRequests.put(key, GrailsHibernateUtil.unwrapIfProxy(instance));
         }
     }
 
@@ -156,7 +161,9 @@ public class IndexRequestQueue {
             persistenceInterceptor.init();
             try {
                 Session session = SessionFactoryUtils.getSession(sessionFactory, true);
-                XContentBuilder json = toJSON(session.get(entry.getKey().getClazz(), Long.parseLong(entry.getKey().getId())));
+                Object entity = entry.getValue();
+                session.lock(entity, LockMode.NONE);
+                XContentBuilder json = toJSON(entity);
 
                 bulkRequestBuilder.add(
                         new IndexRequest(scm.getIndexName())
