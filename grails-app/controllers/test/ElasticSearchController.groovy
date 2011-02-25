@@ -105,7 +105,8 @@ class ElasticSearchController {
           resMsg += "<strong>Tag</strong> ${obj.name.encodeAsHTML()}<br />"
           break
         case Tweet:
-          resMsg += "<strong>Tweet</strong> \"${highlight[count].message.fragments?.getAt(0)}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
+          def fragments = highlight[count].message.fragments
+          resMsg += "<strong>Tweet</strong> \"${fragments.size() ? fragments[0] : ''}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
           def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''
