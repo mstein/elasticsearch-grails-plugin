@@ -256,6 +256,9 @@ public class ElasticSearchService implements GrailsApplicationAware {
             if(params.types instanceof String) {
                 // Shortcut for using 1 type only with a string
                 def scm = elasticSearchContextHolder.getMappingContext(params.types)
+                if (!scm) {
+                    throw new IllegalArgumentException("Unknown object type: ${params.types}")
+                }
                 request.types([scm.elasticTypeName] as String[])
             } else if(params.types instanceof Collection<String>) {
                 def types = params.types.collect { t ->

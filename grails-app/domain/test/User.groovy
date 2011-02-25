@@ -5,6 +5,7 @@ class User extends SuperUser {
     except = 'password'
     lastname boost:20
     firstname boost:15, index:'not_analyzed', excludeFromAll:true
+    name index:'analyzed'
     listOfThings index:'not_analyzed', excludeFromAll:true
     someThings index:'no'
     tweets component:true
@@ -32,6 +33,8 @@ class User extends SuperUser {
           table 'test_user'
   }
 
+  static transients = ['name']
+
 
   String lastname
   String firstname
@@ -43,6 +46,11 @@ class User extends SuperUser {
   String indexButDoNotSearchOnThis
   String[] anArray
   Role role = Role.ORDINARY
+
+  // synthetic property, not persistent. 
+  public String getName() {
+      return firstname + ' ' + lastname
+  }
 
   enum Role {
       ORDINARY, ADMIN

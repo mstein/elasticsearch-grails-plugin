@@ -16,7 +16,6 @@
 
 package org.grails.plugins.elasticsearch.conversion.unmarshall;
 
-import grails.util.GrailsNameUtils;
 import groovy.lang.GroovyObject;
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.commons.*;
@@ -75,6 +74,7 @@ public class DomainClassUnmarshaller {
                 populateCyclicReference(instance, rebuiltProperties, unmarshallingContext);
                 unmarshallingContext.resetContext();
             }
+            // todo manage read-only transient properties...
             bind.invoke(instance, "bind", new Object[] { instance, rebuiltProperties });
 
             results.add(instance);
@@ -219,28 +219,14 @@ public class DomainClassUnmarshaller {
                     }
                 }
             } else if (scpm.getReference() != null) {
-                Class<?> refClass = scpm.getBestGuessReferenceType();
-                GrailsDomainClass refDomainClass = null;
-                for(GrailsClass dClazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
-                    if (dClazz.getClazz().equals(refClass)) {
-                        refDomainClass = (GrailsDomainClass) dClazz;
-                        break;
-                    }
-                }
-                if (refDomainClass == null) {
-                    throw new IllegalStateException("Found reference to non-domain class: " + refClass);
+
+                // This is a reference and it MUST be null because it's not a Map.
+                if (propertyValue != null) {
+                    throw new IllegalStateException("Found searchable reference which is not a Map: " + domainClass + "." + propertyName +
+                            " = " + propertyValue);
                 }
 
-                // As a simplest scenario recover object directly from ElasticSearch.
-                // todo add first-level caching and cycle ref checking
-                String indexName = elasticSearchContextHolder.getMappingContext(refDomainClass).getIndexName();
-                String name = GrailsNameUtils.getPropertyName(refClass);
-                GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
-                            .operationThreaded(false)
-                            .type(name)
-                            .id(typeConverter.convertIfNecessary(propertyValue, String.class)))
-                            .actionGet();
-                parseResult = unmarshallDomain(refDomainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
+                parseResult = null;
             }
         }
         if (parseResult != null) {
