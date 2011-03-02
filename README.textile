@@ -5,6 +5,8 @@ This plugin is providing an integration to Grails of the open source search engi
 **Project tracker:** "http://doc4web.com/icescrum/p/ELASTIC#project":http://doc4web.com/icescrum/p/ELASTIC#project
 Submit your suggestion / bug report / follow the progression on the project tracker.
 
+**Grails plugin page:** "http://grails.org/plugin/elasticsearch":http://grails.org/plugin/elasticsearch
+
 h2. License
 <pre>
   Copyright 2002-2011 the original author or authors.
