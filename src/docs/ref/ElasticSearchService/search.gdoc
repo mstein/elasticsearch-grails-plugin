@@ -44,7 +44,7 @@ h4. Parameters
 ** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
 ** @indices@ - Limit the search only to the specified indices (may be a @String@, or @Collection@ of @String@)
 ** @types@ - Limit the search only to the specified types (domains) (may be a @String@, or @Collection@ of @String@).
-** @highlighter@ - A @Closure@ containing the highlighting settings.
+** @highlight@ - A @Closure@ containing the [highlighting|guide:5.3 Highlighting] settings.
 
 h4. Returned value
 

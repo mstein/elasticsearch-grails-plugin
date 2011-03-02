@@ -172,8 +172,10 @@ public class IndexRequestQueue implements InitializingBean {
                                 .source(json));
                 if (LOG.isDebugEnabled()) {
                     try {
-                        LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
+                        if(LOG.isDebugEnabled()) {
+                            LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
                                 ") of id " + entry.getKey().getId() + " and source " + json.string());//new String(json, "UTF-8"));
+                        }
                     } catch (IOException e) {}
                 }
             } finally {
@@ -237,7 +239,9 @@ public class IndexRequestQueue implements InitializingBean {
             if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
                 push();
             } else {
-                LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
+                if(LOG.isDebugEnabled()) {
+                    LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
+                }
             }
         }
 

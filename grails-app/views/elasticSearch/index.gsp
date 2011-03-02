@@ -14,44 +14,69 @@
     color: #7C9D00;
     font-weight: bolder;
     font-variant: small-caps;
-    clear:both;
-    display:block;
+    clear: both;
+    display: block;
   }
 
-  .box, .noticeBox {
+  .box, .noticeBox, .right-menu {
     border: solid 1px #a9a9a9;
     border-radius: 5 5 5 5;
     -moz-border-radius: 5 5 5 5;
     -webkit-border-radius: 5 5 5 5;
-    width: 80%;
+    max-width: 80%;
     margin: auto;
     padding: 5px;
+    margin-left:40px;
     margin-top: 10px;
     background-color: #FFFFFF;
-    overflow:auto;
+    overflow: auto;
   }
 
   .noticeBox {
     border: solid 1px #7C9D00;
   }
 
+  .right-menu {
+    float:right;
+    margin-left:2px;
+    margin-top:0px;
+  }
+
   .user-file {
-    float:left;
-    border:1px solid #a9a9a9;
-    width:300px;
+    float: left;
+    border: 1px solid #a9a9a9;
+    width: 300px;
   }
 
   .user-file strong {
-    color:#7C9D00;
+    color: #7C9D00;
   }
 
   .left {
-    float:left;
+    float: left;
     padding: 5px;
   }
   </style>
 </head>
 <body>
+<div class="right-menu">
+  <span class="title">Quick mass operations</span>
+  <g:form action="createMassProducts">
+    <label for="persisted">
+      <input type="checkbox" name="persisted" id="persisted" value="true" ${params.persisted != null && params.boolean('persisted')? 'checked="checked"' : ''}/>
+      Persisted in Database
+    </label><br />
+    <label for="batched">
+      <input type="checkbox" name="batched" id="batched" value="true" ${params.batched != null && params.boolean('batched') ? 'checked="checked"' : ''}/>
+      Batch operation
+    </label><br />
+    <label for="number">
+      Number of product to create<br />
+      <input type="text" name="number" id="number" value="${params.number ?: 1000}"/>
+    </label><br />
+    <input type="submit" value="Create Products"/>
+  </g:form>
+</div>
 <g:if test="${flash.notice}">
   <div class="noticeBox">
     ${flash.notice}
@@ -72,11 +97,11 @@
     <span class="title">Available users</span>
     <g:each var="u" in="${User.all}">
       <div class="user-file">
-        <strong>Id: </strong>${u.id}<br/>
-        <strong>Firstname: </strong>${u.firstname}<br/>
-        <strong>Lastname: </strong>${u.lastname}<br/>
-        <strong>Role: </strong>${u.role}<br/>
-        <strong>Activity: </strong>${u.activity}
+        <strong>Id:</strong>${u.id}<br/>
+        <strong>Firstname:</strong>${u.firstname}<br/>
+        <strong>Lastname:</strong>${u.lastname}<br/>
+        <strong>Role:</strong>${u.role}<br/>
+        <strong>Activity:</strong>${u.activity}
       </div>
     </g:each>
   </div>
@@ -86,7 +111,7 @@
   <g:form controller="elasticSearch" action="postTweet">
     <p>
       <label for="activity-user">User :</label><br/>
-      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John" />
+      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John"/>
     </p>
     <p>
       <label for="tweet">Tweet</label><br/>
@@ -131,11 +156,11 @@
   <g:form controller="elasticSearch" action="updateActivity">
     <p>
       <label for="activity-user">User :</label><br/>
-      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John" />
+      <g:select id="activity-user" name="user.id" from="${allUsers ?: []}" optionKey="id" optionValue="firstname" value="John"/>
     </p>
     <p>
       <label for="message-search">New Activity</label>
-      <br />
+      <br/>
       <input type="text" name="user.activity" id="user-activity" style="width:250px;"/>
     </p>
     <p>
@@ -149,12 +174,12 @@
     <g:each var="tweet" in="${Tweet.all}">
       <div class="tweet">
         <strong>Tweet from ${tweet.user?.firstname} ${tweet.user?.lastname}</strong>
-        (<g:link controller="${controllerName}" action="deleteTweet" id="${tweet.id}">Delete</g:link>)<br />
+        (<g:link controller="${controllerName}" action="deleteTweet" id="${tweet.id}">Delete</g:link>)<br/>
         <strong>Tags:</strong>
         %{
-          out << tweet.tags?.collect{ t -> t.name }?.join(', ')
-        }% <br />
-        ${tweet.message.encodeAsHTML().replace('\n','<br/>')}
+          out << tweet.tags?.collect { t -> t.name }?.join(', ')
+        }% <br/>
+        ${tweet.message.encodeAsHTML().replace('\n', '<br/>')}
       </div>
     </g:each>
   </div>

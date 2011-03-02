@@ -9,7 +9,7 @@ class ElasticSearchController {
   }
 
   def createMassProducts = {
-      def maxProducts = params.max ? params.long('max') : 1000l
+      def maxProducts = params.number ? params.long('number') : 1000l
       def batched = params.batched ? params.boolean('batched') : false
       def persisted = params.persisted ? params.boolean('persisted') : false
       def startDate = new Date()
@@ -116,7 +116,7 @@ class ElasticSearchController {
 
   def searchAll = {
     def highlighter = {
-      field 'message', 0, 0
+      field 'message'
       preTags '<strong>'
       postTags '</strong>'
     }
@@ -136,14 +136,13 @@ class ElasticSearchController {
     def highlight = result.highlight
     def resMsg = "<strong>${params.query?.encodeAsHTML()}</strong> search result(s): <strong>${result.total}</strong><br />"
     result.searchResults.eachWithIndex { obj, count ->
-        println obj.class.name
       switch(obj){
         case Tag:
           resMsg += "<strong>Tag</strong> ${obj.name.encodeAsHTML()}<br />"
           break
         case Tweet:
-          def fragments = highlight[count].message.fragments
-          resMsg += "<strong>Tweet</strong> \"${fragments.size() ? fragments[0] : ''}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
+          def fragments = highlight[count].message?.fragments
+          resMsg += "<strong>Tweet</strong> \"${fragments?.size() ? fragments[0] : ''}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
           def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''
