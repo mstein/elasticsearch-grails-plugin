@@ -8,6 +8,43 @@ class ElasticSearchController {
     render(view: 'index')
   }
 
+  def createMassProducts = {
+      def maxProducts = params.max ? params.long('max') : 1000l
+      def batched = params.batched ? params.boolean('batched') : false
+      def persisted = params.persisted ? params.boolean('persisted') : false
+      def startDate = new Date()
+      def endDate
+      if(persisted) {
+          testCaseService.createMassProductsPersisted(maxProducts, batched)
+      } else {
+          testCaseService.createMassProducts(maxProducts, batched)
+      }
+      endDate = new Date()
+      def timeElapsed = (endDate.time - startDate.time) / 1000
+      flash.notice = "Created ${maxProducts} products in ${timeElapsed} seconds.[batched:${batched}, persisted:${persisted}]"
+      redirect(action: 'index')
+  }
+
+  def countExistingProducts = {
+      def nbProducts = Product.count()
+
+      flash.notice = "There are ${nbProducts} products in the database."
+      redirect(action: 'index')
+  }
+
+  def reindexExistingProduct = {
+      def nbProducts = Product.count()
+      def startDate = new Date()
+      def endDate
+
+      testCaseService.batchIndex()
+
+      endDate = new Date()
+      def timeElapsed = (endDate.time - startDate.time) / 1000
+      flash.notice = "Reindexed ${nbProducts} products in ${timeElapsed} seconds.[batched:false]"
+      redirect(action: 'index')
+  }
+
   def postTweet = {
     if(!params.user?.id) {
       flash.notice = "No user selected."

@@ -1,6 +1,53 @@
 package test
 
 class TestCaseService {
+    def sessionFactory
+    def elasticSearchService
+
+    def cleanUpGorm() {
+        def session = sessionFactory.currentSession
+        session.flush()
+        session.clear()
+    }
+
+  public createMassProducts(long maxProducts = 1000l, batched = false) {
+      def collProd = []
+      maxProducts.times {
+          def p = new Product(name:"Product${it}")
+          p.id = it
+          collProd << p
+          if(batched && it % 1000 == 0) {
+              elasticSearchService.index(collProd)
+              collProd.clear()
+          }
+      }
+      if(!batched) {
+          elasticSearchService.index(collProd)
+          collProd.clear()
+      }
+  }
+
+  public batchIndex() {
+      def batchSize = 10000
+      def nbProducts = Product.count()
+      def nbBatches = nbProducts / batchSize
+      nbBatches = nbBatches < 1 ? 1 : nbBatches
+      nbBatches.times {
+          def products = Product.findAll('from Product as p', [max:batchSize, offset:it*batchSize])
+          elasticSearchService.index(products)
+      }
+  }
+
+  public createMassProductsPersisted(long maxProducts = 1000l, batched = false) {
+      maxProducts.times {
+          if(batched && it % 1000 == 0) {
+              println "Saved ${it} instances cleaning up gorm"
+              cleanUpGorm()
+          }
+          (new Product(name:"Product${it}")).save()
+      }
+  }
+
   public createUsers(){
     User u = new User(lastname:'DA',
             firstname:'John',
