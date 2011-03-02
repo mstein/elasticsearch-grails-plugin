@@ -8,6 +8,7 @@ Submit your suggestion / bug report / follow the progression on the project trac
 **Grails plugin page:** "http://grails.org/plugin/elasticsearch":http://grails.org/plugin/elasticsearch
 
 h2. License
+
 <pre>
 Copyright 2002-2011 the original author or authors.
 
