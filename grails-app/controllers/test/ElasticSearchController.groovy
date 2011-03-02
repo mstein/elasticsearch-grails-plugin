@@ -121,18 +121,29 @@ class ElasticSearchController {
       postTags '</strong>'
     }
     // minimalistic test for Query DSL.
-    def result = elasticSearchService.search(highlight:highlighter) {
-      queryString(query: params.query)
+    def result = elasticSearchService.search(highlight:highlighter, searchType:'dfs_query_and_fetch') {
+      bool {
+          must {
+              query_string(query: params.query)
+          }
+          if (params.firstname) {
+              must {
+                  term(firstname: params.firstname)
+              }
+          }
+      }
     }
     def highlight = result.highlight
     def resMsg = "<strong>${params.query?.encodeAsHTML()}</strong> search result(s): <strong>${result.total}</strong><br />"
     result.searchResults.eachWithIndex { obj, count ->
+        println obj.class.name
       switch(obj){
         case Tag:
           resMsg += "<strong>Tag</strong> ${obj.name.encodeAsHTML()}<br />"
           break
         case Tweet:
-          resMsg += "<strong>Tweet</strong> \"${highlight[count].message.fragments?.getAt(0)}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
+          def fragments = highlight[count].message.fragments
+          resMsg += "<strong>Tweet</strong> \"${fragments.size() ? fragments[0] : ''}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
           def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''

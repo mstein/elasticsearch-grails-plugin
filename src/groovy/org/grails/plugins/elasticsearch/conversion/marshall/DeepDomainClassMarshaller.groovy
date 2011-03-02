@@ -8,8 +8,9 @@ import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 
 class DeepDomainClassMarshaller extends DefaultMarshaller {
   protected doMarshall(instance) {
-    def marshallResult = [id: instance.id, 'class': instance.class?.name]
     def domainClass = getDomainClass(instance)
+    // don't use instance class directly, instead unwrap from javaassist
+    def marshallResult = [id: instance.id, 'class': domainClass.clazz.name]
     def scm = elasticSearchContextHolder.getMappingContext(domainClass)
     if (!scm) {
         throw new IllegalStateException("Domain class ${domainClass} is not searchable.")

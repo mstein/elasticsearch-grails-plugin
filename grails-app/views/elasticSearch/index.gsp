@@ -119,6 +119,7 @@
         <label for="search-query">Search for anything</label>
         <br/>
         <input type="text" name="query" id="search-query" style="width:250px;"/>
+        <g:select id="search-user" name="firstname" from="${allUsers ?: []}" optionKey="firstname" optionValue="firstname" noSelection="['':'Any user']" value=""/>
         <input type="submit" value="Search"/>
       </p>
 

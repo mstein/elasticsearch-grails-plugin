@@ -32,12 +32,12 @@ import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticsearchGrailsPlugin {
 
-    static LOG = Logger.getLogger(ElasticsearchGrailsPlugin)
+    static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
-    def version = "0.14.2-a"
+    def version = "0.14.2.2"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "1.3.4 > *"
+    def grailsVersion = "1.3.6 > *"
     // the other plugins this plugin depends on
     def dependsOn = [
             domainClass: "1.0 > *",
@@ -86,6 +86,7 @@ Based on Graeme Rocher spike.
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
             elasticSearchClient = ref("elasticSearchClient")
             jsonDomainFactory = ref("jsonDomainFactory")
+            sessionFactory = ref("sessionFactory")
         }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref("elasticSearchContextHolder")
@@ -106,7 +107,6 @@ Based on Graeme Rocher spike.
         }
         auditListener(AuditEventListener) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
-            indexRequestQueue = ref("indexRequestQueue")
         }
 
         if (!esConfig.disableAutoIndex) {
@@ -135,6 +135,11 @@ Based on Graeme Rocher spike.
 
     def doWithApplicationContext = { applicationContext ->
         // Implement post initialization spring config (optional)
+        def esConfig = getConfiguration(parentCtx, application)
+        if (esConfig.bulkIndexOnStartup) {
+            LOG.debug "Performing bulk index."
+            applicationContext.elasticSearchService.index()
+        }
     }
 
     def onChange = { event ->
