@@ -35,7 +35,7 @@ res.searchResults.each {
 {code}
 
 h3. String query
-The search method injected in the domain or the @ElasticSearchService@ has multiple signature available.
+The search method injected in the domain or the @ElasticSearchService@ has multiple signatures available.
 You can pass it a simple @String@ to compute your search request. That string will be parsed by the *Lucene query parser*
 so feel free to use its syntax to do more specific search query.
 
