@@ -1,4 +1,0 @@
-* Maps domain classes to their corresponding index
-* Provides a ElasticSearch service for cross-domain searching
-* Injects domain class method for specific domain searching
-* Automatically mirrors any changes made throught GORM to the index
