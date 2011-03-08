@@ -4,14 +4,20 @@ import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
+import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 
 class DeepDomainClassMarshaller extends DefaultMarshaller {
   protected doMarshall(instance) {
-    def marshallResult = [id: instance.id, 'class': instance.class?.name]
     def domainClass = getDomainClass(instance)
-    def mappingProperties = elasticSearchContextHolder.getMappingContext(domainClass)?.propertiesMapping
+    // don't use instance class directly, instead unwrap from javaassist
+    def marshallResult = [id: instance.id, 'class': domainClass.clazz.name]
+    def scm = elasticSearchContextHolder.getMappingContext(domainClass)
+    if (!scm) {
+        throw new IllegalStateException("Domain class ${domainClass} is not searchable.")
+    }
     for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
-      if(!(prop.name in mappingProperties*.propertyName)){
+      def propertyMapping = scm.getPropertyMapping(prop.name)
+      if (!propertyMapping) {
         continue
       }
       def propertyClassName = instance."${prop.name}"?.class?.name
@@ -20,17 +26,23 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
       // Domain marshalling
       if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
-        if (propertyValue.class.searchable) {
+        if (propertyValue.class.searchable) {   // todo fixme - will throw exception when no searchable field.
           marshallingContext.lastParentPropertyName = prop.name
-          marshallResult += [(prop.name): ([id: instance.id, 'class': propertyClassName] + this.marshall(propertyValue))]
+          marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
         } else {
-          marshallResult += [(prop.name): [id: instance.id, 'class': propertyClassName]]
+          marshallResult += [(prop.name): [id: propertyValue.ident(), 'class': propertyClassName]]
         }
 
         // Non-domain marshalling
       } else {
         marshallingContext.lastParentPropertyName = prop.name
-        marshallResult += [(prop.name): marshallingContext.delegateMarshalling(propertyValue)]
+        def marshalledValue = marshallingContext.delegateMarshalling(propertyValue)
+        // Ugly XContentBuilder bug: it only checks for EXACT class match with java.util.Date
+        // (sometimes it appears to be java.sql.Timestamp for persistent objects)
+        if (marshalledValue instanceof java.util.Date) {
+            marshalledValue = new java.util.Date(marshalledValue.getTime())
+        }
+        marshallResult += [(prop.name): marshalledValue]
       }
     }
     return marshallResult
@@ -42,6 +54,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
   private GrailsDomainClass getDomainClass(instance) {
     def grailsApplication = ApplicationHolder.application
-    grailsApplication.domainClasses.find {it.naturalName == instance.class?.simpleName}
+    def instanceClass = GrailsHibernateUtil.unwrapIfProxy(instance).class
+    grailsApplication.domainClasses.find {it.clazz == instanceClass}
   }
 }

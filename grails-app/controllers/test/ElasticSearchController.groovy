@@ -8,6 +8,43 @@ class ElasticSearchController {
     render(view: 'index')
   }
 
+  def createMassProducts = {
+      def maxProducts = params.number ? params.long('number') : 1000l
+      def batched = params.batched ? params.boolean('batched') : false
+      def persisted = params.persisted ? params.boolean('persisted') : false
+      def startDate = new Date()
+      def endDate
+      if(persisted) {
+          testCaseService.createMassProductsPersisted(maxProducts, batched)
+      } else {
+          testCaseService.createMassProducts(maxProducts, batched)
+      }
+      endDate = new Date()
+      def timeElapsed = (endDate.time - startDate.time) / 1000
+      flash.notice = "Created ${maxProducts} products in ${timeElapsed} seconds.[batched:${batched}, persisted:${persisted}]"
+      redirect(action: 'index')
+  }
+
+  def countExistingProducts = {
+      def nbProducts = Product.count()
+
+      flash.notice = "There are ${nbProducts} products in the database."
+      redirect(action: 'index')
+  }
+
+  def reindexExistingProduct = {
+      def nbProducts = Product.count()
+      def startDate = new Date()
+      def endDate
+
+      testCaseService.batchIndex()
+
+      endDate = new Date()
+      def timeElapsed = (endDate.time - startDate.time) / 1000
+      flash.notice = "Reindexed ${nbProducts} products in ${timeElapsed} seconds.[batched:false]"
+      redirect(action: 'index')
+  }
+
   def postTweet = {
     if(!params.user?.id) {
       flash.notice = "No user selected."
@@ -34,6 +71,9 @@ class ElasticSearchController {
   }
 
   def searchForUserTweets = {
+    /*def tweets = Tweet.search(){
+        queryString(query: params.message.search)
+    }.searchResults*/
     def tweets = Tweet.search("${params.message.search}").searchResults
     def tweetsMsg = 'Messages : '
     tweets.each {
@@ -44,22 +84,78 @@ class ElasticSearchController {
     redirect(action: 'index')
   }
 
+  def searchUserTerm = {
+      
+  }
+
+  def manualIndex = {
+      def nUser = new User(lastname:'Smith',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      def nUser2 = new User(lastname:'Smith2',
+            firstname:'John',
+            password:'password',
+            inheritedProperty: 'that value',
+            indexButDoNotSearchOnThis: 'You won\'t reach me')
+      nUser.id = 1234
+      nUser2.id = 2345
+      elasticSearchService.index(nUser, nUser2)
+
+      flash.notice = 'Indexed a transient user.'
+      redirect(action:'index')
+  }
+
+  def manualIndexAllUser = {
+    User.index()
+    //elasticSearchService.index(User)
+    flash.notice = 'Reindexed all users.'
+    redirect(action:'index')
+  }
+
   def searchAll = {
-    def res = elasticSearchService.search("${params.query}").searchResults
-    def resMsg = '<strong>Global search result(s):</strong><br />'
-    res.each {
-      switch(it){
+    def highlighter = {
+      field 'message'
+      preTags '<strong>'
+      postTags '</strong>'
+    }
+    // minimalistic test for Query DSL.
+    def result = elasticSearchService.search(highlight:highlighter, searchType:'dfs_query_and_fetch') {
+      bool {
+          must {
+              query_string(query: params.query)
+          }
+          if (params.firstname) {
+              must {
+                  term(firstname: params.firstname)
+              }
+          }
+      }
+    }
+    def highlight = result.highlight
+    def resMsg = "<strong>${params.query?.encodeAsHTML()}</strong> search result(s): <strong>${result.total}</strong><br />"
+    result.searchResults.eachWithIndex { obj, count ->
+      switch(obj){
         case Tag:
-          resMsg += "<strong>Tag</strong> ${it.name}<br />"
+          resMsg += "<strong>Tag</strong> ${obj.name.encodeAsHTML()}<br />"
           break
         case Tweet:
-          resMsg += "<strong>Tweet</strong> \"${it.message}\" from ${it.user.firstname} ${it.user.lastname}<br />"
+          def fragments = highlight[count].message?.fragments
+          resMsg += "<strong>Tweet</strong> \"${fragments?.size() ? fragments[0] : ''}\" from ${obj.user.firstname} ${obj.user.lastname}<br />"
           break
         case User:
-          resMsg += "<strong>User</strong> ${it.firstname} ${it.lastname}<br />"
+          def pics = obj.photos?.collect { pic -> "<img width=\"40\" height=\"40\" src=\"${pic.url}\"/>" }?.join(',') ?: ''
+          resMsg += "<strong>User</strong> ${obj.firstname} ${obj.lastname} ${obj.role} ${pics}<br />"
+          if(obj.anArray) {
+              resMsg += "->${obj.anArray}"
+          }
+          break
+        case Photo:
+          resMsg += "<img width=\"40\" height=\"40\" src=\"${obj.url}\"/><br/>"
           break
         default:
-          resMsg += "<strong>Other</strong> ${it}<br />"
+          resMsg += "<strong>Other</strong> ${obj}<br />"
           break
       }
 

@@ -30,6 +30,20 @@ elasticSearch {
    * This does not apply for classes using mapping by closure
    */
   defaultExcludedProperties = ["password"]
+
+  /**
+   * Determines if the plugin should reflect any database save/update/delete automatically
+   * on the ES instance. Default to false.
+   */
+  disableAutoIndex = false
+
+  /**
+   * Should the database be indexed at startup.
+   *
+   * The value may be a boolean true|false.
+   * Indexing is always asynchronous (compared to Searchable plugin) and executed after BootStrap.groovy.
+   */
+  bulkIndexOnStartup = true
 }
 
 environments {
@@ -41,7 +55,10 @@ environments {
     elasticSearch.client.mode = 'local'
   }
   test {
-    elasticSearch.client.mode = 'local'
+      elasticSearch {
+          client.mode = 'local'
+          index.store.type = 'memory' // store local node in memory and not on disk
+      }
   }
   production {
     elasticSearch.client.mode = 'node'

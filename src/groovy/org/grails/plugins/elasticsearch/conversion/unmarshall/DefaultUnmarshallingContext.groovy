@@ -1,8 +1,8 @@
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
 class DefaultUnmarshallingContext {
-  Stack unmarshallingStack = new Stack()
-  Stack cycleRefStack = new Stack()
+  Stack<String> unmarshallingStack = new Stack<String>()
+  Stack<CycleReferenceSource> cycleRefStack = new Stack<CycleReferenceSource>()
 
   def addCycleRef(data) {
     assert data.ref

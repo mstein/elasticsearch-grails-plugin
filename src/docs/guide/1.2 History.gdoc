@@ -1,16 +1,18 @@
 h4. History
-
+* March xx 2011
+** 0.15.1.1 release
 * December 16, 2010
 ** initial 0.13.0a release
 
-h4. Authors
+h4. Authors and Contributors
 
-Manuarii Stein
-Stephane Maldini
+Manuarii Stein (doc4web consulting),
+Stephane Maldini (doc4web consulting),
+Serge P. Nekoval
 
 h4. Licence
 
-doc4web Consulting provides this plugin without any guarantees under Apache Software Licence 2.
+Doc4web consulting and the contributors provide this plugin without any guarantees under Apache Software Licence 2.
 
 h4. Previous work
 

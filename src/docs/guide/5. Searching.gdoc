@@ -1,4 +1,4 @@
-The plugin provides 2 ways to send search requests, and is using the Lucene query syntax for that purpose.
+The plugin provides 2 ways to send search requests.
 * You can use the @elasticSearchService@ and its public @search@ method for cross-domain searching, meaning that ElasticSearch
 may analyze multiple indices and return hits of different types (=different domains).
 {code}

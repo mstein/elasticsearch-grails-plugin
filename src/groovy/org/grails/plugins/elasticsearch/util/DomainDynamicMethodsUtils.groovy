@@ -1,81 +1,111 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.grails.plugins.elasticsearch.util
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
-import org.grails.plugins.elasticsearch.mapping.ElasticSearchMappingFactory
-import org.elasticsearch.client.Client
-import org.elasticsearch.indices.IndexAlreadyExistsException
-import org.elasticsearch.transport.RemoteTransportException
-import org.elasticsearch.client.Requests
 import org.apache.commons.logging.LogFactory
+import org.grails.plugins.elasticsearch.exception.IndexException
 
 class DomainDynamicMethodsUtils {
-  static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.DomainDynamicMethodsUtils")
-  /**
-   * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
-   * @param domainClasses
-   * @param applicationContext
-   * @return
-   */
-  static resolveMapping(domainClasses, applicationContext){
-    def helper = applicationContext.getBean(ElasticSearchHelper)
-    def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
-    domainClasses.each { GrailsDomainClass domainClass ->
-      if (domainClass.hasProperty('searchable') && domainClass.getPropertyValue('searchable')) {
-        def indexValue = domainClass.packageName ?: domainClass.propertyName
-        LOG.debug("Custom mapping for searchable detected in [${domainClass.getPropertyName()}] class, resolving the closure...")
-        def closureMapper = new ClosureSearchableDomainClassMapper(domainClass, elasticSearchContextHolder.config)
-        def searchableClassMapping = closureMapper.getClassMapping(domainClass, applicationContext.domainClasses as List, domainClass.getPropertyValue('searchable'))
-        elasticSearchContextHolder.addMappingContext(searchableClassMapping)
+    static LOG = LogFactory.getLog("org.grails.plugins.elasticSearch.DomainDynamicMethodsUtils")
 
-        if (searchableClassMapping.classMapping?.root) {
-          def elasticMapping = ElasticSearchMappingFactory.getElasticMapping(searchableClassMapping)
-          LOG.debug(elasticMapping.toString())
 
-          helper.withElasticSearch { Client client ->
-            try {
-              client.admin().indices().prepareCreate(indexValue).execute().actionGet()
-              // If the index already exists, ignore the exception
-            } catch (IndexAlreadyExistsException iaee) {
-              LOG.debug(iaee.message)
-            } catch (RemoteTransportException rte) {
-              LOG.debug(rte.message)
+    /**
+     * Injects the dynamic methods in the searchable domain classes.
+     * Considers that the mapping has been resolved beforehand.
+     *
+     * @param domainClasses
+     * @param grailsApplication
+     * @param applicationContext
+     * @return
+     */
+    static injectDynamicMethods(domainClasses, grailsApplication, applicationContext) {
+        def elasticSearchService = applicationContext.getBean("elasticSearchService")
+        def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
+
+        for (GrailsDomainClass domain in grailsApplication.domainClasses) {
+            if (domain.getPropertyValue(ClosureSearchableDomainClassMapper.SEARCHABLE_PROPERTY_NAME)) {
+                def domainCopy = domain
+                // Only inject the methods if the domain is mapped as "root"
+                if (elasticSearchContextHolder.getMappingContext(domainCopy)?.root) {
+                    // Inject the search method
+                    domain.metaClass.'static'.search << { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                        elasticSearchService.search(q, params)
+                    }
+                    domain.metaClass.'static'.search << { Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz], Closure q ->
+                        elasticSearchService.search(params, q)
+                    }
+                    domain.metaClass.'static'.search << { Closure q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                        elasticSearchService.search(params, q)
+                    }
+
+                    // Inject the index method
+                    // static index() with no arguments index every instances of the domainClass
+                    domain.metaClass.'static'.index << {->
+                        elasticSearchService.index(class:domainCopy.clazz)
+                    }
+                    // static index( domainInstances ) index every instances specified as arguments
+                    domain.metaClass.'static'.index << { Collection<GroovyObject> instances ->
+                        def invalidTypes = instances.any { inst ->
+                            inst.class != domainCopy.clazz
+                        }
+                        if(!invalidTypes) {
+                            elasticSearchService.index(instances)
+                        } else {
+                            throw new IndexException("[${domainCopy.propertyName}] index() method can only be applied its own type. Please use the elasticSearchService if you want to index mixed values.")
+                        }
+                    }
+                    // static index( domainInstances ) index every instances specified as arguments (ellipsis styled)
+                    domain.metaClass.'static'.index << { GroovyObject... instances ->
+                        delegate.metaClass.invokeStaticMethod (domainCopy.clazz, 'index', instances as Collection<GroovyObject>)
+                    }
+                    // index() method on domain instance
+                    domain.metaClass.index << {
+                        elasticSearchService.index(delegate)
+                    }
+
+                    // Inject the unindex method
+                    // static unindex() with no arguments unindex every instances of the domainClass
+                    domain.metaClass.'static'.unindex << {->
+                        elasticSearchService.unindex(class:domainCopy.clazz)
+                    }
+                    // static unindex( domainInstances ) unindex every instances specified as arguments
+                    domain.metaClass.'static'.unindex << { Collection<GroovyObject> instances ->
+                        def invalidTypes = instances.any { inst ->
+                            inst.class != domainCopy.clazz
+                        }
+                        if(!invalidTypes) {
+                            elasticSearchService.unindex(instances)
+                        } else {
+                            throw new IndexException("[${domainCopy.propertyName}] unindex() method can only be applied on its own type. Please use the elasticSearchService if you want to unindex mixed values.")
+                        }
+                    }
+                    // static unindex( domainInstances ) unindex every instances specified as arguments (ellipsis styled)
+                    domain.metaClass.'static'.unindex << { GroovyObject... instances ->
+                        delegate.metaClass.invokeStaticMethod (domainCopy.clazz, 'unindex', instances as Collection<GroovyObject>)
+                    }
+                    // unindex() method on domain instance
+                    domain.metaClass.unindex << {
+                        elasticSearchService.unindex(delegate)
+                    }
+                }
             }
-
-            def putMapping = Requests.putMappingRequest(indexValue)
-            putMapping.mappingSource = elasticMapping.toString()
-            client.admin().indices().putMapping(putMapping).actionGet()
-          }
         }
-      }
     }
-  }
-
-  /**
-   * Inject the dynamic methods in the searchable domain classes.
-   * Consider that the mapping has been resolve beforehand.
-   * @param domainClasses
-   * @param grailsApplication
-   * @param applicationContext
-   * @return
-   */
-  static injectDynamicMethods(domainClasses, grailsApplication, applicationContext){
-    def elasticSearchService = applicationContext.getBean("elasticSearchService")
-    def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
-
-    for (GrailsDomainClass domain in grailsApplication.domainClasses) {
-      if (domain.getPropertyValue("searchable")) {
-        def domainCopy = domain
-        // Only inject the search method if the domain is mapped as "root"
-        if (elasticSearchContextHolder.getMappingContext(domainCopy)?.classMapping?.root) {
-          domain.metaClass.static.search = { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.propertyName] ->
-            elasticSearchService.search(q, params)
-          }
-        }
-      }
-    }
-  }
 }
