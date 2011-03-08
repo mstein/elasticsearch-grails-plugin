@@ -67,5 +67,5 @@ environments {
 grails.views.default.codec="none" // none, html, base64
 grails.views.gsp.encoding="UTF-8"
 
-grails.doc.authors = 'Manuarii Stein, Stephane Maldini'
+grails.doc.authors = 'Manuarii Stein, Stephane Maldini, Serge P. Nekoval'
 grails.doc.license = 'Apache License 2.0'
