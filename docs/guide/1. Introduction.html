@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>1. Introduction 0.15.1.1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Style" charset="utf-8"/>
+    <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8"/>
+    <script type="text/javascript">
+function addJsClass() {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+</head>
+
+<body class="body" onload="addJsClass();">
+<div id="navigation">
+    <ul>
+        <li>
+            <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                <a href="../guide/index.html" class="button">Table of contents</a>
+
+                <div id="nav-summary-childs" style="display:none;">
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/1. Introduction.html"><strong>1.</strong><span>Introduction</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/2. Configuration.html"><strong>2.</strong><span>Configuration</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/3. Mapping.html"><strong>3.</strong><span>Mapping</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/4. Indexing.html"><strong>4.</strong><span>Indexing</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/5. Searching.html"><strong>5.</strong><span>Searching</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/6. Example.html"><strong>6.</strong><span>Example</span></a>
+                    </div>
+                    
+                </div>
+            </div>
+        </li>
+        <li class="separator selected">
+            <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+        </li>
+    </ul>
+</div>
+<div id="header">
+    <div class="images clearfix">
+        
+        
+    </div>
+    <p>elasticsearch</p>
+</div>
+
+
+<table id="colset" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td id="col1">
+            <div id="main" class="corner-all">
+
+                
+
+                <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                
+                    <div class="toc-item next-right"><a href="../guide/2. Configuration.html"><strong>2.</strong><span>Configuration</span> >></a></div>
+                
+
+
+                <div class="project">
+                    <h1>1. Introduction - Reference Documentation</h1>
+
+                    <p><strong>Authors:</strong> Manuarii Stein, Stephane Maldini, Serge P. Nekoval</p>
+
+                    <p><strong>Version:</strong> 0.15.1.1</p>
+                </div>
+
+                
+                <div id="table-of-content">
+                    <h2>Table of Contents</h2>
+                    
+                    <div class="toc-item" style="margin-left:0px"><a href="#1.1 Features"><strong>1.1</strong><span>Features</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0px"><a href="#1.2 History"><strong>1.2</strong><span>History</span></a>
+                    </div>
+                    
+                </div>
+                
+
+                
+<h1><a name="1. Introduction">1. Introduction</a></h1>
+The ElasticSearch plugin intends to implement a simple integration with Grails of the Open Source Search Engine <a href="http://www.elasticsearch.org/" target="blank">ElasticSearch</a>,
+which is based on Lucene and provide distributed capabilities.<p class="paragraph"/>The plugin focus on exposing Grails domain classes for the moment. It highly takes the existing <a href="http://grails.org/plugin/searchable" target="blank">Searchable Plugin</a> as
+reference for its syntax and behavior.<p class="paragraph"/>Note that the plugin is still under development, so you may not be able to use all the features of ElasticSearch yet.
+As for now, you should only use this plugin for testing purpose since you may lack some functionalities in a production environment.<p class="paragraph"/>In addition to this document, you may want to read the official ElasticSearch documentation <a href="http://www.elasticsearch.org/guide/" target="blank">here</a>.
+
+<h2><a name="1.1 Features">1.1 Features</a></h2>
+<ul class="star">
+<li>Maps domain classes to their corresponding index in ElasticSearch</li>
+<li>Provides an ElasticSearch service for cross-domain searching</li>
+<li>Injects domain class methods for specific domain searching, indexing and unindexing</li>
+<li>Automatically mirrors any changes made throught Hibernate to the index</li>
+<li>Allow to use the Groovy Content Builder DSL for search queries</li>
+<li>Support for term highlighting</li>
+</ul><p class="paragraph"/>
+
+<h2><a name="1.2 History">1.2 History</a></h2>
+<h4>History</h4>
+<ul class="star">
+<li>March 08 2011</li>
+<ul class="star">
+<li>0.15.1.1 release</li>
+</ul>
+<li>December 16, 2010</li>
+<ul class="star">
+<li>initial 0.13.0a release</li>
+</ul></ul><p class="paragraph"/><h4>Authors and Contributors</h4><p class="paragraph"/>Manuarii Stein (doc4web consulting),
+Stephane Maldini (doc4web consulting),
+Serge P. Nekoval<p class="paragraph"/><h4>Licence</h4><p class="paragraph"/>Doc4web consulting and the contributors provide this plugin without any guarantees under Apache Software Licence 2.<p class="paragraph"/><h4>Previous work</h4><p class="paragraph"/>Graeme Rocher started the first draft which this plugin is based on.
+
+
+                <div style="clear:both;margin-top:15px;"></div>
+                
+                    <div class="toc-item next-right"><a href="../guide/2. Configuration.html"><strong>2.</strong><span>Configuration</span> >></a></div>
+                
+                <div style="clear:both"></div>
+            </div>
+        </td>
+        <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">ElasticSearchService</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/unindex.html">unindex</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Injected Domain Dynamic Methods</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/unindex.html">unindex</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div id="footer">
+    
+    
+</div>
+
+<script type="text/javascript" src="../js/docs.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <title>elasticsearch 0.15.1.1</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Style" charset="utf-8" />
+        <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8" />
+    <script type="text/javascript">
+function addJsClass(el) {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+    </head>
+
+    <body class="body" onload="addJsClass();">
+        <div id="navigation">
+            <ul>
+                <li>
+                    <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                        <a href="../guide/index.html" class="button">Table of contents</a>
+                        <div id="nav-summary-childs" style="display:none;">
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#1. Introduction"><strong>1.</strong><span>Introduction</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#2. Configuration"><strong>2.</strong><span>Configuration</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#3. Mapping"><strong>3.</strong><span>Mapping</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#4. Indexing"><strong>4.</strong><span>Indexing</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#5. Searching"><strong>5.</strong><span>Searching</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#6. Example"><strong>6.</strong><span>Example</span></a></div>
+                            
+                        </div>
+                    </div>
+                </li>
+                <li class="separator selected">
+                    <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+                </li>
+            </ul>
+        </div>
+        <div id="header">
+            <div class="images clearfix">
+                
+                
+            </div>
+            <p>elasticsearch</p>
+        </div>
+
+
+        <table id="colset" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <td id="col1">
+                    <div id="main" class="corner-all">
+
+                        <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                        <div class="project">
+                            <h1>elasticsearch - Reference Documentation</h1>
+                            <p><strong>Authors:</strong> Manuarii Stein, Stephane Maldini, Serge P. Nekoval</p>
+                            <p><strong>Version:</strong> 0.15.1.1</p>
+                        </div>
+
+                        
+                        <div id="table-of-content">
+                            <h2>Table of Contents</h2>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#1. Introduction"><strong>1.</strong><span>Introduction</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#1.1 Features"><strong>1.1</strong><span>Features</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#1.2 History"><strong>1.2</strong><span>History</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#2. Configuration"><strong>2.</strong><span>Configuration</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#3. Mapping"><strong>3.</strong><span>Mapping</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#3.1 QuickStart"><strong>3.1</strong><span>QuickStart</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#3.2 Class mapping"><strong>3.2</strong><span>Class mapping</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#3.3 Properties mapping"><strong>3.3</strong><span>Properties mapping</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#3.4 Searchable Component-Reference"><strong>3.4</strong><span>Searchable Component-Reference</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:20px"><a href="#3.4.1 Searchable Reference"><strong>3.4.1</strong><span>Searchable Reference</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:20px"><a href="#3.4.2 Searchable Component"><strong>3.4.2</strong><span>Searchable Component</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#4. Indexing"><strong>4.</strong><span>Indexing</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#5. Searching"><strong>5.</strong><span>Searching</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#5.1 Query Strings"><strong>5.1</strong><span>Query Strings</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#5.2 Query Closure"><strong>5.2</strong><span>Query Closure</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#5.3 Highlighting"><strong>5.3</strong><span>Highlighting</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#6. Example"><strong>6.</strong><span>Example</span></a></div>
+                            
+                            <div style="clear:both" ></div>
+                        </div>
+                        
+                        
+<h1><a name="1. Introduction">1. Introduction</a></h1>
+The ElasticSearch plugin intends to implement a simple integration with Grails of the Open Source Search Engine <a href="http://www.elasticsearch.org/" target="blank">ElasticSearch</a>,
+which is based on Lucene and provide distributed capabilities.<p class="paragraph"/>The plugin focus on exposing Grails domain classes for the moment. It highly takes the existing <a href="http://grails.org/plugin/searchable" target="blank">Searchable Plugin</a> as
+reference for its syntax and behavior.<p class="paragraph"/>Note that the plugin is still under development, so you may not be able to use all the features of ElasticSearch yet.
+As for now, you should only use this plugin for testing purpose since you may lack some functionalities in a production environment.<p class="paragraph"/>In addition to this document, you may want to read the official ElasticSearch documentation <a href="http://www.elasticsearch.org/guide/" target="blank">here</a>.
+
+<h2><a name="1.1 Features">1.1 Features</a></h2>
+<ul class="star">
+<li>Maps domain classes to their corresponding index in ElasticSearch</li>
+<li>Provides an ElasticSearch service for cross-domain searching</li>
+<li>Injects domain class methods for specific domain searching, indexing and unindexing</li>
+<li>Automatically mirrors any changes made throught Hibernate to the index</li>
+<li>Allow to use the Groovy Content Builder DSL for search queries</li>
+<li>Support for term highlighting</li>
+</ul><p class="paragraph"/>
+
+<h2><a name="1.2 History">1.2 History</a></h2>
+<h4>History</h4>
+<ul class="star">
+<li>March 08 2011</li>
+<ul class="star">
+<li>0.15.1.1 release</li>
+</ul>
+<li>December 16, 2010</li>
+<ul class="star">
+<li>initial 0.13.0a release</li>
+</ul></ul><p class="paragraph"/><h4>Authors and Contributors</h4><p class="paragraph"/>Manuarii Stein (doc4web consulting),
+Stephane Maldini (doc4web consulting),
+Serge P. Nekoval<p class="paragraph"/><h4>Licence</h4><p class="paragraph"/>Doc4web consulting and the contributors provide this plugin without any guarantees under Apache Software Licence 2.<p class="paragraph"/><h4>Previous work</h4><p class="paragraph"/>Graeme Rocher started the first draft which this plugin is based on.
+
+<h1><a name="2. Configuration">2. Configuration</a></h1>
+The plugin provide a default configuration, but you may add your own settings in your <strong class="bold">Config.groovy</strong> script.<p class="paragraph"/><h4>Client mode</h4>
+You can set the plugin in 3 different modes, detailled on the <a href="http://www.elasticsearch.org/guide/reference/java-api/client.html" target="blank">official ElasticSearch doc</a>.
+The mode is defined with the following config key:<p class="paragraph"/><div class="code"><pre>elasticSearch.client.mode = '&#60;mode&#62;'</pre></div><p class="paragraph"/><strong class="bold">Possible values:</strong>
+<table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th><strong class="bold">Value</strong></th><th><strong class="bold">Description</strong></th></tr><tr class="table-odd"><td>node</td><td>The plugin create its own node and join the ElasticSearch cluster as a client node (<code>node.client = true</code>). This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)</td></tr><tr class="table-even"><td>local</td><td>The plugin create its own local (to the JVM) node. Does not require any running ElasticSearch instance. Useful for development or testing.</td></tr><tr class="table-odd"><td>transport</td><td>The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.</td></tr></table>
+"Transport" mode needs you to provide the host address and port. You can define one or multiple hosts with the following config key:
+<div class="code"><pre>elasticSearch.client.hosts = &#91;
+       &#91;host:'192.168.0.3', port:9300&#93;,
+       &#91;host:'228.168.0.4', port:9300&#93;
+&#93;</pre></div>
+If no host is defined, <code>localhost:9300</code> will be used by the transport client.<p class="paragraph"/><h4>Others properties</h4>
+<ul class="star">
+<li><code>elasticSearch.date.formats</code></li>
+</ul><p class="paragraph"/>List of date formats used by the JSON unmarshaller to parse any date field properly.
+Note : future version of the plugin may change how formats are manipulated.
+<ul class="star">
+<li><code>elasticSearch.defaultExcludedProperties</code></li>
+</ul><p class="paragraph"/>List of domain class properties to automatically ignore (will not be indexed) if their name match one of those.
+This will only apply to default-mapped domain class, with the static <code>searchable</code> property set to "true", and will
+not be considered when using closure mapping.
+<ul class="star">
+<li><code>elasticSearch.disableAutoIndex</code></li>
+</ul><p class="paragraph"/>A boolean determining if the plugin should reflect any database save/update/delete automatically on the indices.
+Default to <code>false</code>.
+<ul class="star">
+<li><code>elasticSearch.bulkIndexOnStartup</code></li>
+</ul><p class="paragraph"/>A boolean determining if the application should launch a bulk index operation upon startup. Default to <code>true</code>.
+<ul class="star">
+<li><code>elasticSearch.index.store.type</code></li>
+</ul><p class="paragraph"/>Determine the way how the indices will be store.
+More details on the possible values on the <a href="http://www.elasticsearch.org/guide/reference/index-modules/store.html" target="blank">ElasticSearch Documentation</a>.
+<table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th>Possible value</th><th>Description</th></tr><tr class="table-odd"><td>memory</td><td>Stores the index in memory. Useful for testing.</td></tr><tr class="table-even"><td>mmapfs</td><td>Stores the shard index on the file system (maps to Lucene MMapDirectory) using mmap.</td></tr><tr class="table-odd"><td>niofs</td><td>Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.</td></tr><tr class="table-even"><td>simplefs</td><td>Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.</td></tr></table><p class="paragraph"/><h4>Default configuration script</h4>
+Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).<p class="paragraph"/><div class="code"><pre>elasticSearch &#123;
+  /&#42;&#42;
+   &#42; Date formats used by the unmarshaller of the JSON responses
+   &#42;/
+  date.formats = &#91;<span class="java&#45;quote">"yyyy&#45;MM&#45;dd'T'HH:mm:ss'Z'"</span>&#93;<p class="paragraph"/>  /&#42;&#42;
+   &#42; Hosts <span class="java&#45;keyword">for</span> remote ElasticSearch instances.
+   &#42; Will only be used with the <span class="java&#45;quote">"transport"</span> client mode.
+   &#42; If the client mode is set to <span class="java&#45;quote">"transport"</span> and no hosts are defined, &#91;<span class="java&#45;quote">"localhost"</span>, 9300&#93; will be used by <span class="java&#45;keyword">default</span>.
+   &#42;/
+  client.hosts = &#91;
+          &#91;host:'localhost', port:9300&#93;
+  &#93;<p class="paragraph"/>  /&#42;&#42;
+   &#42; Default mapping property exclusions
+   &#42;
+   &#42; No properties matching the given names will be mapped by <span class="java&#45;keyword">default</span>
+   &#42; ie, when using <span class="java&#45;quote">"searchable = <span class="java&#45;keyword">true</span>"</span>
+   &#42;
+   &#42; This does not apply <span class="java&#45;keyword">for</span> classes using mapping by closure
+   &#42;/
+  defaultExcludedProperties = &#91;<span class="java&#45;quote">"password"</span>&#93;<p class="paragraph"/>  /&#42;&#42;
+   &#42; Determines <span class="java&#45;keyword">if</span> the plugin should reflect any database save/update/delete automatically
+   &#42; on the ES instance. Default to <span class="java&#45;keyword">false</span>.
+   &#42;/
+  disableAutoIndex = <span class="java&#45;keyword">false</span><p class="paragraph"/>  /&#42;&#42;
+   &#42; Should the database be indexed at startup.
+   &#42;
+   &#42; The value may be a <span class="java&#45;object">boolean</span> <span class="java&#45;keyword">true</span>|<span class="java&#45;keyword">false</span>.
+   &#42; Indexing is always asynchronous (compared to Searchable plugin) and executed after BootStrap.groovy.
+   &#42;/
+  bulkIndexOnStartup = <span class="java&#45;keyword">true</span>
+&#125;<p class="paragraph"/>environments &#123;
+  development &#123;
+    /&#42;&#42;
+     &#42; Possible values : <span class="java&#45;quote">"local"</span>, <span class="java&#45;quote">"node"</span>, <span class="java&#45;quote">"transport"</span>
+     &#42; If set to <span class="java&#45;keyword">null</span>, <span class="java&#45;quote">"node"</span> mode is used by <span class="java&#45;keyword">default</span>.
+     &#42;/
+    elasticSearch.client.mode = 'local'
+  &#125;
+  test &#123;
+      elasticSearch &#123;
+          client.mode = 'local'
+          index.store.type = 'memory' // store local node in memory and not on disk
+      &#125;
+  &#125;
+  production &#123;
+    elasticSearch.client.mode = 'node'
+  &#125;
+&#125;</pre></div>
+
+<h1><a name="3. Mapping">3. Mapping</a></h1>
+
+
+<h2><a name="3.1 QuickStart">3.1 QuickStart</a></h2>
+<h4>Default mapping</h4>
+To declare a domain class to be searchable, the simpliest way is to define the following static property in the code:
+<div class="code"><pre><span class="java&#45;keyword">static</span> searchable = <span class="java&#45;keyword">true</span></pre></div>
+The plugin will generate a default mapping for each properties of the domain.<p class="paragraph"/><h4>Custom mapping</h4>
+You can customize how each properties are mapped to the index using a closure. The syntax is similar to GORM's mapping DSL.
+<div class="code"><pre><span class="java&#45;keyword">static</span> searchable = &#123;
+    // mapping DSL&#8230;
+&#125;</pre></div>
+See below for more details on the mapping DSL.<p class="paragraph"/><h4>Limit properties with only/except</h4>
+<code>only</code> and <code>except</code> are used to limit the properties that are made searchable.
+You may not define both except &#38; only settings at the same time.<p class="paragraph"/>The following code will only map the 'message' property, any others will be ignored.
+<div class="code"><pre>class Tweet &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        only = 'message'
+    &#125;
+    <span class="java&#45;object">String</span> message
+    <span class="java&#45;object">String</span> someUselessField
+&#125;</pre></div><p class="paragraph"/>The following code will map all properties except the one specified.
+<div class="code"><pre>class Tweet &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        except = 'someUselessField'
+    &#125;
+    <span class="java&#45;object">String</span> message
+    <span class="java&#45;object">String</span> someUselessField
+&#125;</pre></div><p class="paragraph"/>You can use a Collection to specify several properties.
+<div class="code"><pre>class Tweet &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        except = &#91;'someUselessField', 'userName'&#93;
+    &#125;
+    <span class="java&#45;object">String</span> message
+    <span class="java&#45;object">String</span> userName
+    <span class="java&#45;object">String</span> someUselessField
+&#125;</pre></div><p class="paragraph"/><blockquote class="note">The properties that are ignored will not be sent to ElasticSearch. It also means that when you will get back a domain
+from ElasticSearch, some fields that are not supposed to be null, may still be null.</blockquote>
+
+<h2><a name="3.2 Class mapping">3.2 Class mapping</a></h2>
+<h4>root</h4>
+Determine if the domain class will have its own index or not. Take a boolean as parameter, and is set to <code>true</code> by default.
+<div class="code"><pre>class Preference &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        root <span class="java&#45;keyword">false</span>
+    &#125;
+    // &#8230;
+&#125;<p class="paragraph"/>class Tag &#123;
+    <span class="java&#45;keyword">static</span> searchable = <span class="java&#45;keyword">true</span>
+    // &#8230;
+&#125;<p class="paragraph"/>class Tweet &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        message boost:2.0
+    &#125;
+    // &#8230;
+&#125;</pre></div>
+In this code, the classes <code>Tweet</code> and <code>Tag</code> are going to have their own index. The class <code>Preference</code> will not.
+It also mean that any search request will never return a Preference-type hit. The dynamic method <code>search</code> will not be
+injected in the <code>Preference</code> domain class.
+The domains not root-mapped can still be considered searchable, as they can be components of another domain which is root-mapped.
+For example, considered the following domain:
+<div class="code"><pre>class User &#123;
+    <span class="java&#45;keyword">static</span> searchable = &#123;
+        userPreferences component:<span class="java&#45;keyword">true</span>
+    &#125;<p class="paragraph"/>    Preference userPreferences
+&#125;</pre></div>
+When searching, any matches in the <code>userPreferences</code> property will be considered as a <code>User</code> match.
+
+<h2><a name="3.3 Properties mapping">3.3 Properties mapping</a></h2>
+You can customize the mapping for each domain properties using the closure mapping.
+The syntax is simple:
+<div class="code"><pre><span class="java&#45;keyword">static</span> searchable = &#123;
+    propertyName option1:value, option2:value, &#8230;
+&#125;</pre></div>
+<strong class="bold">Available options</strong>
+<table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th><strong class="bold">Option name</strong></th><th><strong class="bold">Description</strong></th></tr><tr class="table-odd"><td>boost</td><td>A decimal boost value. With a positive value, promotes search results for hits in this property; with a negative value, demotes search results that hit this property.</td></tr><tr class="table-even"><td>component</td><td>To use only on domain (or collection of domains), make the property a searchable component.</td></tr><tr class="table-odd"><td>converter</td><td>A <code>Class</code> to use as a converter during the marshalling/unmarshalling process for that peculiar property. That class must extends the <code>PropertyEditorSupport</code> java class.</td></tr><tr class="table-even"><td>excludeFromAll</td><td>A boolean, determines if the property is to append in the <code>"_all"</code> field. Default to <code>true</code>.</td></tr><tr class="table-odd"><td>index</td><td>How or if the property is made into searchable element. One of <code>"no"</code>, <code>"not_analyzed"</code> or <code>"analyzed"</code>.</td></tr><tr class="table-even"><td>reference</td><td>To use only on domain (or collection of domains), make the property a searchable reference.</td></tr></table>
+
+<h2><a name="3.4 Searchable Component-Reference">3.4 Searchable Component-Reference</a></h2>
+The plugin support a similar searchable-component &#38; searchable-reference behavior from Compass
+when you are dealing with domain association.
+See below to find out about the difference between both mapping modes.
+
+
+<h2><a name="3.4.1 Searchable Reference">3.4.1 Searchable Reference</a></h2>
+The searchable-reference mapping mode is the default mode used for association, and requires the
+searchable class of the association to be root-mapped in order to have its own index.
+With this mode, the associated domains are not completely marshalled in the resulting JSON document:
+only the id and the type of the instances are kept.
+When the document is retrieved from the index, the plugin will automatically rebuild the association from the
+indices using the stored id.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>class MyDomain &#123;
+    // odom is an association with the OtherDomain class, set as a reference
+    OtherDomain odom<p class="paragraph"/>    <span class="java&#45;keyword">static</span> searchable = &#123;
+        odom reference:<span class="java&#45;keyword">true</span>
+    &#125;
+&#125;<p class="paragraph"/>// The OtherDomain definition, with <span class="java&#45;keyword">default</span> searchable configuration
+class OtherDomain &#123;
+    <span class="java&#45;keyword">static</span> searchable = <span class="java&#45;keyword">true</span><p class="paragraph"/>    <span class="java&#45;object">String</span> field1 = <span class="java&#45;quote">"val1"</span>
+    <span class="java&#45;object">String</span> field2 = <span class="java&#45;quote">"val2"</span>
+    <span class="java&#45;object">String</span> field3 = <span class="java&#45;quote">"val3"</span>
+    <span class="java&#45;object">String</span> field4 = <span class="java&#45;quote">"val4"</span>
+&#125;</pre></div><p class="paragraph"/>When indexing an instance of MyDomain, the resulting JSON documents will be sent to ElasticSearch:
+<div class="code"><pre>&#123;
+    <span class="java&#45;quote">"mydomain"</span>: &#123;
+        <span class="java&#45;quote">"_id"</span>:1,
+        <span class="java&#45;quote">"odom"</span>: &#123; <span class="java&#45;quote">"id"</span>:1 &#125;
+    &#125;
+&#125;<p class="paragraph"/>&#123;
+    <span class="java&#45;quote">"otherdomain"</span>: &#123;
+        <span class="java&#45;quote">"_id"</span>:1,
+        <span class="java&#45;quote">"field1"</span>:<span class="java&#45;quote">"val1"</span>,
+        <span class="java&#45;quote">"field2"</span>:<span class="java&#45;quote">"val2"</span>,
+        <span class="java&#45;quote">"field3"</span>:<span class="java&#45;quote">"val3"</span>,
+        <span class="java&#45;quote">"field4"</span>:<span class="java&#45;quote">"val4"</span>
+    &#125;
+&#125;</pre></div>
+
+<h2><a name="3.4.2 Searchable Component">3.4.2 Searchable Component</a></h2>
+The searchable-component mapping mode must be explicitly set, and does not require the
+searchable class of the association to be root-mapped.
+With this mode, the associated domains are nested in the parent document.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>class MyDomain &#123;
+    // odom is an association with the OtherDomain class, set as a reference
+    OtherDomain odom<p class="paragraph"/>    <span class="java&#45;keyword">static</span> searchable = &#123;
+        odom component:<span class="java&#45;keyword">true</span>
+    &#125;
+&#125;<p class="paragraph"/>// The OtherDomain definition, with <span class="java&#45;keyword">default</span> searchable configuration
+class OtherDomain &#123;
+    <span class="java&#45;keyword">static</span> searchable = <span class="java&#45;keyword">true</span><p class="paragraph"/>    <span class="java&#45;object">String</span> field1 = <span class="java&#45;quote">"val1"</span>
+    <span class="java&#45;object">String</span> field2 = <span class="java&#45;quote">"val2"</span>
+    <span class="java&#45;object">String</span> field3 = <span class="java&#45;quote">"val3"</span>
+    <span class="java&#45;object">String</span> field4 = <span class="java&#45;quote">"val4"</span>
+&#125;</pre></div><p class="paragraph"/>When indexing an instance of MyDomain, the resulting JSON document will be sent to ElasticSearch:
+<div class="code"><pre>&#123;
+    <span class="java&#45;quote">"mydomain"</span>: &#123;
+        <span class="java&#45;quote">"_id"</span>:1,
+        <span class="java&#45;quote">"odom"</span>: &#123;
+            <span class="java&#45;quote">"_id"</span>:1,
+            <span class="java&#45;quote">"field1"</span>:<span class="java&#45;quote">"val1"</span>,
+            <span class="java&#45;quote">"field2"</span>:<span class="java&#45;quote">"val2"</span>,
+            <span class="java&#45;quote">"field3"</span>:<span class="java&#45;quote">"val3"</span>,
+            <span class="java&#45;quote">"field4"</span>:<span class="java&#45;quote">"val4"</span>
+        &#125;
+    &#125;
+&#125;</pre></div>
+
+<h1><a name="4. Indexing">4. Indexing</a></h1>
+With its default configuration (with the <code>disableAutoIndex</code> configuration key set to <code>false</code>), the plugin is indexing
+automatically any searchable domains when GORM/Hibernate do a save or an update in the database.
+It also delete automatically from the index any document corresponding to a domain that is deleted from the database.
+You normally shouldn't have to worry about indexing, but sometimes you may have to do it by yourself, for example on dirty
+domain object that you may not want to save right now.<p class="paragraph"/>The plugin is providing a few injected methods in the domain or in the <code>ElasticSearchService</code> to allow that.<p class="paragraph"/><h3>Index examples</h3>
+<div class="code"><pre>// Index all searchable instances
+elasticSearchService.index()<p class="paragraph"/>// Index a specific domain instance
+MyDomain md = <span class="java&#45;keyword">new</span> MyDomain(value:'that')
+md.save()
+elasticSearchService.index(md)<p class="paragraph"/>// Index a collection of domain instances
+def ds = &#91;<span class="java&#45;keyword">new</span> MyDomain(value:'that'), <span class="java&#45;keyword">new</span> MyOtherDomain(name:'<span class="java&#45;keyword">this</span>'), <span class="java&#45;keyword">new</span> MyDomain(value:'thatagain')&#93;
+ds&#42;.save()
+elasticSearchService.index(ds)<p class="paragraph"/>// Index all instances of the specified domain class
+elasticSearchService.index(MyDomain)
+elasticSearchService.index(class:MyDomain)
+elasticSearchService.index(MyDomain, MyOtherDomain)
+elasticSearchService.index(&#91;MyDomain, MyOtherDomain&#93;)</pre></div><p class="paragraph"/><h3>Unindex examples</h3>
+<div class="code"><pre>// Unindex all searchable instances
+elasticSearchService.unindex()<p class="paragraph"/>// Unindex a specific domain instance
+MyDomain md = <span class="java&#45;keyword">new</span> MyDomain(value:'that')
+md.save()
+elasticSearchService.unindex(md)<p class="paragraph"/>// Unindex a collection of domain instances
+def ds = &#91;<span class="java&#45;keyword">new</span> MyDomain(value:'that'), <span class="java&#45;keyword">new</span> MyOtherDomain(name:'<span class="java&#45;keyword">this</span>'), <span class="java&#45;keyword">new</span> MyDomain(value:'thatagain')&#93;
+ds&#42;.save()
+elasticSearchService.unindex(ds)<p class="paragraph"/>// Unindex all instances of the specified domain class
+elasticSearchService.unindex(MyDomain)
+elasticSearchService.unindex(class:MyDomain)
+elasticSearchService.unindex(MyDomain, MyOtherDomain)
+elasticSearchService.unindex(&#91;MyDomain, MyOtherDomain&#93;)</pre></div>
+
+<h1><a name="5. Searching">5. Searching</a></h1>
+The plugin provides 2 ways to send search requests.
+<ul class="star">
+<li>You can use the <code>elasticSearchService</code> and its public <code>search</code> method for cross-domain searching, meaning that ElasticSearch</li>
+</ul><p class="paragraph"/>may analyze multiple indices and return hits of different types (=different domains).
+<div class="code"><pre>def res = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+// 'res' search results may contains multiple types of results</pre></div>
+<ul class="star">
+<li>You can use the injected dynamic method in the domain for domain-specific searching.</li>
+</ul><p class="paragraph"/><div class="code"><pre>def res = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+// 'res' search results contains only Tweet instances</pre></div><p class="paragraph"/>These search methods return a <code>Map</code> containing 2 entries:
+<ul class="star">
+<li>a <code>total</code> entry, representing the total number of hits found</li>
+<li>a <code>searchResults</code> entry, containing the hits</li>
+</ul><p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>def res = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+println <span class="java&#45;quote">"Found $&#123;res.total&#125; result(s)"</span>
+res.searchResults.each &#123;
+    println it.message
+&#125;<p class="paragraph"/>def res = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+println <span class="java&#45;quote">"Found $&#123;res.total&#125; result(s)"</span>
+res.searchResults.each &#123;
+    <span class="java&#45;keyword">if</span>(it <span class="java&#45;keyword">instanceof</span> Tweet) &#123;
+        println it.message
+    &#125; <span class="java&#45;keyword">else</span> &#123;
+        println it.toString()
+    &#125;
+&#125;</pre></div>
+
+
+<h2><a name="5.1 Query Strings">5.1 Query Strings</a></h2>
+The search method injected in the domain or the <code>ElasticSearchService</code> has multiple signatures available.
+You can pass it a simple <code>String</code> to compute your search request. That string will be parsed by the <strong class="bold">Lucene query parser</strong>
+so feel free to use its syntax to do more specific search query.<p class="paragraph"/>You can find out about the syntax on the <a href="http://lucene.apache.org/java/3_0_3/queryparsersyntax.html" target="blank">Apache Lucene website</a>.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>def results = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+def resultsTweets = Tweet.search(<span class="java&#45;quote">"message:$&#123;params.query&#125;"</span>)</pre></div>
+
+<h2><a name="5.2 Query Closure">5.2 Query Closure</a></h2>
+You can use the <a href="http://www.elasticsearch.org/guide/reference/groovy-api/search.html" target="blank">Groovy Query DSL</a> to build your search query as a <code>Closure</code>.
+The format of the search <code>Closure</code> follow the same JSON syntax as the <a href="http://www.elasticsearch.org/guide/reference/api/search/" target="blank">ElasticSearch REST API</a>
+and the <a href="http://www.elasticsearch.org/guide/reference/java-api/query-dsl.html" target="blank">Java Query DSL</a>.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>def result = elasticSearchService.search(searchType:'dfs_query_and_fetch') &#123;
+  bool &#123;
+      must &#123;
+          query_string(query: params.query)
+      &#125;
+      <span class="java&#45;keyword">if</span> (params.firstname) &#123;
+          must &#123;
+              term(firstname: params.firstname)
+          &#125;
+      &#125;
+  &#125;
+&#125;</pre></div>
+
+<h2><a name="5.3 Highlighting">5.3 Highlighting</a></h2>
+The search method support highlighting: automatic wrapping of the matching terms in the search results with
+HTML/XML/Whatever tags.
+You can activate this with a <code>Closure</code> containing the highlight settings in the search method <code>highlight</code> parameter.
+The format of the <code>Closure</code> for defining the highlight settings is the same as the
+<a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting.html" target="blank">ElasticSearch REST API</a>.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>// Define the pre &#38; post tag that will wrap each term matched in the document.
+def highlighter = &#123;
+  field 'message'
+  field 'tags.name'
+  preTags '&#60;strong&#62;'
+  postTags '&#60;/strong&#62;'
+&#125;<p class="paragraph"/>def results = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;highlight: highlightSettings&#93;)</pre></div><p class="paragraph"/><h3>Highlight results</h3>
+If a search result is found, the <code>search</code> method will add a <code>highlight</code> entry in the map result.
+That entry contains a <code>List</code> with every highlighted fragments/fields found for each hit.<p class="paragraph"/><div class="code"><pre>def results = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;highlight: &#123; field 'message' &#125;&#93;)
+def highlighted = results.highlight<p class="paragraph"/>results?.searchResults?.eachWithIndex &#123; hit, index &#45;&#62;
+    // Retrieve the 'message' field fragments <span class="java&#45;keyword">for</span> the current hits
+    def fragments = highlighted&#91;index&#93;.message?.fragments<p class="paragraph"/>    // Print the fragment
+    println fragments?.size() ? fragments&#91;0&#93; : ''
+&#125;</pre></div><p class="paragraph"/><h3>Highlighted fields</h3>
+To determine which fields are to be processed by ElasticSearch, use the <code>field</code> setting.
+You can call the <code>field</code> setting as many time as you want to add any field.<p class="paragraph"/><strong class="bold">Signature</strong>
+<div class="code"><pre>field &#60;fieldName&#62;&#91;, &#60;fragmentSize&#62;&#91;, &#60;numberOfFragment&#62;&#93;&#93;</pre></div><p class="paragraph"/><strong class="bold">Examples</strong>
+<div class="code"><pre>def highlightSettings = &#123;
+    field 'message'                    // Add the 'message' field in the highlighted fields list
+    field 'tags.name'                  // Add the 'name' field contained in the 'tags' field of
+                                       // the document in the highlighted fields list
+    field 'thatAwesomeField', 0, 20    // Add the 'thatAwesomeField' field with
+                                       // some values fixed <span class="java&#45;keyword">for</span> fragmentSize and numberOfFragment parameters
+&#125;<p class="paragraph"/>def highlightSettings2 = &#123;
+    field '_all'                       // Add the special '_all' field in the highlighted fields list
+&#125;<p class="paragraph"/>def results = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;highlight: highlightSettings&#93;)
+def results2 = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;highlight: highlightSettings2&#93;)</pre></div><p class="paragraph"/><h3>Highlighting tags</h3>
+By default, ElasticSearch will use emphasis tag "<code>&#60;em&#62;...&#60;/em&#62;</code>" to wrap the matching text.
+You can customize the tags with the <code>preTags</code> and <code>postTags</code> settings.<p class="paragraph"/><div class="code"><pre>def highlightSettings = &#123;
+    field 'message'
+    preTags '&#60;myAweSomeTag&#62;'
+    postTags '&#60;/myAweSomeTag&#62;'
+&#125;</pre></div>
+
+<h1><a name="6. Example">6. Example</a></h1>
+<h3>The domains</h3>
+<div class="code"><pre>class Tweet &#123;
+  <span class="java&#45;keyword">static</span> searchable = &#123;
+    message boost:2.0
+  &#125;<p class="paragraph"/>  <span class="java&#45;keyword">static</span> belongsTo = &#91;
+          user:User
+  &#93;<p class="paragraph"/>  <span class="java&#45;keyword">static</span> hasMany = &#91;
+          tags:Tag
+  &#93;<p class="paragraph"/>  <span class="java&#45;keyword">static</span> constraints = &#123;
+    tags nullable:<span class="java&#45;keyword">true</span>, cascade:'save, update'
+  &#125;<p class="paragraph"/>  <span class="java&#45;object">String</span> message = ''
+  Date dateCreated = <span class="java&#45;keyword">new</span> Date()
+&#125;</pre></div><p class="paragraph"/><div class="code"><pre>class User &#123;
+  <span class="java&#45;keyword">static</span> searchable = &#123;
+    except = 'password'
+    lastname boost:20
+    firstname boost:15, index:'not_analyzed'
+    listOfThings index:'no'
+    someThings index:'no'
+    tweets component:<span class="java&#45;keyword">true</span>
+  &#125;<p class="paragraph"/>  <span class="java&#45;keyword">static</span> constraints = &#123;
+    tweets cascade:'all'
+  &#125;
+  <span class="java&#45;keyword">static</span> hasMany = &#91;
+          tweets:Tweet
+  &#93;
+  <span class="java&#45;keyword">static</span> mappedBy = &#91;
+          tweets:'user'
+  &#93;<p class="paragraph"/>  <span class="java&#45;object">String</span> lastname
+  <span class="java&#45;object">String</span> firstname
+  <span class="java&#45;object">String</span> password
+  <span class="java&#45;object">String</span> activity = 'Evildoer'
+  <span class="java&#45;object">String</span> someThings = 'something'
+  ArrayList&#60;<span class="java&#45;object">String</span>&#62; listOfThings = &#91;'<span class="java&#45;keyword">this</span>', 'that', 'andthis'&#93;
+&#125;</pre></div><p class="paragraph"/><div class="code"><pre>class Tag &#123;
+  <span class="java&#45;keyword">static</span> searchable = &#123;
+    except=&#91;'boostValue'&#93;
+  &#125;<p class="paragraph"/>  <span class="java&#45;object">String</span> name
+  <span class="java&#45;object">Integer</span> boostValue = 1
+&#125;</pre></div><p class="paragraph"/><h3>The controller</h3>
+<h4>A action triggering indexation</h4>
+<code>ElasticSearchController</code> (<code>testCaseService</code> is just dealing with GORM instructions):
+<div class="code"><pre>class ElasticSearchController &#123;
+  def elasticSearchService
+  def testCaseService<p class="paragraph"/>  def postTweet = &#123;
+    <span class="java&#45;keyword">if</span>(!params.user?.id) &#123;
+      flash.notice = <span class="java&#45;quote">"No user selected."</span>
+      redirect(action: 'index')
+      <span class="java&#45;keyword">return</span>
+    &#125;
+    User u = User.get(params.user.id)
+    <span class="java&#45;keyword">if</span> (!u) &#123;
+      flash.notice = <span class="java&#45;quote">"User not found"</span>
+      redirect(action: 'index')
+      <span class="java&#45;keyword">return</span>
+    &#125;
+    // Create tweet
+    testCaseService.addTweet(params.tweet?.message, u, params.tags)<p class="paragraph"/>    flash.notice = <span class="java&#45;quote">"Tweet posted"</span>
+    redirect(action: 'index')
+  &#125;
+&#125;</pre></div>
+With this code (considering that there are already <code>User</code> in the database), new Tweets will be indexed automatically,
+and corresponding <code>User</code> indexed documents will be updated since we have set the <code>tweets</code> association as component.<p class="paragraph"/><h4>Searching for Tweets</h4>
+<div class="code"><pre>def searchForUserTweets = &#123;
+    def tweets = Tweet.search(<span class="java&#45;quote">"$&#123;params.message.search&#125;"</span>).searchResults
+    def tweetsMsg = 'Messages : '
+    tweets.each &#123;
+      tweetsMsg += <span class="java&#45;quote">"&#60;br /&#62;Tweet from $&#123;it.user?.firstname&#125; $&#123;it.user?.lastname&#125; : $&#123;it.message&#125; "</span>
+      tweetsMsg += <span class="java&#45;quote">"(tags : $&#123;it.tags?.collect&#123;t &#45;&#62; t.name&#125;&#125;)"</span>
+    &#125;
+    flash.notice = tweetsMsg
+    redirect(action: 'index')
+&#125;</pre></div><p class="paragraph"/><h4>Searching for anything</h4>
+<div class="code"><pre>def searchAll = &#123;
+    def res = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>).searchResults
+    def resMsg = '&#60;strong&#62;Global search result(s):&#60;/strong&#62;&#60;br /&#62;'
+    res.each &#123;
+      <span class="java&#45;keyword">switch</span>(it)&#123;
+        <span class="java&#45;keyword">case</span> Tag:
+          resMsg += <span class="java&#45;quote">"&#60;strong&#62;Tag&#60;/strong&#62; $&#123;it.name&#125;&#60;br /&#62;"</span>
+          <span class="java&#45;keyword">break</span>
+        <span class="java&#45;keyword">case</span> Tweet:
+          resMsg += <span class="java&#45;quote">"&#60;strong&#62;Tweet&#60;/strong&#62; &#34;$&#123;it.message&#125;&#34; from $&#123;it.user.firstname&#125; $&#123;it.user.lastname&#125;&#60;br /&#62;"</span>
+          <span class="java&#45;keyword">break</span>
+        <span class="java&#45;keyword">case</span> User:
+          resMsg += <span class="java&#45;quote">"&#60;strong&#62;User&#60;/strong&#62; $&#123;it.firstname&#125; $&#123;it.lastname&#125;&#60;br /&#62;"</span>
+          <span class="java&#45;keyword">break</span>
+        <span class="java&#45;keyword">default</span>:
+          resMsg += <span class="java&#45;quote">"&#60;strong&#62;Other&#60;/strong&#62; $&#123;it&#125;&#60;br /&#62;"</span>
+          <span class="java&#45;keyword">break</span>
+      &#125;<p class="paragraph"/>    &#125;
+    flash.notice = resMsg
+    redirect(action:'index')
+ &#125;</pre></div>
+
+                    </div>
+                </td>
+                <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">ElasticSearchService</h1><div class="menu-sub">
+                        
+                        
+                        <div class="menu-item"><a href="../ref/ElasticSearchService/index.html">index</a>
+                        </div>
+                        
+                        <div class="menu-item"><a href="../ref/ElasticSearchService/search.html">search</a>
+                        </div>
+                        
+                        <div class="menu-item"><a href="../ref/ElasticSearchService/unindex.html">unindex</a>
+                        </div>
+                        
+                        </div>
+                    </div>
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Injected Domain Dynamic Methods</h1><div class="menu-sub">
+                        
+                        
+                        <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/index.html">index</a>
+                        </div>
+                        
+                        <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/search.html">search</a>
+                        </div>
+                        
+                        <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/unindex.html">unindex</a>
+                        </div>
+                        
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+            </tr>
+        </table>
+
+        <div id="footer">
+            
+            
+        </div>
+
+
+
+<script type="text/javascript" src="../js/docs.js"></script>
+
+    </body>
+</html>

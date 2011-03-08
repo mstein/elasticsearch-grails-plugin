@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>elasticsearch 0.15.1.1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="../../css/main.css" type="text/css" media="screen" title="Style" charset="utf-8"/>
+    <link rel="stylesheet" href="../../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8"/>
+    <script type="text/javascript">
+function addJsClass(el) {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+</head>
+
+<body class="body" onload="addJsClass();">
+
+<div id="navigation">
+    <ul>
+        <li>
+            <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                <a href="../../guide/index.html" class="button">Table of contents</a>
+
+                <div id="nav-summary-childs">
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/1. Introduction.html"><strong>1.</strong><span>Introduction</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/2. Configuration.html"><strong>2.</strong><span>Configuration</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/3. Mapping.html"><strong>3.</strong><span>Mapping</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/4. Indexing.html"><strong>4.</strong><span>Indexing</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/5. Searching.html"><strong>5.</strong><span>Searching</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../../guide/6. Example.html"><strong>6.</strong><span>Example</span></a>
+                    </div>
+                    
+                </div>
+            </div>
+        </li>
+        <li class="separator selected">
+            <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+        </li>
+    </ul>
+</div>
+<div id="header">
+    <div class="images clearfix">
+        
+        
+    </div>
+    <p>elasticsearch</p>
+</div>
+
+
+<table id="colset" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td id="col1">
+            <div id="main" class="reference corner-all">
+
+                <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                <h1>index</h1><p class="paragraph"/><h2>Purpose</h2><p class="paragraph"/>Index specific domain instances to ElasticSearch.
+Internally, the plugin uses the Bulk API of ElasticSearch to perform the index requests.
+<blockquote class="note">Only domains that are <a href="../../guide/single.html#3.2 Class mapping" class="guide">root-mapped</a> have this method injected.</blockquote><p class="paragraph"/><h2>Examples</h2><p class="paragraph"/><div class="code"><pre>// Index all instances of the MyDomain domain class
+MyDomain.index()<p class="paragraph"/>// Index a specific domain instance
+MyDomain md = <span class="java&#45;keyword">new</span> MyDomain(value:'that')
+md.id = 1
+md.index()<p class="paragraph"/>// Index a collection of domain instances
+def ds = &#91;<span class="java&#45;keyword">new</span> MyDomain(value:'that'), <span class="java&#45;keyword">new</span> MyDomain(name:'that2'), <span class="java&#45;keyword">new</span> MyDomain(value:'thatagain')&#93;
+ds.eachWithIndex &#123; val, i&#45;&#62;  ds&#91;i&#93;.id = i &#125;
+MyDomain.index(ds)</pre></div><p class="paragraph"/><h4>Description</h4><p class="paragraph"/><code>index</code> signatures:<p class="paragraph"/><div class="code"><pre>// Index a specific domain instance
+def index()
+// Index ALL instances of a domain class
+<span class="java&#45;keyword">static</span> index()
+// Index a Collection of domain instances
+<span class="java&#45;keyword">static</span> index(Collection&#60;Domain&#62; domains)
+// Same with an ellipsis
+<span class="java&#45;keyword">static</span> index(Domain&#8230; domain)</pre></div><p class="paragraph"/><h4>Parameters</h4>
+<ul class="star">
+<li><code>Collection&#60;Domain&#62;</code> domains - A <code>Collection</code> of domain instances to index.</li>
+<li><code>Domain...</code> domain - Same as <code>Collection&#60;Domain&#62;</code>, but with an ellipsis.</li>
+</ul><p class="paragraph"/>
+            </div>
+        </td>
+        <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block">
+                        <h1 class="menu-title" onclick="toggleRef(nextElement(this))">ElasticSearchService</h1>
+                        <div class="menu-sub">
+                            
+                            
+                            <div class="menu-item"><a href="../../ref/ElasticSearchService/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../../ref/ElasticSearchService/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../../ref/ElasticSearchService/unindex.html">unindex</a>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="menu-block">
+                        <h1 class="menu-title" onclick="toggleRef(nextElement(this))">Injected Domain Dynamic Methods</h1>
+                        <div class="menu-sub selected">
+                            
+                            
+                            <div class="menu-item"><a href="../../ref/Injected Domain Dynamic Methods/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../../ref/Injected Domain Dynamic Methods/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../../ref/Injected Domain Dynamic Methods/unindex.html">unindex</a>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div id="footer">
+    
+    
+</div>
+
+
+<script type="text/javascript" src="../../js/docs.js"></script>
+
+</body>
+</html>
