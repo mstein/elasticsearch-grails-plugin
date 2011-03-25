@@ -2,7 +2,7 @@
                       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <title>2. Configuration 0.15.1.1</title>
+    <title>2. Configuration 0.15.2.1</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Style" charset="utf-8"/>
     <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8"/>
@@ -24,22 +24,22 @@ function addJsClass() {
 
                 <div id="nav-summary-childs" style="display:none;">
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/1. Introduction.html"><strong>1.</strong><span>Introduction</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/1.%20Introduction.html"><strong>1.</strong><span>Introduction</span></a>
                     </div>
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/2. Configuration.html"><strong>2.</strong><span>Configuration</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/2.%20Configuration.html"><strong>2.</strong><span>Configuration</span></a>
                     </div>
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/3. Mapping.html"><strong>3.</strong><span>Mapping</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/3.%20Mapping.html"><strong>3.</strong><span>Mapping</span></a>
                     </div>
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/4. Indexing.html"><strong>4.</strong><span>Indexing</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/4.%20Indexing.html"><strong>4.</strong><span>Indexing</span></a>
                     </div>
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/5. Searching.html"><strong>5.</strong><span>Searching</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/5.%20Searching.html"><strong>5.</strong><span>Searching</span></a>
                     </div>
                     
-                    <div class="toc-item" style="margin-left:0"><a href="../guide/6. Example.html"><strong>6.</strong><span>Example</span></a>
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/6.%20Example.html"><strong>6.</strong><span>Example</span></a>
                     </div>
                     
                 </div>
@@ -65,13 +65,13 @@ function addJsClass() {
             <div id="main" class="corner-all">
 
                 
-                    <div class="toc-item prev-left"><a href="../guide/1. Introduction.html">&lt;&lt; <strong>1.</strong><span>Introduction</span></a></div>
+                    <div class="toc-item prev-left"><a href="../guide/1.%20Introduction.html">&lt;&lt; <strong>1.</strong><span>Introduction</span></a></div>
                 
 
                 <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
 
                 
-                    <div class="toc-item next-right"><a href="../guide/3. Mapping.html"><strong>3.</strong><span>Mapping</span> >></a></div>
+                    <div class="toc-item next-right"><a href="../guide/3.%20Mapping.html"><strong>3.</strong><span>Mapping</span> >></a></div>
                 
 
 
@@ -80,13 +80,13 @@ function addJsClass() {
 
                     <p><strong>Authors:</strong> Manuarii Stein, Stephane Maldini, Serge P. Nekoval</p>
 
-                    <p><strong>Version:</strong> 0.15.1.1</p>
+                    <p><strong>Version:</strong> 0.15.2.1</p>
                 </div>
 
                 
 
                 
-<h1><a name="2. Configuration">2. Configuration</a></h1>
+<h1><a name="2.%20Configuration">2. Configuration</a></h1>
 The plugin provide a default configuration, but you may add your own settings in your <strong class="bold">Config.groovy</strong> script.<p class="paragraph"/><h4>Client mode</h4>
 You can set the plugin in 3 different modes, detailled on the <a href="http://www.elasticsearch.org/guide/reference/java-api/client.html" target="blank">official ElasticSearch doc</a>.
 The mode is defined with the following config key:<p class="paragraph"/><div class="code"><pre>elasticSearch.client.mode = '&#60;mode&#62;'</pre></div><p class="paragraph"/><strong class="bold">Possible values:</strong>
@@ -114,10 +114,18 @@ Default to <code>false</code>.
 <li><code>elasticSearch.bulkIndexOnStartup</code></li>
 </ul><p class="paragraph"/>A boolean determining if the application should launch a bulk index operation upon startup. Default to <code>true</code>.
 <ul class="star">
+<li><code>elasticSearch.index.compound_format</code></li>
+</ul><p class="paragraph"/>Should the compound file format be used (boolean setting).
+Set to <code>false</code> by default (really applicable for file system based index storage).
+More details on this setting on the <a href="http://www.elasticsearch.org/guide/reference/index-modules/" target="blank">ElasticSearch Documentation</a>.
+<ul class="star">
 <li><code>elasticSearch.index.store.type</code></li>
 </ul><p class="paragraph"/>Determine the way how the indices will be store.
 More details on the possible values on the <a href="http://www.elasticsearch.org/guide/reference/index-modules/store.html" target="blank">ElasticSearch Documentation</a>.
-<table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th>Possible value</th><th>Description</th></tr><tr class="table-odd"><td>memory</td><td>Stores the index in memory. Useful for testing.</td></tr><tr class="table-even"><td>mmapfs</td><td>Stores the shard index on the file system (maps to Lucene MMapDirectory) using mmap.</td></tr><tr class="table-odd"><td>niofs</td><td>Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.</td></tr><tr class="table-even"><td>simplefs</td><td>Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.</td></tr></table><p class="paragraph"/><h4>Default configuration script</h4>
+<table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th>Possible value</th><th>Description</th></tr><tr class="table-odd"><td>memory</td><td>Stores the index in memory. Useful for testing.</td></tr><tr class="table-even"><td>mmapfs</td><td>Stores the shard index on the file system (maps to Lucene MMapDirectory) using mmap.</td></tr><tr class="table-odd"><td>niofs</td><td>Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.</td></tr><tr class="table-even"><td>simplefs</td><td>Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.</td></tr></table>
+<ul class="star">
+<li><code>elasticSearch.path.data</code></li>
+</ul><p class="paragraph"/>The location of the data files of each index / shard allocated on the node.<p class="paragraph"/><h4>Default configuration script</h4>
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).<p class="paragraph"/><div class="code"><pre>elasticSearch &#123;
   /&#42;&#42;
    &#42; Date formats used by the unmarshaller of the JSON responses
@@ -170,9 +178,9 @@ Below is the default configuration loaded by the plugin (any of your settings in
 
                 <div style="clear:both;margin-top:15px;"></div>
                 
-                    <div class="toc-item prev-left"><a href="../guide/1. Introduction.html">&lt;&lt; <strong>1.</strong><span>Introduction</span></a></div>
+                    <div class="toc-item prev-left"><a href="../guide/1.%20Introduction.html">&lt;&lt; <strong>1.</strong><span>Introduction</span></a></div>
                 
-                    <div class="toc-item next-right"><a href="../guide/3. Mapping.html"><strong>3.</strong><span>Mapping</span> >></a></div>
+                    <div class="toc-item next-right"><a href="../guide/3.%20Mapping.html"><strong>3.</strong><span>Mapping</span> >></a></div>
                 
                 <div style="clear:both"></div>
             </div>
@@ -203,13 +211,13 @@ Below is the default configuration loaded by the plugin (any of your settings in
                     <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Injected Domain Dynamic Methods</h1><div class="menu-sub">
                         
                             
-                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/index.html">index</a>
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/index.html">index</a>
                             </div>
                             
-                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/search.html">search</a>
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/search.html">search</a>
                             </div>
                             
-                            <div class="menu-item"><a href="../ref/Injected Domain Dynamic Methods/unindex.html">unindex</a>
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/unindex.html">unindex</a>
                             </div>
                             
                             </div>
