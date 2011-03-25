@@ -25,15 +25,24 @@ h4. Others properties
 * @elasticSearch.date.formats@
 List of date formats used by the JSON unmarshaller to parse any date field properly.
 Note : future version of the plugin may change how formats are manipulated.
+
 * @elasticSearch.defaultExcludedProperties@
 List of domain class properties to automatically ignore (will not be indexed) if their name match one of those.
 This will only apply to default-mapped domain class, with the static @searchable@ property set to "true", and will
 not be considered when using closure mapping.
+
 * @elasticSearch.disableAutoIndex@
 A boolean determining if the plugin should reflect any database save/update/delete automatically on the indices.
 Default to @false@.
+
 * @elasticSearch.bulkIndexOnStartup@
 A boolean determining if the application should launch a bulk index operation upon startup. Default to @true@.
+
+* @elasticSearch.index.compound_format@
+Should the compound file format be used (boolean setting).
+Set to @false@ by default (really applicable for file system based index storage).
+More details on this setting on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/].
+
 * @elasticSearch.index.store.type@
 Determine the way how the indices will be store.
 More details on the possible values on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/store.html].
@@ -44,6 +53,9 @@ mmapfs | Stores the shard index on the file system (maps to Lucene MMapDirectory
 niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.
 simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
 {table}
+
+* @elasticSearch.path.data@
+The location of the data files of each index / shard allocated on the node.
 
 h4. Default configuration script
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).
