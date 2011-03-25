@@ -1,6 +1,6 @@
 package test
 
-class Photo {
+class Photo extends AbstractImage {
 
     String url
 
@@ -8,7 +8,9 @@ class Photo {
         url(nullable: false)
     }
 
-    static searchable = true
+    static searchable = {
+        url index:"not_analyzed"
+    }
 
 
     public String toString() {

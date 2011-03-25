@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.util.ConfigObject;
 import org.codehaus.groovy.grails.commons.*;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
@@ -87,11 +89,24 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         List<GrailsDomainClass> superMappings = new ArrayList<GrailsDomainClass>();
         Class<?> currentClass = grailsDomainClass.getClazz();
         superMappings.add(grailsDomainClass);
+
         while (currentClass != null) {
             currentClass = currentClass.getSuperclass();
             if (currentClass != null && DomainClassArtefactHandler.isDomainClass(currentClass)) {
                 GrailsDomainClass superDomainClass = (GrailsDomainClass)
                         grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, currentClass.getName());
+
+                // If the super class is abstract, it needs peculiar processing
+                // The abstract class won't be actually mapped to ES, but the concrete subclasses will have to inherit
+                // the searchable mapping options.
+                if(superDomainClass == null && Modifier.isAbstract(currentClass.getModifiers())){
+                    // We create a temporary dummy GrailsDomainClass instance for this abstract class
+                    superDomainClass = new DefaultGrailsDomainClass(currentClass);
+                } else {
+                    // If superDomainClass is null & not abstract, then we won't process this class
+                    break;
+                }
+
                 if (superDomainClass.hasProperty(SEARCHABLE_PROPERTY_NAME) &&
                     superDomainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME).equals(Boolean.FALSE)) {
 
@@ -167,6 +182,10 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
 //        SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, mappedProperties);
 //        scm.setRoot(true);
 //        return scm;
+    }
+
+    public void buildDefaultMapping(Class clazz) {
+
     }
 
     public void buildClosureMapping(GrailsDomainClass grailsDomainClass, Closure searchable, Set<String> inheritedProperties) {
