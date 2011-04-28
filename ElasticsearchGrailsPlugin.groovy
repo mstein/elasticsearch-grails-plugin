@@ -32,6 +32,7 @@ import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticsearchGrailsPlugin {
 
+
     static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
