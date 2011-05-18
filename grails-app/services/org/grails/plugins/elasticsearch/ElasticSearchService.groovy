@@ -28,6 +28,9 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.SearchHit
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
+import org.elasticsearch.search.sort.SortOrder
+import org.elasticsearch.action.count.CountRequest
+import org.elasticsearch.action.ActionRequest
 
 public class ElasticSearchService implements GrailsApplicationAware {
 
@@ -82,6 +85,17 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
+     * Returns the number of hits for a peculiar query
+     *
+     * @param query
+     * @param params
+     * @return An Integer representing the number of hits for the query
+     */
+    public Integer countHits(String query, Map params = [:]) {
+
+    }
+
+    /**
      * Indexes all searchable instances of the specified class.
      * If call without arguments, index ALL searchable instances.
      * Note: The indexRequestQueue is using the bulk API so it is optimized.
@@ -94,12 +108,12 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
-    * An alias for index(class:[MyClass1, MyClass2])
-    *
-    * @param domainClass List of searchable class
-    */
+     * An alias for index(class:[MyClass1, MyClass2])
+     *
+     * @param domainClass List of searchable class
+     */
     public void index(Class... domainClass) {
-        index(class:(domainClass as Collection<Class>))
+        index(class: (domainClass as Collection<Class>))
     }
 
     /**
@@ -116,7 +130,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances
      */
-    public void index (GroovyObject... instances) {
+    public void index(GroovyObject... instances) {
         index(instances as Collection<GroovyObject>)
     }
 
@@ -133,12 +147,12 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
-    * An alias for unindex(class:[MyClass1, MyClass2])
-    *
-    * @param domainClass List of searchable class
-    */
+     * An alias for unindex(class:[MyClass1, MyClass2])
+     *
+     * @param domainClass List of searchable class
+     */
     public void unindex(Class... domainClass) {
-        unindex(class:(domainClass as Collection<Class>))
+        unindex(class: (domainClass as Collection<Class>))
     }
 
     /**
@@ -155,7 +169,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances
      */
-    public void unindex (GroovyObject... instances) {
+    public void unindex(GroovyObject... instances) {
         unindex(instances as Collection<GroovyObject>)
     }
 
@@ -169,8 +183,8 @@ public class ElasticSearchService implements GrailsApplicationAware {
     private doBulkRequest(Map options, int operationType) {
         def clazz = options.class
         def mappings = []
-        if(clazz) {
-            if(clazz instanceof Collection) {
+        if (clazz) {
+            if (clazz instanceof Collection) {
                 clazz.each { c ->
                     mappings << elasticSearchContextHolder.getMappingContextByType(c)
                 }
@@ -183,14 +197,14 @@ public class ElasticSearchService implements GrailsApplicationAware {
         }
 
         mappings.each { scm ->
-            if(scm.root) {
+            if (scm.root) {
                 if (operationType == INDEX_REQUEST) {
                     LOG.debug("Indexing all instances of ${scm.domainClass}")
                 } else if (operationType == DELETE_REQUEST) {
                     LOG.debug("Deleting all instances of ${scm.domainClass}")
                 }
                 scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "getAll", null).each {
-                    if(operationType == INDEX_REQUEST) {
+                    if (operationType == INDEX_REQUEST) {
                         indexRequestQueue.addIndexRequest(it)
                     } else if (operationType == DELETE_REQUEST) {
                         indexRequestQueue.addDeleteRequest(it)
@@ -213,7 +227,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     private doBulkRequest(Collection<GroovyObject> instances, int operationType) {
         instances.each {
             def scm = elasticSearchContextHolder.getMappingContextByType(it.class)
-            if(scm && scm.root) {
+            if (scm && scm.root) {
                 if (operationType == INDEX_REQUEST) {
                     indexRequestQueue.addIndexRequest(it)
                 } else if (operationType == DELETE_REQUEST) {
@@ -227,6 +241,26 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
+     *
+     * @param query
+     * @param params
+     * @return
+     */
+    private CountRequest buildCountRequest(query, Map params) {
+        CountRequest request = new CountRequest()
+        this.resolveIndicesAndTypes(request, params)
+
+        // Handle the query, can either be a closure or a string
+        if (query instanceof Closure) {
+            request.query(new GXContentBuilder().buildAsBytes(query))
+        } else {
+            request.query(queryString(query))
+        }
+
+        return request
+    }
+
+    /**
      * Build a search request
      *
      * @param params The query parameters
@@ -237,56 +271,19 @@ public class ElasticSearchService implements GrailsApplicationAware {
         SearchRequest request = new SearchRequest()
         request.searchType SearchType.DFS_QUERY_THEN_FETCH
 
-        // Handle the indices.
-        // TODO: if the user specify a DomainClass or a Collection of DomainClass, we're able to determine
-        // automatically both the indices and the types. Eg: elasticSearchService.search("query", for:[Tweet, User])
-        if (params.indices) {
-            if(params.indices instanceof String){
-                // Shortcut for using 1 index only (not a list of values)
-                request.indices([params.indices] as String[])
-            } else {
-                // Here we consider that params.indices is a Collection or a Array
-                request.indices(params.indices as String[])
-            }
-        }
+        this.resolveIndicesAndTypes(request, params)
 
-        // Handle the types. Each type must reference a Domain class for now, but we may consider to make it more
-        // generic in the future to allow POGO/Map/Whatever indexing/searching
-        if (params.types) {
-            if(params.types instanceof String) {
-                // Shortcut for using 1 type only with a string
-                def scm = elasticSearchContextHolder.getMappingContext(params.types)
-                if (!scm) {
-                    throw new IllegalArgumentException("Unknown object type: ${params.types}")
-                }
-                request.types([scm.elasticTypeName] as String[])
-            } else if(params.types instanceof Collection<String>) {
-                def types = params.types.collect { t ->
-                    def scm = elasticSearchContextHolder.getMappingContext(t)
-                    scm.elasticTypeName
-                }
-                request.types(types as String[])
-            } else if (params.types instanceof Class) {
-                // User can also pass a class to determine the type
-                def scm = elasticSearchContextHolder.getMappingContextByType(params.types)
-                request.types([scm.elasticTypeName] as String[])
-            } else if (params.types instanceof Collection<Class>) {
-                def types = params.types.collect { t ->
-                    def scm = elasticSearchContextHolder.getMappingContextByType(t)
-                    scm.elasticTypeName
-                }
-                request.types(types as String[])
-            }
-
-        }
         SearchSourceBuilder source = new SearchSourceBuilder()
 
         source.from(params.from ? params.from as int : 0)
         source.size(params.size ? params.size as int : 60)
         source.explain(params.explain ?: true)
+        if (params.sort) {
+            source.sort(params.sort, SortOrder.valueOf(params.order?.toUpperCase() ?: "ASC"))
+        }
 
         // Handle the query, can either be a closure or a string
-        if(query instanceof Closure){
+        if (query instanceof Closure) {
             source.query(new GXContentBuilder().buildAsBytes(query))
         } else {
             source.query(queryString(query))
@@ -305,6 +302,76 @@ public class ElasticSearchService implements GrailsApplicationAware {
         request.source source
 
         return request
+    }
+
+    /**
+     * Sets the indices & types properties on SearchRequest & CountRequest
+     *
+     * @param request
+     * @param params
+     * @return
+     */
+    private resolveIndicesAndTypes(request, Map params) {
+        assert request instanceof SearchRequest || request instanceof CountRequest
+
+        // Handle the indices.
+        if (params.indices) {
+            def indices
+            if (params.indices instanceof String) {
+                // Shortcut for using 1 index only (not a list of values)
+                indices = [params.indices]
+            } else if (params.indices instanceof Class) {
+                // Resolved with the class type
+                def scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
+                indices = [scm.indexName]
+            } else if (params.indices instanceof Collection<Class>) {
+                 indices = params.indices.collect { c ->
+                    def scm = elasticSearchContextHolder.getMappingContextByType(c)
+                    scm.indexName
+                }
+            }
+            request.indices((indices ?: params.indices) as String[])
+        } else {
+            request.indices("_all")
+        }
+
+        // Handle the types. Each type must reference a Domain class for now, but we may consider to make it more
+        // generic in the future to allow POGO/Map/Whatever indexing/searching
+        if (params.types) {
+            def types
+            if (params.types instanceof String) {
+                // Shortcut for using 1 type only with a string
+                def scm = elasticSearchContextHolder.getMappingContext(params.types)
+                if (!scm) {
+                    throw new IllegalArgumentException("Unknown object type: ${params.types}")
+                }
+                types = [scm.elasticTypeName]
+            } else if (params.types instanceof Collection<String>) {
+                types = params.types.collect { t ->
+                    def scm = elasticSearchContextHolder.getMappingContext(t)
+                    if (!scm) {
+                        throw new IllegalArgumentException("Unknown object type: ${params.types}")
+                    }
+                    scm.elasticTypeName
+                }
+            } else if (params.types instanceof Class) {
+                // User can also pass a class to determine the type
+                def scm = elasticSearchContextHolder.getMappingContextByType(params.types)
+                if (!scm) {
+                    throw new IllegalArgumentException("Unknown object type: ${params.types}")
+                }
+                types = [scm.elasticTypeName]
+            } else if (params.types instanceof Collection<Class>) {
+                types = params.types.collect { t ->
+                    def scm = elasticSearchContextHolder.getMappingContextByType(t)
+                    if (!scm) {
+                        throw new IllegalArgumentException("Unknown object type: ${params.types}")
+                    }
+                    scm.elasticTypeName
+                }
+            }
+            request.types(types as String[])
+        }
     }
 
     /**
@@ -330,11 +397,22 @@ public class ElasticSearchService implements GrailsApplicationAware {
             // Right now simply give away raw results...
             if (params.highlight) {
                 def highlightResults = []
-                for(SearchHit hit : searchHits) {
+                for (SearchHit hit: searchHits) {
                     highlightResults << hit.highlightFields
                 }
                 result.highlight = highlightResults
             }
+
+            return result
+        }
+    }
+
+    private doCount(CountRequest request, Map params) {
+        elasticSearchHelper.withElasticSearch { Client client ->
+            def response = client.count(request).actionGet()
+            def result = response.count ?: 0
+
+            LOG.debug "${result} hit(s) matched the specified query."
 
             return result
         }

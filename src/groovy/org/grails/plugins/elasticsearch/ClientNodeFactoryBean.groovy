@@ -18,10 +18,9 @@ package org.grails.plugins.elasticsearch
 
 import org.springframework.beans.factory.FactoryBean
 import static org.elasticsearch.node.NodeBuilder.*
-import org.apache.commons.lang.NotImplementedException
 import org.elasticsearch.client.transport.TransportClient
+import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
 import org.apache.log4j.Logger
 
 class ClientNodeFactoryBean implements FactoryBean {
@@ -40,13 +39,18 @@ class ClientNodeFactoryBean implements FactoryBean {
 
         def nb = nodeBuilder()
         def transportClient = null
+
+        // Path to the data folder of ES
         def dataPath = elasticSearchContextHolder.config.path.data
         if (dataPath) {
             nb.settings.put('path.data', dataPath as String)
             LOG.info "Using ElasticSearch data path: ${dataPath}"
         }
+
+        // Configure the client based on the client mode
         switch (clientMode) {
             case 'local':
+                // Determines how the data is store (on disk, in memory, ...)
                 def storeType = elasticSearchContextHolder.config.index.store.type
                 if (storeType) {
                     nb.settings().put('index.store.type', storeType as String)
@@ -54,6 +58,7 @@ class ClientNodeFactoryBean implements FactoryBean {
                 } else {
                     LOG.debug "Local ElasticSearch client with default store type configured."
                 }
+
                 def queryParsers = elasticSearchContextHolder.config.index.queryparser
                 if (queryParsers) {
                     queryParsers.each { type, clz ->
@@ -62,8 +67,16 @@ class ClientNodeFactoryBean implements FactoryBean {
                 }
                 nb.local(true)
                 break;
+
             case 'transport':
-                transportClient = new TransportClient()
+                // Use the "sniff" feature of transport client ?
+                if(elasticSearchContextHolder.config.client.transport.sniff) {
+                    transportClient = new TransportClient(ImmutableSettings.settingsBuilder().put("client.transport.sniff", true))
+                } else {
+                    transportClient = new TransportClient()
+                }
+
+                // Configure transport addresses
                 if (!elasticSearchContextHolder.config.client.hosts) {
                     transportClient.addTransportAddress(new InetSocketTransportAddress('localhost', 9300))
                 } else {
@@ -72,6 +85,7 @@ class ClientNodeFactoryBean implements FactoryBean {
                     }
                 }
                 break;
+
             case 'node':
             default:
                 nb.client(true)
