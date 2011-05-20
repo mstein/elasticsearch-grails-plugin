@@ -33,3 +33,15 @@ res.searchResults.each {
     }
 }
 {code}
+
+If you're willing to retrieve only the number of hits for a peculiar query, you can use the @countHits()@
+method. It will only return an @Integer@ representing the total hits matching your query.
+
+*Example*
+{code}
+def res = Tweet.countHits("${params.query}")
+println "Found ${res} result(s)"
+
+def res = elasticSearchService.countHits("${params.query}", [indices:'test'])
+println "Found ${res} result(s)"
+{code}

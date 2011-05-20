@@ -145,7 +145,8 @@
         <br/>
         <input type="text" name="query" id="search-query" style="width:250px;"/>
         <g:select id="search-user" name="firstname" from="${allUsers ?: []}" optionKey="firstname" optionValue="firstname" noSelection="['':'Any user']" value=""/>
-        <input type="submit" value="Search"/>
+        <input name="search" type="submit" value="Search"/>
+        <input name="count" type="submit" value="Count hits only"/>
       </p>
 
     </g:form>

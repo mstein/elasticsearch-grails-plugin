@@ -55,6 +55,17 @@ class DomainDynamicMethodsUtils {
                         elasticSearchService.search(params, q)
                     }
 
+                    // Inject the countHits method
+                    domain.metaClass.'static'.countHits << { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                        elasticSearchService.countHits(q, params)
+                    }
+                    domain.metaClass.'static'.countHits << { Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz], Closure q ->
+                        elasticSearchService.countHits(params, q)
+                    }
+                    domain.metaClass.'static'.countHits << { Closure q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                        elasticSearchService.countHits(params, q)
+                    }
+
                     // Inject the index method
                     // static index() with no arguments index every instances of the domainClass
                     domain.metaClass.'static'.index << {->

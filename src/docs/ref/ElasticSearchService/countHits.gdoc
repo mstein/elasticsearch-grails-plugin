@@ -1,0 +1,43 @@
+h1. countHits
+
+h2. Purpose
+
+Returns the number of hits for a specified search query.
+
+h2. Examples
+
+{code}
+def res = elasticSearchService.countHits("${params.query}")
+def res = elasticSearchService.countHits("${params.query}", [indices:"tweet"])
+def res = elasticSearchService.countHits {
+    queryString("${params.query}")
+}
+def res = elasticSearchService.countHits(indices:"tweet") {
+    queryString("${params.query}")
+}
+{code}
+
+h4. Description
+
+@countHits@ signatures:
+
+{code}
+def countHits(Closure query, Map params)
+def countHits(Closure query)
+def countHits(Map params, Closure query)
+def countHits(String query, Map params)
+def countHits(String query)
+{code}
+
+h4. Parameters
+
+* @query@ - The search query.
+** As a @String@, the query is parsed by the Lucene query parser for advanced searching.
+** Can also be a @Closure@, using the Groovy Query DSL of the ElasticSearch groovy client.
+* @params@ - A list of additional parameters to customize the searching process
+** @indices@ - Limit the search only to the specified indices (may be a @String@, or @Collection@ of @String@)
+** @types@ - Limit the search only to the specified types (domains) (may be a @String@, or @Collection@ of @String@).
+
+h4. Returned value
+
+Returns an @Integer@ representing the number of hits for the query.

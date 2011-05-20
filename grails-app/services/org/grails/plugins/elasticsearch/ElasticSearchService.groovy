@@ -92,7 +92,31 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @return An Integer representing the number of hits for the query
      */
     public Integer countHits(String query, Map params = [:]) {
+        CountRequest request = buildCountRequest(query, params)
+        return doCount(request, params)
+    }
 
+    /**
+     * Returns the number of hits for a peculiar query
+     *
+     * @param query
+     * @param params
+     * @return An Integer representing the number of hits for the query
+     */
+    public Integer countHits(Map params, Closure query) {
+        CountRequest request = buildCountRequest(query, params)
+        return doCount(request, params)
+    }
+
+    /**
+     * Returns the number of hits for a peculiar query
+     *
+     * @param query
+     * @param params
+     * @return An Integer representing the number of hits for the query
+     */
+    public Integer countHits(Closure query, Map params = [:]) {
+        return countHits(params, query)
     }
 
     /**
@@ -241,7 +265,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
-     *
+     * Builds a count request
      * @param query
      * @param params
      * @return
@@ -261,7 +285,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
-     * Build a search request
+     * Builds a search request
      *
      * @param params The query parameters
      * @param query The search query, whether a String or a Closure
@@ -319,7 +343,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             def indices
             if (params.indices instanceof String) {
                 // Shortcut for using 1 index only (not a list of values)
-                indices = [params.indices]
+                indices = [params.indices.toLowerCase()]
             } else if (params.indices instanceof Class) {
                 // Resolved with the class type
                 def scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
@@ -375,7 +399,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     }
 
     /**
-     * Compute a search request and build the results
+     * Computes a search request and builds the results
      *
      * @param request The SearchRequest to compute
      * @param params Search parameters
@@ -407,6 +431,13 @@ public class ElasticSearchService implements GrailsApplicationAware {
         }
     }
 
+    /**
+     * Computes a count request and returns the results
+     *
+     * @param request
+     * @param params
+     * @return Integer The number of hits for the query
+     */
     private doCount(CountRequest request, Map params) {
         elasticSearchHelper.withElasticSearch { Client client ->
             def response = client.count(request).actionGet()

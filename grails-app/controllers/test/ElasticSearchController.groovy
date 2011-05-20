@@ -74,8 +74,9 @@ class ElasticSearchController {
     /*def tweets = Tweet.search(){
         queryString(query: params.message.search)
     }.searchResults*/
+    def count = Tweet.countHits("${params.message.search}")
     def tweets = Tweet.search("${params.message.search}").searchResults
-    def tweetsMsg = 'Messages : '
+    def tweetsMsg = "Messages ($count) : "
     tweets.each {
       tweetsMsg += "<br />Tweet from ${it.user?.firstname} ${it.user?.lastname} : ${it.message} "
       tweetsMsg += "(tags : ${it.tags?.collect{t -> t.name}})"
@@ -115,6 +116,27 @@ class ElasticSearchController {
   }
 
   def searchAll = {
+    // Count only
+    if(params.count) {
+        def result = elasticSearchService.countHits {
+            bool {
+              must {
+                  query_string(query: params.query)
+              }
+              if (params.firstname) {
+                  must {
+                      term(firstname: params.firstname)
+                  }
+              }
+          }
+        }
+        def resMsg = "<strong>${params.query?.encodeAsHTML()}</strong> search result(s): <strong>${result}</strong><br />"
+        flash.notice = resMsg
+        redirect(action:'index')
+        return
+    }
+
+    // Search
     def highlighter = {
       field 'message'
       preTags '<strong>'
