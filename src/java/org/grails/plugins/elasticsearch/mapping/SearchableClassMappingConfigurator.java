@@ -95,6 +95,11 @@ public class SearchableClassMappingConfigurator {
                         installedIndices.add(scm.getIndexName());
                         LOG.debug(elasticMapping.toString());
 
+                        // Wait for the index to be ready
+                        elasticSearchClient.admin().cluster().prepareHealth(scm.getIndexName())
+                                .setWaitForYellowStatus()
+                                .execute().actionGet();
+
                         // If the index already exists, ignore the exception
                     } catch (IndexAlreadyExistsException iaee) {
                         LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.");
