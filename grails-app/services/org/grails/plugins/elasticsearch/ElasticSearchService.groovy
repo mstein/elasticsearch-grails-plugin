@@ -220,6 +220,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             mappings = elasticSearchContextHolder.mapping.values()
         }
 
+        int perLoop = elasticSearchContextHolder.config.maxBulkRequest ?: 500
         mappings.each { scm ->
             if (scm.root) {
                 if (operationType == INDEX_REQUEST) {
@@ -227,12 +228,27 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 } else if (operationType == DELETE_REQUEST) {
                     LOG.debug("Deleting all instances of ${scm.domainClass}")
                 }
-                scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "getAll", null).each {
-                    if (operationType == INDEX_REQUEST) {
-                        indexRequestQueue.addIndexRequest(it)
-                    } else if (operationType == DELETE_REQUEST) {
-                        indexRequestQueue.addDeleteRequest(it)
+                long lastId = 0
+                long maxId = scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "withCriteria", {
+                    projections {
+                        max('id')
                     }
+                })[0]
+                while(lastId < maxId) {
+                    scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "withTransaction", { status ->
+                        scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "withNewSession", { session ->
+                            scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "findAllByIdGreaterThan", lastId, [ max: perLoop, sort: 'id', order: 'asc' ]).each {
+                                if (operationType == INDEX_REQUEST) {
+                                    indexRequestQueue.addIndexRequest(it)
+                                } else if (operationType == DELETE_REQUEST) {
+                                    indexRequestQueue.addDeleteRequest(it)
+                                }
+                                lastId = it.id
+                            }
+                            indexRequestQueue.executeRequests()
+                            session.clear()
+                        })
+                    })
                 }
             } else {
                 LOG.debug("${scm.domainClass.clazz} is not a root searchable class and has been ignored.")
