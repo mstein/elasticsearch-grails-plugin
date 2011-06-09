@@ -47,6 +47,12 @@ class ClientNodeFactoryBean implements FactoryBean {
             LOG.info "Using ElasticSearch data path: ${dataPath}"
         }
 
+        def clusterName = elasticSearchContextHolder.config.cluster.name
+        if (clusterName) {
+            nb.settings.put('cluster.name', clusterName as String)
+            LOG.info "Using ElasticSearch cluster name: ${clusterName}"
+        }
+
         // Configure the client based on the client mode
         switch (clientMode) {
             case 'local':
@@ -69,12 +75,15 @@ class ClientNodeFactoryBean implements FactoryBean {
                 break;
 
             case 'transport':
+                def transportSettings = ImmutableSettings.settingsBuilder()
                 // Use the "sniff" feature of transport client ?
                 if(elasticSearchContextHolder.config.client.transport.sniff) {
-                    transportClient = new TransportClient(ImmutableSettings.settingsBuilder().put("client.transport.sniff", true))
-                } else {
-                    transportClient = new TransportClient()
+                    transportSettings.put("client.transport.sniff", true)
                 }
+                if (clusterName) {
+                    transportSettings.put('cluster.name', clusterName as String)
+                }
+                transportClient = new TransportClient(transportSettings)
 
                 // Configure transport addresses
                 if (!elasticSearchContextHolder.config.client.hosts) {
