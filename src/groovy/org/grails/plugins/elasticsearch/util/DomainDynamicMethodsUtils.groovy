@@ -45,24 +45,36 @@ class DomainDynamicMethodsUtils {
                 // Only inject the methods if the domain is mapped as "root"
                 if (elasticSearchContextHolder.getMappingContext(domainCopy)?.root) {
                     // Inject the search method
-                    domain.metaClass.'static'.search << { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                    domain.metaClass.'static'.search << { String q, Map params = [:] ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.search(q, params)
                     }
-                    domain.metaClass.'static'.search << { Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz], Closure q ->
+                    domain.metaClass.'static'.search << { Map params = [:], Closure q ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.search(params, q)
                     }
-                    domain.metaClass.'static'.search << { Closure q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                    domain.metaClass.'static'.search << { Closure q, Map params = [:] ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.search(params, q)
                     }
 
                     // Inject the countHits method
-                    domain.metaClass.'static'.countHits << { String q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                    domain.metaClass.'static'.countHits << { String q, Map params = [:] ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.countHits(q, params)
                     }
-                    domain.metaClass.'static'.countHits << { Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz], Closure q ->
+                    domain.metaClass.'static'.countHits << { Map params = [:], Closure q ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.countHits(params, q)
                     }
-                    domain.metaClass.'static'.countHits << { Closure q, Map params = [indices: domainCopy.packageName ?: domainCopy.propertyName, types: domainCopy.clazz] ->
+                    domain.metaClass.'static'.countHits << { Closure q, Map params = [:] ->
+                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
+                        params.types = domainCopy.clazz
                         elasticSearchService.countHits(params, q)
                     }
 
