@@ -50,6 +50,7 @@ environments {
          * Possible values : "local", "node", "transport"
          */
         elasticSearch.client.mode = 'local'
+        elasticSearch.client.transport.sniff = true
         elasticSearch.bulkIndexOnStartup = true
     }
     test {

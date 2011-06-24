@@ -7,6 +7,7 @@ class Tag {
   }
 
   String name
+  String someUselessText = "myText1"
   Integer boostValue = 1
 
   static mapping = {
