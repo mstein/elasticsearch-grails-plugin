@@ -4,7 +4,6 @@ class Tweet {
   static searchable = {
     message boost:3.0
     tags component:true
-    someClass component:true
     user reference:true
   }
 
