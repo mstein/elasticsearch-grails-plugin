@@ -12,7 +12,7 @@ elasticSearchAdminService.deleteIndex()
 
 h4. Description
 
-@refresh@ signatures:
+@deleteIndex@ signatures:
 
 {code}
 public void deleteIndex()   // Delete all indices
