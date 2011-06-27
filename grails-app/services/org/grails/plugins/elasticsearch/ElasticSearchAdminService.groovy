@@ -15,16 +15,49 @@ class ElasticSearchAdminService {
     /**
      * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
      * TODO : also flush all pending requests and wait for the response from ES ?
+     * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
-    public void refresh() {
+    public void refresh(Collection<String> indices = null) {
         elasticSearchHelper.withElasticSearch {Client client ->
-            BroadcastOperationResponse response = client.admin().indices().refresh(Requests.refreshRequest()).actionGet()
+            BroadcastOperationResponse response
+            if (!indices) {
+                response = client.admin().indices().refresh(Requests.refreshRequest()).actionGet()
+            } else {
+                response = client.admin().indices().refresh(Requests.refreshRequest(indices as String[])).actionGet()
+            }
+
             if (response.failedShards() > 0) {
                 LOG.info "Refresh failure"
             } else {
                 LOG.info "Refreshed all indices"
             }
         }
+    }
+
+    /**
+     * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
+     * @param indices The indices to refresh. If null, will refresh ALL indices.
+     */
+    public void refresh(String... indices) {
+        refresh(indices as Collection<String>)
+    }
+
+    /**
+     * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
+     * @param indices The indices to refresh. If null, will refresh ALL indices.
+     */
+    public void refresh(Class... searchableClasses) {
+        def toRefresh = []
+
+        // Retrieve indices to refresh
+        searchableClasses.each {
+            def scm = elasticSearchContextHolder.getMappingContextByType(it)
+            if (scm) {
+                toRefresh << scm.indexName
+            }
+        }
+
+        refresh(toRefresh.unique())
     }
 
     /**
@@ -57,16 +90,21 @@ class ElasticSearchAdminService {
      * Delete one or more index and all its data.
      * @param indices The indices to delete in the form of searchable class(es). If null, will delete ALL indices.
      */
-    public void deleteIndex(Class... searchableClass) {
+    public void deleteIndex(Class... searchableClasses) {
         def toDelete = []
 
         // Retrieve indices to delete
-        searchableClass.each {
+        searchableClasses.each {
             def scm = elasticSearchContextHolder.getMappingContextByType(it)
-            toDelete << scm.indexName
+            if (scm) {
+                toDelete << scm.indexName
+            }
         }
-
-        deleteIndex(toDelete.unique())
+        // We do not trigger the deleteIndex with an empty list as it would delete ALL indices.
+        // If toDelete is empty, it might be because of a misuse of a Class the user thought to be a searchable class
+        if(!toDelete.isEmpty()) {
+            deleteIndex(toDelete.unique())
+        }
     }
 
 }
