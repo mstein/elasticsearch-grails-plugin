@@ -88,7 +88,7 @@ class ElasticSearchAdminService {
 
     /**
      * Delete one or more index and all its data.
-     * @param indices The indices to delete in the form of searchable class(es). If null, will delete ALL indices.
+     * @param indices The indices to delete in the form of searchable class(es).
      */
     public void deleteIndex(Class... searchableClasses) {
         def toDelete = []
