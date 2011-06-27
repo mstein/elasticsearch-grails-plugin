@@ -27,6 +27,9 @@ Only usable in with a transport client.
 Allows to sniff the rest of the cluster, and add those into its list of machines to use.
 In this case, the ip addresses used will be the ones that the other nodes were started with (the “publish” address)
 
+* @elasticSearch.cluster.name@
+The name of the cluster for the client to join.
+
 * @elasticSearch.date.formats@
 List of date formats used by the JSON unmarshaller to parse any date field properly.
 Note : future version of the plugin may change how formats are manipulated.

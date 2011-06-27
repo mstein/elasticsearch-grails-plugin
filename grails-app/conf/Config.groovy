@@ -20,7 +20,6 @@ log4j = {
             'net.sf.ehcache.hibernate'
 
     warn 'org.mortbay.log'
-
     debug 'org.grails.plugins.elasticsearch'
 }
 elasticSearch {
@@ -46,17 +45,20 @@ elasticSearch {
 
 environments {
     development {
-        /**
-         * Possible values : "local", "node", "transport"
-         */
-        elasticSearch.client.mode = 'local'
-        elasticSearch.client.transport.sniff = true
-        elasticSearch.bulkIndexOnStartup = true
+        elasticSearch {
+            /**
+             * Possible values : "local", "node", "transport"
+             */
+            client.mode = 'local'
+            client.transport.sniff = true
+            bulkIndexOnStartup = true
+        }
     }
+
     test {
         elasticSearch {
             client.mode = 'local'
-            index.store.type = 'memory' // store local node in memory and not on disk
+            client.transport.sniff = true
         }
     }
 
@@ -65,8 +67,8 @@ environments {
     }
 }
 // The following properties have been added by the Upgrade process...
-grails.views.default.codec="none" // none, html, base64
-grails.views.gsp.encoding="UTF-8"
+grails.views.default.codec = "none" // none, html, base64
+grails.views.gsp.encoding = "UTF-8"
 
 grails.doc.authors = 'Manuarii Stein, Stephane Maldini, Serge P. Nekoval'
 grails.doc.license = 'Apache License 2.0'

@@ -1,0 +1,37 @@
+h1. refresh
+
+h2. Purpose
+
+Explicitly refresh one or more index, making all operations performed since the last refresh available for search.
+
+h2. Examples
+
+{code}
+elasticSearchService.index(domain)
+// Some code...
+// ...
+elasticSearchService.index(domain2)
+// Some code...
+// ...
+elasticSearchService.index(domain3)
+
+// Some code...
+// ...
+elasticSearchAdminService.refresh() // Ensure that the 3 previous index requests have been made searchable by ES
+{code}
+
+h4. Description
+
+@refresh@ signatures:
+
+{code}
+public void refresh()   // Refresh all indices
+public void refresh(String... indices)
+public void refresh(Class... searchableClasses)
+{code}
+
+h4. Parameters
+Without parameters, refreshes all indices.
+
+* @indices@ - A @Collection@ of indices to refresh.
+* @searchableClasses@ - A @Collection@ of searchable classes which indices are to be refreshed.

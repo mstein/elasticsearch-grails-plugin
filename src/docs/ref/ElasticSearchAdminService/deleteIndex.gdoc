@@ -1,0 +1,27 @@
+h1. deleteIndex
+
+h2. Purpose
+
+Delete one or more existing indices, whether they correspond to a searchable class or not.
+
+h2. Examples
+
+{code}
+elasticSearchAdminService.deleteIndex()
+{code}
+
+h4. Description
+
+@refresh@ signatures:
+
+{code}
+public void deleteIndex()   // Delete all indices
+public void deleteIndex(String... indices)
+public void deleteIndex(Class... searchableClasses)
+{code}
+
+h4. Parameters
+Without parameters, *deletes all indices*.
+
+* @indices@ - A @Collection@ of indices to delete.
+* @searchableClasses@ - A @Collection@ of searchable classes which indices are to be deleted.

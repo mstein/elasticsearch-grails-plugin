@@ -1,31 +1,87 @@
 package test
+
 import grails.plugin.spock.IntegrationSpec
+import org.elasticsearch.client.Client
+import org.elasticsearch.client.Requests
+import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
+import org.apache.log4j.Logger
+import org.elasticsearch.action.delete.DeleteResponse
 
 class ElasticSearchServiceSpec extends IntegrationSpec {
     def elasticSearchService
+    def elasticSearchAdminService
     def elasticSearchContextHolder
+    def elasticSearchHelper
+    private static final Logger LOG = Logger.getLogger(ElasticSearchServiceSpec.class);
 
-    def setup(){
+    def setup() {
+        // Make sure the indices are cleaned
+        elasticSearchAdminService.deleteIndex()
+        elasticSearchAdminService.refresh()
+    }
 
+    def "Index a domain object"() {
+        given:
+        def product = new Product(name: "myTestProduct")
+        product.save()
+
+        when:
+        elasticSearchService.index(product)
+        Thread.sleep(500)               // let the index operation being sent to ES
+        elasticSearchAdminService.refresh()  // Ensure the latest operations have been exposed on the ES instance
+
+        then:
+        elasticSearchService.search("myTestProduct", [indices: Product, types: Product]).total == 1
     }
 
     def "Unindex method delete index from ES"() {
-        when :
-        def product = new Product(name:"myTestProduct")
+        given:
+        def product = new Product(name: "myTestProduct")
         product.save()
-        elasticSearchService.index(product)
-        // because the indexing process is asynchronous, we wait a little to make sure the test data
-        // is indeed stored on the ES instance
-        sleep(500)
-
-        then:
-        elasticSearchService.search("*").total == 1
-        //assert elasticSearchService.search("myTestProduct", [indices:'test', types:Product.class]).total == 1
 
         when:
-        elasticSearchService.unindex(product)
+        elasticSearchService.index(product)
+        Thread.sleep(500)               // let the index operation being sent to ES
+        elasticSearchAdminService.refresh()  // Ensure the latest operations have been exposed on the ES instance
+
+        and:
+        elasticSearchService.search("myTestProduct", [indices: Product, types: Product]).total == 1
 
         then:
-        elasticSearchService.search("name:myTestProduct", [indices:'test', types:Product.class]).total == 0
+        elasticSearchService.unindex(product)
+        Thread.sleep(500)
+        elasticSearchAdminService.refresh()
+
+        and:
+        elasticSearchService.search("myTestProduct", [indices: Product, types: Product]).total == 0
+    }
+
+    def "Indexing multiple time the same object update the corresponding ES entry"() {
+        given:
+        def product = new Product(name: "myTestProduct")
+        product.save()
+
+        when:
+        elasticSearchService.index(product)
+        Thread.sleep(500)
+        elasticSearchAdminService.refresh()
+
+        then:
+        elasticSearchService.search("myTestProduct", [indices: Product, types: Product]).total == 1
+
+        when:
+        product.name = "newProductName"
+        elasticSearchService.index(product)
+        Thread.sleep(500)
+        elasticSearchAdminService.refresh()
+
+        then:
+        elasticSearchService.search("myTestProduct", [indices: Product, types: Product]).total == 0
+
+        and:
+        def result = elasticSearchService.search(product.name, [indices: Product, types: Product])
+        result.total == 1
+        result.searchResults[0].name == product.name
+
     }
 }

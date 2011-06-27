@@ -49,25 +49,6 @@ class ClientNodeFactoryBean implements FactoryBean {
 
         // Configure the client based on the client mode
         switch (clientMode) {
-            case 'local':
-                // Determines how the data is store (on disk, in memory, ...)
-                def storeType = elasticSearchContextHolder.config.index.store.type
-                if (storeType) {
-                    nb.settings().put('index.store.type', storeType as String)
-                    LOG.debug "Local ElasticSearch client with store type of ${storeType} configured."
-                } else {
-                    LOG.debug "Local ElasticSearch client with default store type configured."
-                }
-
-                def queryParsers = elasticSearchContextHolder.config.index.queryparser
-                if (queryParsers) {
-                    queryParsers.each { type, clz ->
-                        nb.settings().put("index.queryparser.types.${type}".toString(), clz)
-                    }
-                }
-                nb.local(true)
-                break;
-
             case 'transport':
                 // Use the "sniff" feature of transport client ?
                 if(elasticSearchContextHolder.config.client.transport.sniff) {
@@ -84,12 +65,40 @@ class ClientNodeFactoryBean implements FactoryBean {
                         transportClient.addTransportAddress(new InetSocketTransportAddress(it.host, it.port))
                     }
                 }
-                break;
+                break
+
+            case 'local':
+                // Determines how the data is store (on disk, in memory, ...)
+                def storeType = elasticSearchContextHolder.config.index.store.type
+                if (storeType) {
+                    nb.settings().put('index.store.type', storeType as String)
+                    LOG.debug "Local ElasticSearch client with store type of ${storeType} configured."
+                } else {
+                    LOG.debug "Local ElasticSearch client with default store type configured."
+                }
+
+                // Cluster name
+                if(elasticSearchContextHolder.config.cluster.name) {
+                    nb.clusterName(elasticSearchContextHolder.config.cluster.name)
+                }
+                def queryParsers = elasticSearchContextHolder.config.index.queryparser
+                if (queryParsers) {
+                    queryParsers.each { type, clz ->
+                        nb.settings().put("index.queryparser.types.${type}".toString(), clz)
+                    }
+                }
+                nb.local(true)
+                break
 
             case 'node':
             default:
                 nb.client(true)
-                break;
+
+                // Cluster name
+                if(elasticSearchContextHolder.config.cluster.name) {
+                    nb.clusterName(elasticSearchContextHolder.config.cluster.name)
+                }
+                break
         }
         if (transportClient) {
             return transportClient
@@ -98,7 +107,7 @@ class ClientNodeFactoryBean implements FactoryBean {
             node = nb.node()
             def client = node.client()
             // Wait for the cluster to become alive.
-            LOG.info "Waiting for ElasticSearch GREEN status."
+//            LOG.info "Waiting for ElasticSearch GREEN status."
 //            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
             return client
         }

@@ -147,17 +147,17 @@ public class IndexRequestQueue implements InitializingBean {
         // they are directly deleted.
         toIndex.keySet().removeAll(toDelete);
 
+        // If there is nothing in the queues, just stop here
         if (toIndex.isEmpty() && toDelete.isEmpty()) {
             return;
         }
 
-        BulkRequestBuilder bulkRequestBuilder = new BulkRequestBuilder(elasticSearchClient);
+        BulkRequestBuilder bulkRequestBuilder = elasticSearchClient.prepareBulk();
+        //bulkRequestBuilder.setRefresh(true);
 
         // Execute index requests
         for (Map.Entry<IndexEntityKey, Object> entry : toIndex.entrySet()) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(entry.getKey().getClazz());
-//            XContentBuilder json = toJSON(entry.getValue());
-//            byte[] json = (byte[]) entry.getValue();
             persistenceInterceptor.init();
             try {
                 Session session = SessionFactoryUtils.getSession(sessionFactory, true);
@@ -166,16 +166,17 @@ public class IndexRequestQueue implements InitializingBean {
                 XContentBuilder json = toJSON(entity);
 
                 bulkRequestBuilder.add(
-                        new IndexRequest(scm.getIndexName())
-                                .type(scm.getElasticTypeName())
-                                .id(entry.getKey().getId())      // how about composite keys?
-                                .source(json));
+                        elasticSearchClient.prepareIndex()
+                                .setIndex(scm.getIndexName())
+                                .setType(scm.getElasticTypeName())
+                                .setId(entry.getKey().getId()) // TODO : Composite key ?
+                                .setSource(json)
+                                //.setRefresh(true)
+                );
                 if (LOG.isDebugEnabled()) {
                     try {
-                        if(LOG.isDebugEnabled()) {
-                            LOG.debug("Indexed " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
+                        LOG.debug("Indexing " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
                                 ") of id " + entry.getKey().getId() + " and source " + json.string());//new String(json, "UTF-8"));
-                        }
                     } catch (IOException e) {}
                 }
             } finally {
@@ -184,19 +185,24 @@ public class IndexRequestQueue implements InitializingBean {
         }
 
         // Execute delete requests
-        for(IndexEntityKey key : toDelete) {
+        for (IndexEntityKey key : toDelete) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.getClazz());
+            if (LOG.isDebugEnabled()) {
+                LOG.info("Deleting object from index " + scm.getIndexName() + " and type " + scm.getElasticTypeName() + " and ID " + key.getId());
+            }
             bulkRequestBuilder.add(
-                        new DeleteRequest(scm.getIndexName())
-                                .type(scm.getElasticTypeName())
-                                .id(key.getId())
+                    elasticSearchClient.prepareDelete()
+                            .setIndex(scm.getIndexName())
+                            .setType(scm.getElasticTypeName())
+                            .setId(key.getId())
+                            //.setRefresh(true)
             );
         }
 
+        // Perform bulk request
         if (bulkRequestBuilder.numberOfActions() > 0) {
             try {
-                bulkRequestBuilder.setRefresh(false).execute()
-                        .addListener(new OperationBatch(0, toIndex, toDelete));
+                bulkRequestBuilder.execute().addListener(new OperationBatch(0, toIndex, toDelete));
             } catch (Exception e) {
                 throw new IndexException("Failed to index/delete " + bulkRequestBuilder.numberOfActions(), e);
             }
@@ -217,7 +223,7 @@ public class IndexRequestQueue implements InitializingBean {
         }
 
         public void onResponse(BulkResponse bulkResponse) {
-            for(BulkItemResponse item : bulkResponse.items()) {
+            for (BulkItemResponse item : bulkResponse.items()) {
                 boolean removeFromQueue = !item.isFailed()
                         || item.getFailureMessage().indexOf("UnavailableShardsException") >= 0;
                 // On shard failure, do not re-push.
@@ -239,7 +245,7 @@ public class IndexRequestQueue implements InitializingBean {
             if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
                 push();
             } else {
-                if(LOG.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                     LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
                 }
             }
@@ -265,7 +271,7 @@ public class IndexRequestQueue implements InitializingBean {
                     }
                 }
             }
-            for(IndexEntityKey key : toDelete) {
+            for (IndexEntityKey key : toDelete) {
                 synchronized (this) {
                     if (!deleteRequests.contains(key)) {
                         deleteRequests.add(key);
@@ -279,7 +285,9 @@ public class IndexRequestQueue implements InitializingBean {
 
     class IndexEntityKey implements Serializable {
 
-        /** stringified id. */
+        /**
+         * stringified id.
+         */
         private final String id;
         private final Class clazz;
 

@@ -31,10 +31,11 @@ import org.grails.plugins.elasticsearch.util.GXContentBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.elasticsearch.action.count.CountRequest
 import org.elasticsearch.action.ActionRequest
+import org.elasticsearch.client.Requests
+import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
 
 public class ElasticSearchService implements GrailsApplicationAware {
-
-    static LOG = Logger.getLogger("org.grails.plugins.elasticSearch.ElasticSearchService")
+    static LOG = Logger.getLogger(ElasticSearchService.class)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1
