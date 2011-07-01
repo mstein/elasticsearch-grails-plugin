@@ -27,7 +27,6 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
 
         when:
         elasticSearchService.index(product)
-        Thread.sleep(500)               // let the index operation being sent to ES
         elasticSearchAdminService.refresh()  // Ensure the latest operations have been exposed on the ES instance
 
         then:
@@ -41,7 +40,6 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
 
         when:
         elasticSearchService.index(product)
-        Thread.sleep(500)               // let the index operation being sent to ES
         elasticSearchAdminService.refresh()  // Ensure the latest operations have been exposed on the ES instance
 
         and:
@@ -49,7 +47,6 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
 
         then:
         elasticSearchService.unindex(product)
-        Thread.sleep(500)
         elasticSearchAdminService.refresh()
 
         and:
@@ -63,7 +60,6 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
 
         when:
         elasticSearchService.index(product)
-        Thread.sleep(500)
         elasticSearchAdminService.refresh()
 
         then:
@@ -72,7 +68,6 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
         when:
         product.name = "newProductName"
         elasticSearchService.index(product)
-        Thread.sleep(500)
         elasticSearchAdminService.refresh()
 
         then:

@@ -1,5 +1,7 @@
 package test
 
+import org.codehaus.groovy.grails.plugins.DomainClassGrailsPlugin
+
 class TestCaseService {
     def sessionFactory
     def elasticSearchService
@@ -8,12 +10,14 @@ class TestCaseService {
         def session = sessionFactory.currentSession
         session.flush()
         session.clear()
+        DomainClassGrailsPlugin.PROPERTY_INSTANCE_MAP.get().clear()
     }
 
   public createMassProducts(long maxProducts = 1000l, batched = false) {
       def collProd = []
       maxProducts.times {
-          def p = new Product(name:"Product${it}")
+          def p = new Product()
+          p.name = "Product${it}"
           p.id = it
           collProd << p
           if(batched && it % 1000 == 0) {
@@ -39,12 +43,19 @@ class TestCaseService {
   }
 
   public createMassProductsPersisted(long maxProducts = 1000l, batched = false) {
-      maxProducts.times {
+      Long startTime = new Date().getTime()
+      Long lastTime = startTime
+      Long currentTime = startTime
+      for(long it = 0; it < maxProducts; it++) {
           if(batched && it % 1000 == 0) {
-              println "Saved ${it} instances cleaning up gorm"
+              currentTime = new Date().getTime()
+              println "Saved ${it} instances cleaning up gorm - ${currentTime - lastTime}ms since last - ${currentTime - startTime}ms since beginning"
+              lastTime = currentTime
               cleanUpGorm()
           }
-          (new Product(name:"Product${it}")).save()
+          def p = new Product()
+          p.name = "Product${it}"
+          p.save(validate:false)
       }
   }
 

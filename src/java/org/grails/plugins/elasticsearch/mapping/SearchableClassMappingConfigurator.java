@@ -65,19 +65,20 @@ public class SearchableClassMappingConfigurator {
         if (esConfig != null) {
             @SuppressWarnings({"unchecked"})
             Map<String, Object> indexDefaults = (Map<String, Object>) esConfig.get("index");
+            LOG.debug("Retrieved index settings");
             if (indexDefaults != null) {
                 for(Map.Entry<String, Object> entry : indexDefaults.entrySet()) {
                     settings.put("index." + entry.getKey(), entry.getValue());
                 }
             }
         }
-
+        LOG.debug("Installing mappings...");
         for(SearchableClassMapping scm : mappings) {
-
             if (scm.isRoot()) {
                 Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm);
 
                 // todo wait for success, maybe retry.
+                // If the index does not exist, create it
                 if (!installedIndices.contains(scm.getIndexName())) {
                     try {
                         // Could be blocked on index level, thus wait.
@@ -103,6 +104,7 @@ public class SearchableClassMappingConfigurator {
                     }
                 }
 
+                // Install mapping
                 // todo when conflict is detected, delete old mapping
                 // (this will delete all indexes as well, so should warn user)
                 if (LOG.isDebugEnabled()) {
@@ -116,7 +118,6 @@ public class SearchableClassMappingConfigurator {
             }
 
         }
-        
         ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet();
         LOG.debug("Cluster status: " + response.getStatus());
     }

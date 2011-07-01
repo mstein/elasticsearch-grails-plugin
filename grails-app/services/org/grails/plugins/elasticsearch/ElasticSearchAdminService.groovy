@@ -4,6 +4,7 @@ import org.apache.log4j.Logger
 import org.elasticsearch.client.Client
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
 import org.elasticsearch.client.Requests
+import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticSearchAdminService {
     static transactional = false
@@ -11,6 +12,7 @@ class ElasticSearchAdminService {
 
     def elasticSearchHelper
     def elasticSearchContextHolder
+    def indexRequestQueue
 
     /**
      * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
@@ -18,6 +20,12 @@ class ElasticSearchAdminService {
      * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
     public void refresh(Collection<String> indices = null) {
+        // Flush any pending operation from the index queue
+        indexRequestQueue.executeRequests()
+        // Wait till all the current operations are done
+        indexRequestQueue.waitComplete()
+
+        // Refresh ES
         elasticSearchHelper.withElasticSearch {Client client ->
             BroadcastOperationResponse response
             if (!indices) {
@@ -29,7 +37,7 @@ class ElasticSearchAdminService {
             if (response.failedShards() > 0) {
                 LOG.info "Refresh failure"
             } else {
-                LOG.info "Refreshed all indices"
+                LOG.info "Refreshed ${ indices ?: 'all' } indices"
             }
         }
     }

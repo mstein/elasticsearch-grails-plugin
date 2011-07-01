@@ -14,7 +14,11 @@ environments {
     development {
         dataSource {
             dbCreate = "create-drop" // one of 'create', 'create-drop','update'
-            url = "jdbc:hsqldb:mem:devDB"
+            //url = "jdbc:hsqldb:mem:devDB"
+            url = "jdbc:hsqldb:file:prodDb;shutdown=true"
+        }
+        hibernate {
+            jdbc.fetch_size = 1000
         }
     }
     test {

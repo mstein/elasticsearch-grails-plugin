@@ -20,7 +20,7 @@ log4j = {
             'net.sf.ehcache.hibernate'
 
     warn 'org.mortbay.log'
-    debug 'org.grails.plugins.elasticsearch'
+    //debug 'org.grails.plugins.elasticsearch'
 }
 elasticSearch {
     /**
@@ -59,6 +59,7 @@ environments {
         elasticSearch {
             client.mode = 'local'
             client.transport.sniff = true
+            index.store.type = 'memory'
         }
     }
 

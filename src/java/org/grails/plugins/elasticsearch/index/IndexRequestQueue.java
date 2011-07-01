@@ -71,6 +71,8 @@ public class IndexRequestQueue implements InitializingBean {
      */
     Set<IndexEntityKey> deleteRequests = new HashSet<IndexEntityKey>();
 
+    List<OperationBatch> operationBatchList = new LinkedList<OperationBatch>();
+
     /**
      * No-args constructor.
      */
@@ -130,10 +132,15 @@ public class IndexRequestQueue implements InitializingBean {
 
     /**
      * Execute pending requests and clear both index & delete pending queues.
+     *
+     * @return Returns an OperationBatch instance which is a listener to the last executed bulk operation. Returns NULL
+     *         if there were no operations done on the method call.
      */
-    public void executeRequests() {
+    public OperationBatch executeRequests() {
         Map<IndexEntityKey, Object> toIndex = new LinkedHashMap<IndexEntityKey, Object>();
         Set<IndexEntityKey> toDelete = new HashSet<IndexEntityKey>();
+
+        cleanOperationBatchList();
 
         // Copy existing queue to ensure we are interfering with incoming requests.
         synchronized (this) {
@@ -149,7 +156,7 @@ public class IndexRequestQueue implements InitializingBean {
 
         // If there is nothing in the queues, just stop here
         if (toIndex.isEmpty() && toDelete.isEmpty()) {
-            return;
+            return null;
         }
 
         BulkRequestBuilder bulkRequestBuilder = elasticSearchClient.prepareBulk();
@@ -162,7 +169,13 @@ public class IndexRequestQueue implements InitializingBean {
             try {
                 Session session = SessionFactoryUtils.getSession(sessionFactory, true);
                 Object entity = entry.getValue();
-                session.lock(entity, LockMode.NONE);
+
+                // If this not a transient instance, reattach it to the session
+                if (session.contains(entity)) {
+                    session.lock(entity, LockMode.NONE);
+                    LOG.debug("Reattached entity to session");
+                }
+
                 XContentBuilder json = toJSON(entity);
 
                 bulkRequestBuilder.add(
@@ -171,13 +184,13 @@ public class IndexRequestQueue implements InitializingBean {
                                 .setType(scm.getElasticTypeName())
                                 .setId(entry.getKey().getId()) // TODO : Composite key ?
                                 .setSource(json)
-                                //.setRefresh(true)
                 );
                 if (LOG.isDebugEnabled()) {
                     try {
                         LOG.debug("Indexing " + entry.getKey().getClazz() + "(index:" + scm.getIndexName() + ",type:" + scm.getElasticTypeName() +
-                                ") of id " + entry.getKey().getId() + " and source " + json.string());//new String(json, "UTF-8"));
-                    } catch (IOException e) {}
+                                ") of id " + entry.getKey().getId() + " and source " + json.string());
+                    } catch (IOException e) {
+                    }
                 }
             } finally {
                 persistenceInterceptor.destroy();
@@ -188,26 +201,51 @@ public class IndexRequestQueue implements InitializingBean {
         for (IndexEntityKey key : toDelete) {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.getClazz());
             if (LOG.isDebugEnabled()) {
-                LOG.info("Deleting object from index " + scm.getIndexName() + " and type " + scm.getElasticTypeName() + " and ID " + key.getId());
+                LOG.debug("Deleting object from index " + scm.getIndexName() + " and type " + scm.getElasticTypeName() + " and ID " + key.getId());
             }
             bulkRequestBuilder.add(
                     elasticSearchClient.prepareDelete()
                             .setIndex(scm.getIndexName())
                             .setType(scm.getElasticTypeName())
                             .setId(key.getId())
-                            //.setRefresh(true)
             );
         }
 
         // Perform bulk request
+        OperationBatch completeListener = null;
         if (bulkRequestBuilder.numberOfActions() > 0) {
+            completeListener = new OperationBatch(0, toIndex, toDelete);
+            operationBatchList.add(completeListener);
             try {
-                bulkRequestBuilder.execute().addListener(new OperationBatch(0, toIndex, toDelete));
+                bulkRequestBuilder.execute().addListener(completeListener);
             } catch (Exception e) {
                 throw new IndexException("Failed to index/delete " + bulkRequestBuilder.numberOfActions(), e);
             }
         }
 
+        return completeListener;
+    }
+
+    public void waitComplete() {
+        LOG.debug("IndexRequestQueue.waitComplete() called");
+        List<OperationBatch> clone = new LinkedList<OperationBatch>();
+        synchronized (this) {
+            clone.addAll(operationBatchList);
+            operationBatchList.clear();
+        }
+        for (OperationBatch op : clone) {
+            op.waitComplete();
+        }
+    }
+
+    private void cleanOperationBatchList() {
+        for (Iterator<OperationBatch> it = operationBatchList.iterator(); it.hasNext(); ) {
+            OperationBatch current = it.next();
+            if (current.isComplete()) {
+                it.remove();
+            }
+        }
+        LOG.debug("OperationBatchList cleaned");
     }
 
     class OperationBatch implements ActionListener<BulkResponse> {
@@ -215,11 +253,43 @@ public class IndexRequestQueue implements InitializingBean {
         private int attempts;
         private Map<IndexEntityKey, Object> toIndex;
         private Set<IndexEntityKey> toDelete;
+        private boolean complete = false;
 
         OperationBatch(int attempts, Map<IndexEntityKey, Object> toIndex, Set<IndexEntityKey> toDelete) {
             this.attempts = attempts;
             this.toIndex = toIndex;
             this.toDelete = toDelete;
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
+
+        public void waitComplete() {
+            waitComplete(null);
+        }
+
+        /**
+         * Wait for the operation to complete. Use this method to synchronize the application with the last ES operation.
+         *
+         * @param msTimeout A maximum timeout (in milliseconds) before the wait method returns, whether the operation has been completed or not.
+         *                  Default value is 5000 milliseconds
+         */
+        public void waitComplete(Integer msTimeout) {
+            msTimeout = msTimeout == null ? 5000 : msTimeout;
+            Long startTime = new Date().getTime();
+            Long currentTime = startTime;
+            try {
+                while (!complete && currentTime - startTime < msTimeout) {
+                    Thread.sleep(100);
+                    currentTime = new Date().getTime();
+                }
+            } catch (InterruptedException ie) {
+            }
+        }
+
+        public void fireComplete() {
+            complete = true;
         }
 
         public void onResponse(BulkResponse bulkResponse) {
@@ -245,6 +315,7 @@ public class IndexRequestQueue implements InitializingBean {
             if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
                 push();
             } else {
+                fireComplete();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Batch complete: " + bulkResponse.items().length + " actions.");
                 }
