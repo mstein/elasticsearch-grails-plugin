@@ -428,6 +428,18 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 result.highlight = highlightResults
             }
 
+            LOG.debug "Adding score information to results."
+
+            //Extract score information
+            //Records a map from hits of (hit.id, hit.score) returned in 'scores'
+            if (params.score) {
+                def scoreResults = [:]
+                for (SearchHit hit: searchHits) {
+                    scoreResults[(hit.id)] = hit.score
+                }
+                result.scores = scoreResults
+            }
+
             return result
         }
     }
