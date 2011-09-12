@@ -31,11 +31,11 @@ grails.project.dependency.resolution = {
     }
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
-        runtime 'org.elasticsearch:elasticsearch:0.17.4'
-        runtime 'org.elasticsearch:elasticsearch-lang-groovy:0.17.4'
+        runtime 'org.elasticsearch:elasticsearch:0.17.6'
+        runtime 'org.elasticsearch:elasticsearch-lang-groovy:0.17.6'
     }
     plugins {
-        build ":release:1.0.0.M2"
+        build ":release:latest.integration"
         build ":spock:0.5-groovy-1.7"
     }
 }
