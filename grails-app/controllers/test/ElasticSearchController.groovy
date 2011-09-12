@@ -32,6 +32,17 @@ class ElasticSearchController {
       redirect(action: 'index')
   }
 
+  def createEvent = {
+      try {
+          testCaseService.createEvent(params.event?.name, params.event?.name)
+          flash.notice = "Created event ${params.event?.name}"
+      } catch (e) {
+          flash.notice = "Couldn't create event ${params.event?.name} <br /><br />" + e.message
+      }
+
+      redirect(action:'index')
+  }
+
   def reindexExistingProduct = {
       def nbProducts = Product.count()
       def startDate = new Date()

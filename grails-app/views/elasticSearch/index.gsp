@@ -169,6 +169,23 @@
     </p>
   </g:form>
 </div>
+<div class="box">
+  <span class="title">Create event</span>
+  <g:form controller="elasticSearch" action="createEvent">
+    <p>
+      <label for="event-name">Name :</label><br/>
+      <input type="text" name="event.name" id="event-name" style="width:200px;"/>
+    </p>
+    <p>
+      <label for="event-description">Description</label>
+      <br/>
+      <input type="text" name="event.description" id="event-description" style="width:350px;"/>
+    </p>
+    <p>
+      <input type="submit" value="Create"/>
+    </p>
+  </g:form>
+</div>
 <g:if test="${Tweet.count() > 0}">
   <div class="box">
     <span class="title">Manage Existing tweets</span>

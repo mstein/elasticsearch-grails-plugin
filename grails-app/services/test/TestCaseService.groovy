@@ -115,4 +115,13 @@ class TestCaseService {
     u.activity = activity
     u.save()
   }
+
+    public createEvent(String name, String description) {
+        def e = new Event()
+        e.name = name ?: 'randomevent'
+        e.description = description ?: 'randomdesc'
+        if(!e.save()) {
+            throw new Exception(e.errors.toString())
+        }
+    }
 }
