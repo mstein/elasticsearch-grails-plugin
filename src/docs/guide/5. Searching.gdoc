@@ -11,9 +11,10 @@ def res = Tweet.search("${params.query}")
 // 'res' search results contains only Tweet instances
 {code}
 
-These search methods return a @Map@ containing 2 entries:
+These search methods return a @Map@ containing 3 entries:
 * a @total@ entry, representing the total number of hits found
 * a @searchResults@ entry, containing the hits
+* a @scores@ entry, containing the hits scores
 
 *Example*
 {code}

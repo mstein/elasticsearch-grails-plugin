@@ -51,4 +51,5 @@ h4. Returned value
 Return a @Map@ containing:
 * a @total@ entry, representing the total number of hits found.
 * a @searchResults@ entry, containing the hits.
+* a @scores@ entry, containing the hits' scores.
 * a @highlight@ entry if the @highlighter@ parameter was set.
