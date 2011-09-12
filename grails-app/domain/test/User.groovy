@@ -42,9 +42,9 @@ class User extends SuperUser {
   String activity = 'Evildoer'
   String someThings = 'something'
   ArrayList<String> listOfThings = ['this is a list of things', 'with that', 'and this']
-  Integer[] listOfInt = [1, 2, 3, 4, 5] as Integer[]
+  Integer[] listOfInt = [1, 2, 3, 4, 5]
   String indexButDoNotSearchOnThis
-  String[] anArray
+  String[] anArray = ["haha", "blabla"]
   Role role = Role.ORDINARY
 
   // synthetic property, not persistent. 
