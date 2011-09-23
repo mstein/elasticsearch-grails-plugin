@@ -144,18 +144,7 @@ class JSONDomainFactory {
         scm.propertiesMapping.each { scpm ->
             marshallingContext.lastParentPropertyName = scpm.propertyName
             def res = delegateMarshalling(instance."${scpm.propertyName}", marshallingContext)
-
-            // Temp workaround for xcontentbuilder.field() method issue with Object[]
-            // SEE : https://github.com/elasticsearch/elasticsearch/issues/1324
-            if(res instanceof Object[]){
-                json.startArray(scpm.propertyName)
-                res.each {
-                    json.value(it)
-                }
-                json.endArray()
-            } else {
-                json.field(scpm.propertyName, res)
-            }
+            json.field(scpm.propertyName, res)
         }
         marshallingContext.pop()
         json.endObject()

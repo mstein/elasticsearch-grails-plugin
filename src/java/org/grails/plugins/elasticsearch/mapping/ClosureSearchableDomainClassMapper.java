@@ -20,9 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.util.ConfigObject;
 import org.codehaus.groovy.grails.commons.*;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -179,9 +177,6 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
                 customMappedProperties.put(property.getName(), new SearchableClassPropertyMapping(property));
             }
         }
-//        SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, mappedProperties);
-//        scm.setRoot(true);
-//        return scm;
     }
 
     public void buildDefaultMapping(Class clazz) {
@@ -205,10 +200,14 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
 
         Boolean alwaysInheritProperties = (Boolean) esConfig.get("alwaysInheritProperties");
         boolean inherit = alwaysInheritProperties != null && alwaysInheritProperties;
+
+        // Remove all properties that may be in the "except" rule
         if (!propsExcept.isEmpty()) {
             mappableProperties.removeAll(propsExcept);
         }
+        // Only keep the properties specified in the "only" rule
         if (!propsOnly.isEmpty()) {
+            // If we have inherited properties, we keep them nonetheless
             if (inherit) {
                 mappableProperties.retainAll(inheritedProperties);
             } else {
@@ -216,11 +215,6 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
             }
             mappableProperties.addAll(propsOnly);
         }
-
-//        this.root = true;
-//        SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, mappedProperties);
-//        scm.setRoot(true);
-//        return scm;
     }
 
     /**
