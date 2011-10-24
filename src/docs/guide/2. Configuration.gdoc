@@ -62,6 +62,11 @@ niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory
 simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
 {table}
 
+* @elasticSearch.maxBulkRequest@
+Max number of requests to process at once.
+Reduce this value if you have memory issue when indexing a big amount of data at once.
+If this setting is not specified, 500 will be use by default.
+
 * @elasticSearch.path.data@
 The location of the data files of each index / shard allocated on the node.
 
@@ -107,6 +112,12 @@ elasticSearch {
    * Indexing is always asynchronous (compared to Searchable plugin) and executed after BootStrap.groovy.
    */
   bulkIndexOnStartup = true
+
+  /**
+   *  Max number of requests to process at once. Reduce this value if you have memory issue when indexing a big amount of data
+   *  at once. If this setting is not specified, 500 will be use by default.
+   */
+  maxBulkRequest = 500
 }
 
 environments {

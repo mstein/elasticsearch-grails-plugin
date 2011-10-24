@@ -44,6 +44,12 @@ elasticSearch {
    * Indexing is always asynchronous (compared to Searchable plugin) and executed after BootStrap.groovy.
    */
   bulkIndexOnStartup = true
+
+  /**
+   *  Max number of requests to process at once. Reduce this value if you have memory issue when indexing a big amount of data
+   *  at once. If this setting is not specified, 500 will be use by default.
+   */
+  maxBulkRequest = 500
 }
 
 environments {

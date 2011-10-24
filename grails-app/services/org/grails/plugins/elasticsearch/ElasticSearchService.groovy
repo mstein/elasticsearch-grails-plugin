@@ -220,6 +220,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
         } else {
             mappings = elasticSearchContextHolder.mapping.values()
         }
+        def maxRes = elasticSearchContextHolder.config.maxBulkRequest ?: 500
 
         mappings.each { scm ->
             if (scm.root) {
@@ -228,18 +229,32 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 } else if (operationType == DELETE_REQUEST) {
                     LOG.debug("Deleting all instances of ${scm.domainClass}")
                 }
-                scm.domainClass.metaClass.invokeStaticMethod(scm.domainClass.clazz, "getAll", null).each {
-                    if (operationType == INDEX_REQUEST) {
-                        indexRequestQueue.addIndexRequest(it)
-                    } else if (operationType == DELETE_REQUEST) {
-                        indexRequestQueue.addDeleteRequest(it)
+
+                // The index is splitted to avoid out of memory exception
+                def count = scm.domainClass.clazz.count() ?: 0
+                int nbRun = Math.ceil(count / maxRes)
+
+                scm.domainClass.clazz.withNewSession {session ->
+                    for(int i = 0; i < nbRun; i++) {
+                        scm.domainClass.clazz.withCriteria {
+                            firstResult(i * maxRes)
+                            maxResults(maxRes)
+                        }.each {
+                            if (operationType == INDEX_REQUEST) {
+                                indexRequestQueue.addIndexRequest(it)
+                            } else if (operationType == DELETE_REQUEST) {
+                                indexRequestQueue.addDeleteRequest(it)
+                            }
+                        }
+                        indexRequestQueue.executeRequests()
+                        session.clear()
                     }
                 }
+
             } else {
                 LOG.debug("${scm.domainClass.clazz} is not a root searchable class and has been ignored.")
             }
         }
-        indexRequestQueue.executeRequests()
     }
 
     /**
