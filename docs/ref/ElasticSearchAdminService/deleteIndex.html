@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>elasticsearch 0.17.8.1 - Reference Documentation</title>
+        <link rel="stylesheet" href="../../css/ref.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    <h1>deleteIndex</h1><p class="paragraph"/><h2>Purpose</h2><p class="paragraph"/>Delete one or more existing indices, whether they correspond to a searchable class or not.<p class="paragraph"/><h2>Examples</h2><p class="paragraph"/><div class="code"><pre>elasticSearchAdminService.deleteIndex()</pre></div><p class="paragraph"/><h4>Description</h4><p class="paragraph"/><code>deleteIndex</code> signatures:<p class="paragraph"/><div class="code"><pre><span class="java&#45;keyword">public</span> void deleteIndex()   // Delete all indices
+<span class="java&#45;keyword">public</span> void deleteIndex(<span class="java&#45;object">String</span>&#8230; indices)
+<span class="java&#45;keyword">public</span> void deleteIndex(<span class="java&#45;object">Class</span>&#8230; searchableClasses)</pre></div><p class="paragraph"/><h4>Parameters</h4>
+Without parameters, <strong class="bold">deletes all indices</strong>.
+<ul class="star">
+<li><code>indices</code> - A <code>Collection</code> of indices to delete.</li>
+<li><code>searchableClasses</code> - A <code>Collection</code> of searchable classes which indices are to be deleted.</li>
+</ul><p class="paragraph"/>
+    </body>
+</html>

@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>4. Indexing</title>
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    With its default configuration (with the <code>disableAutoIndex</code> configuration key set to <code>false</code>), the plugin is indexing
+automatically any searchable domains when GORM/Hibernate do a save or an update in the database.
+It also delete automatically from the index any document corresponding to a domain that is deleted from the database.
+You normally shouldn't have to worry about indexing, but sometimes you may have to do it by yourself, for example on dirty
+domain object that you may not want to save right now.<p class="paragraph"/>The plugin is providing a few injected methods in the domain or in the <code>ElasticSearchService</code> to allow that.<p class="paragraph"/><h3>Index examples</h3>
+<div class="code"><pre>// Index all searchable instances
+elasticSearchService.index()<p class="paragraph"/>// Index a specific domain instance
+MyDomain md = <span class="java&#45;keyword">new</span> MyDomain(value:'that')
+md.save()
+elasticSearchService.index(md)<p class="paragraph"/>// Index a collection of domain instances
+def ds = &#91;<span class="java&#45;keyword">new</span> MyDomain(value:'that'), <span class="java&#45;keyword">new</span> MyOtherDomain(name:'<span class="java&#45;keyword">this</span>'), <span class="java&#45;keyword">new</span> MyDomain(value:'thatagain')&#93;
+ds&#42;.save()
+elasticSearchService.index(ds)<p class="paragraph"/>// Index all instances of the specified domain class
+elasticSearchService.index(MyDomain)
+elasticSearchService.index(class:MyDomain)
+elasticSearchService.index(MyDomain, MyOtherDomain)
+elasticSearchService.index(&#91;MyDomain, MyOtherDomain&#93;)</pre></div><p class="paragraph"/><h3>Unindex examples</h3>
+<div class="code"><pre>// Unindex all searchable instances
+elasticSearchService.unindex()<p class="paragraph"/>// Unindex a specific domain instance
+MyDomain md = <span class="java&#45;keyword">new</span> MyDomain(value:'that')
+md.save()
+elasticSearchService.unindex(md)<p class="paragraph"/>// Unindex a collection of domain instances
+def ds = &#91;<span class="java&#45;keyword">new</span> MyDomain(value:'that'), <span class="java&#45;keyword">new</span> MyOtherDomain(name:'<span class="java&#45;keyword">this</span>'), <span class="java&#45;keyword">new</span> MyDomain(value:'thatagain')&#93;
+ds&#42;.save()
+elasticSearchService.unindex(ds)<p class="paragraph"/>// Unindex all instances of the specified domain class
+elasticSearchService.unindex(MyDomain)
+elasticSearchService.unindex(class:MyDomain)
+elasticSearchService.unindex(MyDomain, MyOtherDomain)
+elasticSearchService.unindex(&#91;MyDomain, MyOtherDomain&#93;)</pre></div>
+    </body>
+</html>

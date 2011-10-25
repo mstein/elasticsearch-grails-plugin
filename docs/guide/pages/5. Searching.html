@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>5. Searching</title>
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    The plugin provides 2 ways to send search requests.
+<ul class="star">
+<li>You can use the <code>elasticSearchService</code> and its public <code>search</code> method for cross-domain searching, meaning that ElasticSearch</li>
+</ul><p class="paragraph"/>may analyze multiple indices and return hits of different types (=different domains).
+<div class="code"><pre>def res = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+// 'res' search results may contains multiple types of results</pre></div>
+<ul class="star">
+<li>You can use the injected dynamic method in the domain for domain-specific searching.</li>
+</ul><p class="paragraph"/><div class="code"><pre>def res = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+// 'res' search results contains only Tweet instances</pre></div><p class="paragraph"/>These search methods return a <code>Map</code> containing 3 entries:
+<ul class="star">
+<li>a <code>total</code> entry, representing the total number of hits found</li>
+<li>a <code>searchResults</code> entry, containing the hits</li>
+<li>a <code>scores</code> entry, containing the hits scores</li>
+</ul><p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>def res = Tweet.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+println <span class="java&#45;quote">"Found $&#123;res.total&#125; result(s)"</span>
+res.searchResults.each &#123;
+    println it.message
+&#125;<p class="paragraph"/>def res = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+println <span class="java&#45;quote">"Found $&#123;res.total&#125; result(s)"</span>
+res.searchResults.each &#123;
+    <span class="java&#45;keyword">if</span>(it <span class="java&#45;keyword">instanceof</span> Tweet) &#123;
+        println it.message
+    &#125; <span class="java&#45;keyword">else</span> &#123;
+        println it.toString()
+    &#125;
+&#125;</pre></div><p class="paragraph"/>If you're willing to retrieve only the number of hits for a peculiar query, you can use the <code>countHits()</code>
+method. It will only return an <code>Integer</code> representing the total hits matching your query.<p class="paragraph"/><strong class="bold">Example</strong>
+<div class="code"><pre>def res = Tweet.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+println <span class="java&#45;quote">"Found $&#123;res&#125; result(s)"</span><p class="paragraph"/>def res = elasticSearchService.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;indices:'test'&#93;)
+println <span class="java&#45;quote">"Found $&#123;res&#125; result(s)"</span></pre></div>
+    </body>
+</html>

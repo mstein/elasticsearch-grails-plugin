@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>elasticsearch 0.17.8.1 - Reference Documentation</title>
+        <link rel="stylesheet" href="../../css/ref.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    <h1>refresh</h1><p class="paragraph"/><h2>Purpose</h2><p class="paragraph"/>Explicitly refresh one or more index, making all operations performed since the last refresh available for search.<p class="paragraph"/><h2>Examples</h2><p class="paragraph"/><div class="code"><pre>elasticSearchService.index(domain)
+// Some code&#8230;
+// &#8230;
+elasticSearchService.index(domain2)
+// Some code&#8230;
+// &#8230;
+elasticSearchService.index(domain3)<p class="paragraph"/>// Some code&#8230;
+// &#8230;
+elasticSearchAdminService.refresh() // Ensure that the 3 previous index requests have been made searchable by ES</pre></div><p class="paragraph"/><h4>Description</h4><p class="paragraph"/><code>refresh</code> signatures:<p class="paragraph"/><div class="code"><pre><span class="java&#45;keyword">public</span> void refresh()   // Refresh all indices
+<span class="java&#45;keyword">public</span> void refresh(<span class="java&#45;object">String</span>&#8230; indices)
+<span class="java&#45;keyword">public</span> void refresh(<span class="java&#45;object">Class</span>&#8230; searchableClasses)</pre></div><p class="paragraph"/><h4>Parameters</h4>
+Without parameters, refreshes all indices.
+<ul class="star">
+<li><code>indices</code> - A <code>Collection</code> of indices to refresh.</li>
+<li><code>searchableClasses</code> - A <code>Collection</code> of searchable classes which indices are to be refreshed.</li>
+</ul><p class="paragraph"/>
+    </body>
+</html>

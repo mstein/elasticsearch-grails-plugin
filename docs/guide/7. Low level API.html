@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>7. Low level API</title>
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    <h1><a name="7. Low level API">7. Low level API</a></h1>If you need to use the Elastic Search client directly, you can use the <code>elasticSearchHelper</code> bean that is
+injected in any services/controllers to get the current instance.
+Simply encapsulate your code within a <code>withElasticSearch</code> bloc,
+and you will get a <code>org.elasticsearch.client.Client</code> implementation to play with.<p class="paragraph"/><div class="code"><pre>class MySearchService &#123;
+    <span class="java&#45;keyword">static</span> transactional = <span class="java&#45;keyword">true</span><p class="paragraph"/>    def elasticSearchHelper<p class="paragraph"/>    def myMethod(indexName, settings) &#123;
+        elasticSearchHelper.withElasticSearch &#123; client &#45;&#62;
+            // Do some stuff with the ElasticSearch client
+            client.admin()
+                .indices()
+                .prepareCreate(indexName)
+                .setSettings(settings)
+                .execute()
+                .actionGet()
+        &#125;
+    &#125;
+&#125;</pre></div><p class="paragraph"/>Please refers to the <a href="http://www.elasticsearch.org/guide/reference/java-api/" target="blank">Elastic Search API</a> for more
+information on the methods and properties available on the client.
+    </body>
+</html>

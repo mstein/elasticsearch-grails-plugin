@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>6. Admin</title>
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    <h1><a name="6. Admin">6. Admin</a></h1>The plugin implements a few convenience methods for a few admin-oriented actions.<h2><a name="6.1 Refresh">6.1 Refresh</a></h2>Explicitly refresh one or more index, making all operations performed since the last refresh available for search.
+It will also flush the current IndexRequestQueue if there are pending index or delete requests from the application side.
+The refresh method is not asynchronous, meaning that it will wait for all operations to complete before resuming the execution of your application.<p class="paragraph"/><div class="code"><pre>elasticSearchService.index(domain)
+// Some code&#8230;
+// &#8230;
+elasticSearchService.index(domain2)
+// Some code&#8230;
+// &#8230;
+elasticSearchService.index(domain3)<p class="paragraph"/>// Some code&#8230;
+// &#8230;
+elasticSearchAdminService.refresh() // Ensure that the 3 previous index requests have been made searchable by ES</pre></div><h2><a name="6.2 Delete Index">6.2 Delete Index</a></h2>Delete an index, all its mapping and its content from the ElasticSearch instance. Be careful when using this command because it cannot be undone.
+Note that the generated mapping from the grails plugin is also deleted.<p class="paragraph"/>The method can be limited to one or more specific indices or applied to all indices at once (called with no parameter).<p class="paragraph"/><div class="code"><pre>elasticSearchAdminService.deleteIndex()</pre></div>
+    </body>
+</html>

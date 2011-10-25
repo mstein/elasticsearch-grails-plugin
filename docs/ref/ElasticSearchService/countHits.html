@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+        <title>elasticsearch 0.17.8.1 - Reference Documentation</title>
+        <link rel="stylesheet" href="../../css/ref.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
+    </head>
+    <body class="body">
+    <h1>countHits</h1><p class="paragraph"/><h2>Purpose</h2><p class="paragraph"/>Returns the number of hits for a specified search query.<p class="paragraph"/><h2>Examples</h2><p class="paragraph"/><div class="code"><pre>def res = elasticSearchService.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+def res = elasticSearchService.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;indices:<span class="java&#45;quote">"tweet"</span>&#93;)
+def res = elasticSearchService.countHits &#123;
+    queryString(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+&#125;
+def res = elasticSearchService.countHits(indices:<span class="java&#45;quote">"tweet"</span>) &#123;
+    queryString(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
+&#125;</pre></div><p class="paragraph"/><h4>Description</h4><p class="paragraph"/><code>countHits</code> signatures:<p class="paragraph"/><div class="code"><pre>def countHits(Closure query, Map params)
+def countHits(Closure query)
+def countHits(Map params, Closure query)
+def countHits(<span class="java&#45;object">String</span> query, Map params)
+def countHits(<span class="java&#45;object">String</span> query)</pre></div><p class="paragraph"/><h4>Parameters</h4>
+<ul class="star">
+<li><code>query</code> - The search query.</li>
+<ul class="star">
+<li>As a <code>String</code>, the query is parsed by the Lucene query parser for advanced searching.</li>
+<li>Can also be a <code>Closure</code>, using the Groovy Query DSL of the ElasticSearch groovy client.</li>
+</ul>
+<li><code>params</code> - A list of additional parameters to customize the searching process</li>
+<ul class="star">
+<li><code>indices</code> - Limit the search only to the specified indices (may be a <code>String</code>, or <code>Collection</code> of <code>String</code>)</li>
+<li><code>types</code> - Limit the search only to the specified types (domains) (may be a <code>String</code>, or <code>Collection</code> of <code>String</code>).</li>
+</ul></ul><p class="paragraph"/><h4>Returned value</h4><p class="paragraph"/>Returns an <code>Integer</code> representing the number of hits for the query.
+    </body>
+</html>
