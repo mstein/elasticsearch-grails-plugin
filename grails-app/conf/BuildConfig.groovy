@@ -36,6 +36,6 @@ grails.project.dependency.resolution = {
     }
     plugins {
         build ":release:latest.integration"
-        build ":spock:0.5-groovy-1.7"
+        build ":spock:0.6-SNAPSHOT"
     }
 }
