@@ -62,7 +62,7 @@ class ElasticsearchGrailsPlugin {
     def author = "Manuarii Stein"
     def authorEmail = "mstein@doc4web.com"
     def title = "ElasticSearch Plugin"
-    def description = ''''''
+    def description = '''Grails Elastic Search Plugin'''
 
     // URL to the plugin's documentation
     def documentation = "http://grails.org/plugin/elasticsearch"
