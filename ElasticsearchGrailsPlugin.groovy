@@ -62,10 +62,7 @@ class ElasticsearchGrailsPlugin {
     def author = "Manuarii Stein"
     def authorEmail = "mstein@doc4web.com"
     def title = "ElasticSearch Plugin"
-    def description = '''\\
-Integrates ElasticSearch with Grails, allowing to index domain instances or raw data.
-Based on Graeme Rocher spike.
-'''
+    def description = ''''''
 
     // URL to the plugin's documentation
     def documentation = "http://grails.org/plugin/elasticsearch"
