@@ -45,13 +45,17 @@ class ElasticsearchGrailsPlugin {
             hibernate: "1.0 > *"
     ]
     def loadAfter = ['services']
+
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",
-            "grails-app/controllers/test/ElasticSearchController.groovy",
-            "grails-app/services/test/TestCaseService.groovy",
+            "grails-app/controllers/test/**",
+            "grails-app/services/test/**",
             "grails-app/views/elasticSearch/index.gsp",
-            "grails-app/domain/test/*"
+            "grails-app/domain/test/**",
+            "grails-app/utils/test/**",
+            "test/**",
+            "src/docs/**"
     ]
 
     // TODO Fill in these fields

@@ -59,7 +59,7 @@ public class SearchableClassMappingConfigurator {
         Map<String, Object> settings = new HashMap<String, Object>();
 //        settings.put("number_of_shards", 5);        // must have 5 shards to be Green.
 //        settings.put("number_of_replicas", 2);
-
+        settings.put("number_of_replicas", 0);
         // Look for default index settings.
         Map esConfig = (Map) ConfigurationHolder.getConfig().getProperty("elasticSearch");
         if (esConfig != null) {
@@ -105,8 +105,7 @@ public class SearchableClassMappingConfigurator {
                 }
 
                 // Install mapping
-                // todo when conflict is detected, delete old mapping
-                // (this will delete all indexes as well, so should warn user)
+                // todo when conflict is detected, delete old mapping (this will delete all indexes as well, so should warn user)
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping);
                 }
@@ -118,7 +117,8 @@ public class SearchableClassMappingConfigurator {
             }
 
         }
-        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet();
+
+        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(new ClusterHealthRequest().waitForYellowStatus()).actionGet();
         LOG.debug("Cluster status: " + response.getStatus());
     }
 

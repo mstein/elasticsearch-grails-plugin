@@ -15,8 +15,8 @@ class ElasticSearchAdminService {
     def indexRequestQueue
 
     /**
-     * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
-     * TODO : also flush all pending requests and wait for the response from ES ?
+     * Explicitly refresh one or more index, making all operations performed since the last refresh available for search
+     * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
      * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
     public void refresh(Collection<String> indices = null) {
@@ -43,7 +43,8 @@ class ElasticSearchAdminService {
     }
 
     /**
-     * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
+     * Explicitly refresh one or more index, making all operations performed since the last refresh available for search
+     * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
      * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
     public void refresh(String... indices) {
@@ -52,7 +53,8 @@ class ElasticSearchAdminService {
 
     /**
      * Explicitly refresh ALL index, making all operations performed since the last refresh available for search
-     * @param indices The indices to refresh. If null, will refresh ALL indices.
+     * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
+     * @param searchableClasses The indices represented by the specified searchable classes to refresh. If null, will refresh ALL indices.
      */
     public void refresh(Class... searchableClasses) {
         def toRefresh = []
@@ -114,5 +116,4 @@ class ElasticSearchAdminService {
             deleteIndex(toDelete.unique())
         }
     }
-
 }
