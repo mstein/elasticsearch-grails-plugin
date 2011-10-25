@@ -1,8 +1,12 @@
 DefaultPackage
 org.grails.plugins.elasticsearch
+org.grails.plugins.elasticsearch.conversion
 org.grails.plugins.elasticsearch.conversion.binders
 org.grails.plugins.elasticsearch.conversion.marshall
 org.grails.plugins.elasticsearch.conversion.unmarshall
+org.grails.plugins.elasticsearch.exception
+org.grails.plugins.elasticsearch.index
 org.grails.plugins.elasticsearch.mapping
 org.grails.plugins.elasticsearch.util
 test
+test.upperCase

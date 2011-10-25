@@ -1,11 +1,119 @@
-<html>
-    <head>
-        <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-        <title>5. Searching</title>
-        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen" title="Ref" charset="utf-8"/>
-    </head>
-    <body class="body">
-    <h1><a name="5. Searching">5. Searching</a></h1>The plugin provides 2 ways to send search requests.
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>5 Searching 0.17.8.1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen, print" title="Style" charset="utf-8"/>
+    <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8"/>
+    <script type="text/javascript">
+function addJsClass() {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+</head>
+
+<body class="body" onload="addJsClass();">
+<div id="navigation">
+    <ul>
+        <li>
+            <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                <a href="../guide/index.html" class="button">Table of contents</a>
+
+                <div id="nav-summary-childs" style="display:none;">
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/1.%20Introduction.html"><strong>1</strong><span>Introduction</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/2.%20Configuration.html"><strong>2</strong><span>Configuration</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/3.%20Mapping.html"><strong>3</strong><span>Mapping</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/4.%20Indexing.html"><strong>4</strong><span>Indexing</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/5.%20Searching.html"><strong>5</strong><span>Searching</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/6.%20Admin.html"><strong>6</strong><span>Admin</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/7.%20Low%20level%20API.html"><strong>7</strong><span>Low level API</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/8.%20Example.html"><strong>8</strong><span>Example</span></a>
+                    </div>
+                    
+                </div>
+            </div>
+        </li>
+        <li class="separator selected">
+            <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+        </li>
+    </ul>
+</div>
+<div id="header">
+    <div class="images clearfix">
+        
+        
+    </div>
+    <p>\
+Integrates ElasticSearch with Grails, allowing to index domain instances or raw data.
+Based on Graeme Rocher spike.
+</p>
+</div>
+
+
+<table id="colset" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td id="col1">
+            <div id="main" class="corner-all">
+
+                
+                    <div class="toc-item prev-left"><a href="../guide/4.%20Indexing.html">&lt;&lt; <strong>4</strong><span>Indexing</span></a></div>
+                
+
+                <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                
+                    <div class="toc-item next-right"><a href="../guide/6.%20Admin.html"><strong>6</strong><span>Admin</span> >></a></div>
+                
+
+
+                <div class="project">
+                    <h1>5 Searching - Reference Documentation</h1>
+
+                    <p><strong>Authors:</strong> Manuarii Stein, Stephane Maldini, Serge P. Nekoval</p>
+
+                    <p><strong>Version:</strong> 0.17.8.1</p>
+
+                    
+                </div>
+
+                
+                <div id="table-of-content">
+                    <h2>Table of Contents</h2>
+                    
+                    <div class="toc-item" style="margin-left:0px"><a href="#5.1%20Query%20Strings"><strong>5.1</strong><span>Query Strings</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0px"><a href="#5.2%20Query%20Closure"><strong>5.2</strong><span>Query Closure</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0px"><a href="#5.3%20Highlighting"><strong>5.3</strong><span>Highlighting</span></a>
+                    </div>
+                    
+                </div>
+                
+
+                
+
+<h1 id="5. Searching">5 Searching</h1>
+The plugin provides 2 ways to send search requests.
 <ul class="star">
 <li>You can use the <code>elasticSearchService</code> and its public <code>search</code> method for cross-domain searching, meaning that ElasticSearch</li>
 </ul><p class="paragraph"/>may analyze multiple indices and return hits of different types (=different domains).
@@ -36,11 +144,19 @@ res.searchResults.each &#123;
 method. It will only return an <code>Integer</code> representing the total hits matching your query.<p class="paragraph"/><strong class="bold">Example</strong>
 <div class="code"><pre>def res = Tweet.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
 println <span class="java&#45;quote">"Found $&#123;res&#125; result(s)"</span><p class="paragraph"/>def res = elasticSearchService.countHits(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>, &#91;indices:'test'&#93;)
-println <span class="java&#45;quote">"Found $&#123;res&#125; result(s)"</span></pre></div><h2><a name="5.1 Query Strings">5.1 Query Strings</a></h2>The search method injected in the domain or the <code>ElasticSearchService</code> has multiple signatures available.
+println <span class="java&#45;quote">"Found $&#123;res&#125; result(s)"</span></pre></div>
+
+
+<h2 id="5.1 Query Strings">5.1 Query Strings</h2>
+The search method injected in the domain or the <code>ElasticSearchService</code> has multiple signatures available.
 You can pass it a simple <code>String</code> to compute your search request. That string will be parsed by the <strong class="bold">Lucene query parser</strong>
 so feel free to use its syntax to do more specific search query.<p class="paragraph"/>You can find out about the syntax on the <a href="http://lucene.apache.org/java/3_0_3/queryparsersyntax.html" target="blank">Apache Lucene website</a>.<p class="paragraph"/><strong class="bold">Example</strong>
 <div class="code"><pre>def results = elasticSearchService.search(<span class="java&#45;quote">"$&#123;params.query&#125;"</span>)
-def resultsTweets = Tweet.search(<span class="java&#45;quote">"message:$&#123;params.query&#125;"</span>)</pre></div><h2><a name="5.2 Query Closure">5.2 Query Closure</a></h2>You can use the <a href="http://www.elasticsearch.org/guide/reference/groovy-api/search.html" target="blank">Groovy Query DSL</a> to build your search query as a <code>Closure</code>.
+def resultsTweets = Tweet.search(<span class="java&#45;quote">"message:$&#123;params.query&#125;"</span>)</pre></div>
+
+
+<h2 id="5.2 Query Closure">5.2 Query Closure</h2>
+You can use the <a href="http://www.elasticsearch.org/guide/reference/groovy-api/search.html" target="blank">Groovy Query DSL</a> to build your search query as a <code>Closure</code>.
 The format of the search <code>Closure</code> follow the same JSON syntax as the <a href="http://www.elasticsearch.org/guide/reference/api/search/" target="blank">ElasticSearch REST API</a>
 and the <a href="http://www.elasticsearch.org/guide/reference/java-api/query-dsl.html" target="blank">Java Query DSL</a>.<p class="paragraph"/><strong class="bold">Example</strong>
 <div class="code"><pre>def result = elasticSearchService.search(searchType:'dfs_query_and_fetch') &#123;
@@ -54,7 +170,11 @@ and the <a href="http://www.elasticsearch.org/guide/reference/java-api/query-dsl
           &#125;
       &#125;
   &#125;
-&#125;</pre></div><h2><a name="5.3 Highlighting">5.3 Highlighting</a></h2>The search method support highlighting: automatic wrapping of the matching terms in the search results with
+&#125;</pre></div>
+
+
+<h2 id="5.3 Highlighting">5.3 Highlighting</h2>
+The search method support highlighting: automatic wrapping of the matching terms in the search results with
 HTML/XML/Whatever tags.
 You can activate this with a <code>Closure</code> containing the highlight settings in the search method <code>highlight</code> parameter.
 The format of the <code>Closure</code> for defining the highlight settings is the same as the
@@ -92,5 +212,85 @@ You can customize the tags with the <code>preTags</code> and <code>postTags</cod
     preTags '&#60;myAweSomeTag&#62;'
     postTags '&#60;/myAweSomeTag&#62;'
 &#125;</pre></div>
-    </body>
+
+
+                <div style="clear:both;margin-top:15px;"></div>
+                
+                    <div class="toc-item prev-left"><a href="../guide/4.%20Indexing.html">&lt;&lt; <strong>4</strong><span>Indexing</span></a></div>
+                
+                    <div class="toc-item next-right"><a href="../guide/6.%20Admin.html"><strong>6</strong><span>Admin</span> >></a></div>
+                
+                <div style="clear:both"></div>
+            </div>
+        </td>
+        <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">ElasticSearchAdminService</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchAdminService/deleteIndex.html">deleteIndex</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchAdminService/refresh.html">refresh</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">ElasticSearchService</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/countHits.html">countHits</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/ElasticSearchService/unindex.html">unindex</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Injected Domain Dynamic Methods</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/countHits.html">countHits</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/index.html">index</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/search.html">search</a>
+                            </div>
+                            
+                            <div class="menu-item"><a href="../ref/Injected%20Domain%20Dynamic%20Methods/unindex.html">unindex</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div id="footer">
+    
+    
+</div>
+
+<script type="text/javascript" src="../js/docs.js"></script>
+
+</body>
 </html>
