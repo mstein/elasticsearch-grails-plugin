@@ -25,7 +25,7 @@ import org.apache.log4j.Logger
 
 class ClientNodeFactoryBean implements FactoryBean {
     def elasticSearchContextHolder
-    static SUPPORTED_MODES = ['local', 'transport', 'node']
+    static SUPPORTED_MODES = ['local', 'transport', 'node', 'dataNode']
     private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
 
     def node
@@ -90,6 +90,28 @@ class ClientNodeFactoryBean implements FactoryBean {
                     }
                 }
                 nb.local(true)
+                break
+
+            case 'dataNode':
+                def storeType = elasticSearchContextHolder.config.index.store.type
+                if (storeType) {
+                  nb.settings().put('index.store.type', storeType as String)
+                  LOG.debug "DataNode ElasticSearch client with store type of ${storeType} configured."
+                } else {
+                  LOG.debug "DataNode ElasticSearch client with default store type configured."
+                }
+                def queryParsers = elasticSearchContextHolder.config.index.queryparser
+                if (queryParsers) {
+                  queryParsers.each { type, clz ->
+                    nb.settings().put("index.queryparser.types.${type}".toString(), clz)
+                  }
+                }
+                if (elasticSearchContextHolder.config.discovery.zen.ping.unicast.hosts) {
+                  nb.settings().put("discovery.zen.ping.unicast.hosts", elasticSearchContextHolder.config.discovery.zen.ping.unicast.hosts)
+                }
+
+                nb.client(false)
+                nb.data(true)
                 break
 
             case 'node':
