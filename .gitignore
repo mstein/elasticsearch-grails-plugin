@@ -1,3 +1,7 @@
 .idea
 *.iml
 out
+data
+target
+prodDb.properties
+prodDb.script
