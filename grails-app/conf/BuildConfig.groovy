@@ -3,7 +3,7 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
-def elasticSearchVersion = "0.18.6"
+def elasticSearchVersion = "0.18.7"
 
 //grails.tomcat.jvmArgs = ["-Xmx1024m","-Xms512m", "-agentpath:C:\\Program Files (x86)\\YourKit Java Profiler 9.0.9\\bin\\win64\\yjpagent.dll=sampling,onexit=snapshot"]
 
@@ -37,7 +37,11 @@ grails.project.dependency.resolution = {
         runtime "org.elasticsearch:elasticsearch-lang-groovy:${elasticSearchVersion}"
     }
     plugins {
-        build ":release:latest.integration"
-        build ":spock:0.5-groovy-1.7"
+        build (":release:latest.integration") {
+            export = false
+        }
+        build (":spock:0.5-groovy-1.7") {
+            export = false
+        }
     }
 }
