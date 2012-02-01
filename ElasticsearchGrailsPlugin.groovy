@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import org.grails.plugins.elasticsearch.ElasticSearchHelper
-import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
-import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
+import grails.util.GrailsUtil
+import org.apache.log4j.Logger
+import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
 import org.grails.plugins.elasticsearch.AuditEventListener
+import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.ElasticSearchHelper
+import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
-import org.springframework.context.ApplicationContext
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import grails.util.GrailsUtil
-import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
-import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
-import org.apache.log4j.Logger
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
+import org.springframework.context.ApplicationContext
 
 class ElasticsearchGrailsPlugin {
 
@@ -58,6 +58,20 @@ class ElasticsearchGrailsPlugin {
             "src/docs/**"
     ]
 
+
+    def license = "APACHE"
+
+    def organization = [name: "doc4web", url: "http://www.doc4web.com/"]
+
+    def developers = [
+            [name: "Manuarii Stein", email: "mstein@doc4web.com"],
+            [name: "Stéphane Maldini", email: "smaldini@doc4web.com"]
+    ]
+
+    def issueManagement = [system: "icescrum", url: "http://doc4web.com/icescrum/p/ELASTIC#project"]
+
+    def scm = [url: "https://github.com/mstein/elasticsearch-grails-plugin"]
+
     // TODO Fill in these fields
     def author = "Manuarii Stein"
     def authorEmail = "mstein@doc4web.com"
@@ -65,7 +79,7 @@ class ElasticsearchGrailsPlugin {
     def description = '''Grails Elastic Search Plugin'''
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/elasticsearch"
+    def documentation = "http://smaldini.github.com/elasticsearch-grails-plugin/docs/guide/index.html"
 
     def doWithWebDescriptor = { xml ->
         // TODO Implement additions to web.xml (optional), this event occurs before
