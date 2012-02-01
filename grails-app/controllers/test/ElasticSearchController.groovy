@@ -86,7 +86,14 @@ class ElasticSearchController {
         queryString(query: params.message.search)
     }.searchResults*/
     def count = Tweet.countHits("${params.message.search}")
-    def tweets = Tweet.search("${params.message.search}").searchResults
+    //def tweets = Tweet.search("${params.message.search}", [sort:"message", order:"DESC"]).searchResults
+    def tweets = Tweet.search(sort:"message", order:"DESC") {
+          bool {
+              must {
+                  query_string(query: "${params.message.search}")
+              }
+          }
+      }.searchResults
     def tweetsMsg = "Messages ($count) : "
     tweets.each {
       tweetsMsg += "<br />Tweet from ${it.user?.firstname} ${it.user?.lastname} : ${it.message} "
