@@ -23,8 +23,7 @@ grails.project.dependency.resolution = {
         // uncomment the below to enable remote dependency resolution
         // from public Maven repositories
         mavenLocal()
-	mavenRepo "http://uk.maven.org/maven2/"
-        //mavenCentral()
+        mavenCentral()
         //mavenRepo "http://snapshots.repository.codehaus.org"
         //mavenRepo "http://repository.codehaus.org"
         //mavenRepo "http://download.java.net/maven/2/"
@@ -40,7 +39,7 @@ grails.project.dependency.resolution = {
         build (":release:latest.integration") {
             export = false
         }
-        build (":spock:0.5-groovy-1.7") {
+        test (":spock:0.6-SNAPSHOT") {
             export = false
         }
     }
