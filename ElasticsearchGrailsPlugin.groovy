@@ -130,7 +130,6 @@ Based on Graeme Rocher spike.
     }
 
     def onShutdown = { event ->
-        event.ctx.getBean("elasticSearchClient").close()
     }
 
     def doWithDynamicMethods = { ctx ->
@@ -140,11 +139,6 @@ Based on Graeme Rocher spike.
 
     def doWithApplicationContext = { applicationContext ->
         // Implement post initialization spring config (optional)
-        def esConfig = getConfiguration(parentCtx, application)
-        if (esConfig.bulkIndexOnStartup) {
-            LOG.debug "Performing bulk index."
-            applicationContext.elasticSearchService.index()
-        }
     }
 
     def onChange = { event ->
