@@ -126,8 +126,8 @@ public class SearchableClassMappingConfigurator {
         List<SearchableClassMapping> mappings = new ArrayList<SearchableClassMapping>();
         for(GrailsClass clazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
             GrailsDomainClass domainClass = (GrailsDomainClass) clazz;
-            ClosureSearchableDomainClassMapper closureMapper = new ClosureSearchableDomainClassMapper(grailsApplication, domainClass, config);
-            SearchableClassMapping searchableClassMapping = closureMapper.buildClassMapping();
+            SearchableDomainClassMapper mapper = new SearchableDomainClassMapper(grailsApplication, domainClass, config);
+            SearchableClassMapping searchableClassMapping = mapper.buildClassMapping();
             if (searchableClassMapping != null) {
                 elasticSearchContext.addMappingContext(searchableClassMapping);
                 mappings.add(searchableClassMapping);
