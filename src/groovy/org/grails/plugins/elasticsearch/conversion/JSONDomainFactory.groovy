@@ -122,7 +122,7 @@ class JSONDomainFactory {
         marshaller.marshall(object)
     }
 
-    private static GrailsDomainClass getDomainClass(instance) {
+    private GrailsDomainClass getDomainClass(instance) {
         def grailsApplication = ApplicationHolder.application
         grailsApplication.domainClasses.find {it.clazz == GrailsHibernateUtil.unwrapIfProxy(instance).class}
     }
