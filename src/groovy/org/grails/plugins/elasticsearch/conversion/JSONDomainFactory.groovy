@@ -39,6 +39,7 @@ import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 class JSONDomainFactory {
 
     def elasticSearchContextHolder
+    def grailsApplication
 
     /**
      * The default marshallers, not defined by user
@@ -123,7 +124,6 @@ class JSONDomainFactory {
     }
 
     private GrailsDomainClass getDomainClass(instance) {
-        def grailsApplication = ApplicationHolder.application
         grailsApplication.domainClasses.find {it.clazz == GrailsHibernateUtil.unwrapIfProxy(instance).class}
     }
 
