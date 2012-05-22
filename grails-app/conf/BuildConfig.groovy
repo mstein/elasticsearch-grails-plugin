@@ -39,7 +39,7 @@ grails.project.dependency.resolution = {
         build (":release:latest.integration") {
             export = false
         }
-        test (":spock:0.6-SNAPSHOT") {
+        test (":spock:0.6") {
             export = false
         }
     }
