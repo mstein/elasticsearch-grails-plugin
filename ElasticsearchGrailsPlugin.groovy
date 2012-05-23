@@ -36,7 +36,7 @@ class ElasticsearchGrailsPlugin {
     static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
-    def version = "0.18.7.1-SNAPSHOT"
+    def version = "0.19.3-SNAPSHOT"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.3.0 > *"
     // the other plugins this plugin depends on
@@ -72,11 +72,11 @@ class ElasticsearchGrailsPlugin {
 
     def scm = [url: "https://github.com/mstein/elasticsearch-grails-plugin"]
 
-    // TODO Fill in these fields
     def author = "Manuarii Stein"
     def authorEmail = "mstein@doc4web.com"
-    def title = "ElasticSearch Plugin"
-    def description = '''Grails Elastic Search Plugin'''
+    def title = "Elastic Search Plugin"
+    def description = """\
+[Elastic Search|http://www.elasticsearch.com] is a distributed, RESTful service for full text search. This plugin provides a Grails-friendly API for the service based on the tremendously successful [Searchable plugin|/plugin/searchable]. It even provides an embedded version of the service for easy testing and development."""
 
     // URL to the plugin's documentation
     def documentation = "http://smaldini.github.com/elasticsearch-grails-plugin/docs/guide/index.html"
