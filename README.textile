@@ -7,6 +7,8 @@ Submit your suggestion / bug report / follow the progression on the project trac
 
 **Grails plugin page:** "http://grails.org/plugin/elasticsearch":http://grails.org/plugin/elasticsearch
 
+**Documentation:** "Click here":http://smaldini.github.com/elasticsearch-grails-plugin/docs/guide/index.html
+
 h2. License
 
 <pre>
