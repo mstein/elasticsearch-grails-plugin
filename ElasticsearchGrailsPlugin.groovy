@@ -120,6 +120,7 @@ class ElasticsearchGrailsPlugin {
         customEditorRegistrar(CustomEditorRegistar)
         jsonDomainFactory(JSONDomainFactory) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
+            grailsApplication = ref("grailsApplication")
         }
         auditListener(AuditEventListener) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
