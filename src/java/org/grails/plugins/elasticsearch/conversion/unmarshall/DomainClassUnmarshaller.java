@@ -147,7 +147,10 @@ public class DomainClassUnmarshaller {
         // below is considering the "component" behavior
         SearchableClassPropertyMapping scpm = elasticSearchContextHolder.getMappingContext(domainClass).getPropertyMapping(propertyName);
         Object parseResult = null;
-        if (propertyValue instanceof Map) {
+        if (null == scpm) {
+            // TODO: unhandled property exists in index
+        }
+        if (null != scpm && propertyValue instanceof Map) {
 
             @SuppressWarnings({"unchecked"})
             Map<String, Object> data = (Map<String, Object>) propertyValue;

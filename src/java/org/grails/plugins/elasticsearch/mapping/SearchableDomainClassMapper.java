@@ -24,13 +24,19 @@ import org.codehaus.groovy.grails.commons.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
-    /** Options applied to searchable class itself */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all","root","only","except"));
-    /** Searchable property name */
+class SearchableDomainClassMapper extends GroovyObjectSupport {
+    /**
+     * Options applied to searchable class itself
+     */
+    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except"));
+    /**
+     * Searchable property name
+     */
     public static final String SEARCHABLE_PROPERTY_NAME = "searchable";
 
-    /** Class mapping properties */
+    /**
+     * Class mapping properties
+     */
     private Boolean all = true;
     private Boolean root = true;
 
@@ -45,11 +51,12 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
 
     /**
      * Create closure-based mapping configurator.
+     *
      * @param grailsApplication grails app reference
-     * @param domainClass Grails domain class to be configured
-     * @param esConfig ElasticSearch configuration
+     * @param domainClass       Grails domain class to be configured
+     * @param esConfig          ElasticSearch configuration
      */
-    ClosureSearchableDomainClassMapper(GrailsApplication grailsApplication, GrailsDomainClass domainClass, ConfigObject esConfig) {
+    SearchableDomainClassMapper(GrailsApplication grailsApplication, GrailsDomainClass domainClass, ConfigObject esConfig) {
         this.esConfig = esConfig;
         this.grailsDomainClass = domainClass;
         this.grailsApplication = grailsApplication;
@@ -97,7 +104,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
                 // If the super class is abstract, it needs peculiar processing
                 // The abstract class won't be actually mapped to ES, but the concrete subclasses will have to inherit
                 // the searchable mapping options.
-                if(superDomainClass == null && Modifier.isAbstract(currentClass.getModifiers())){
+                if (superDomainClass == null && Modifier.isAbstract(currentClass.getModifiers())) {
                     // We create a temporary dummy GrailsDomainClass instance for this abstract class
                     superDomainClass = new DefaultGrailsDomainClass(currentClass);
                 } else {
@@ -106,7 +113,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
                 }
 
                 if (superDomainClass.hasProperty(SEARCHABLE_PROPERTY_NAME) &&
-                    superDomainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME).equals(Boolean.FALSE)) {
+                        superDomainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME).equals(Boolean.FALSE)) {
 
                     // hierarchy explicitly terminated. Do not browse any more properties.
                     break;
@@ -129,19 +136,16 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         mappableProperties.add(grailsDomainClass.getIdentifier().getName());
 
         // Process inherited mappings in reverse order.
-        for(GrailsDomainClass domainClass : superMappings) {
+        for (GrailsDomainClass domainClass : superMappings) {
             if (domainClass.hasProperty(SEARCHABLE_PROPERTY_NAME)) {
                 Object searchable = domainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME);
                 if (searchable instanceof Boolean) {
                     buildDefaultMapping(domainClass);
+                } else if (searchable instanceof java.util.LinkedHashMap) {
+                    Set<String> inheritedProperties = getInheritedProperties(domainClass);
+                    buildHashMapMapping((LinkedHashMap) searchable, domainClass, inheritedProperties);
                 } else if (searchable instanceof Closure) {
-                    // check which properties belong to this domain class ONLY
-                    Set<String> inheritedProperties = new HashSet<String>();
-                    for(GrailsDomainClassProperty prop : domainClass.getPersistentProperties()) {
-                        if (GrailsClassUtils.isPropertyInherited(domainClass.getClazz(), prop.getName())) {
-                            inheritedProperties.add(prop.getName());
-                        }
-                    }
+                    Set<String> inheritedProperties = getInheritedProperties(domainClass);
                     buildClosureMapping(domainClass, (Closure) searchable, inheritedProperties);
                 } else {
                     throw new IllegalArgumentException("'searchable' property has unknown type: " + searchable.getClass());
@@ -155,7 +159,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         customMappedProperties.keySet().retainAll(mappableProperties);
         mappableProperties.remove(grailsDomainClass.getIdentifier().getName());
 
-        for(String propertyName : mappableProperties) {
+        for (String propertyName : mappableProperties) {
             SearchableClassPropertyMapping scpm = customMappedProperties.get(propertyName);
             if (scpm == null) {
                 scpm = new SearchableClassPropertyMapping(grailsDomainClass.getPropertyByName(propertyName));
@@ -168,9 +172,20 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         return scm;
     }
 
+    private Set<String> getInheritedProperties(GrailsDomainClass domainClass) {
+        // check which properties belong to this domain class ONLY
+        Set<String> inheritedProperties = new HashSet<String>();
+        for (GrailsDomainClassProperty prop : domainClass.getPersistentProperties()) {
+            if (GrailsClassUtils.isPropertyInherited(domainClass.getClazz(), prop.getName())) {
+                inheritedProperties.add(prop.getName());
+            }
+        }
+        return inheritedProperties;
+    }
+
     public void buildDefaultMapping(GrailsDomainClass grailsDomainClass) {
 
-        for(GrailsDomainClassProperty property : grailsDomainClass.getPersistentProperties()) {
+        for (GrailsDomainClassProperty property : grailsDomainClass.getPersistentProperties()) {
             //noinspection unchecked
             List<String> defaultExcludedProperties = (List<String>) esConfig.get("defaultExcludedProperties");
             if (defaultExcludedProperties == null || !defaultExcludedProperties.contains(property.getName())) {
@@ -191,9 +206,19 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
         closure.setDelegate(this);
         closure.call();
 
+        buildMappingFromOnlyExcept(grailsDomainClass, inheritedProperties);
+    }
+
+    public void buildHashMapMapping(LinkedHashMap map, GrailsDomainClass domainClass, Set<String> inheritedProperties) {
+        // Support old searchable-plugin syntax ([only: ['category', 'title']] or [except: 'createdAt'])
+        only = map.containsKey("only") ? map.get("only") : null;
+        except = map.containsKey("except") ? map.get("except") : null;
+        buildMappingFromOnlyExcept(domainClass, inheritedProperties);
+    }
+
+    private void buildMappingFromOnlyExcept(GrailsDomainClass domainClass, Set<String> inheritedProperties) {
         Set<String> propsOnly = convertToSet(only);
         Set<String> propsExcept = convertToSet(except);
-
         if (!propsOnly.isEmpty() && !propsExcept.isEmpty()) {
             throw new IllegalArgumentException("Both 'only' and 'except' were used in '" + grailsDomainClass.getPropertyName() + "#searchable': provide one or neither but not both");
         }
@@ -219,6 +244,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
 
     /**
      * Invoked by 'searchable' closure.
+     *
      * @param name synthetic method name
      * @param args method arguments.
      * @return <code>null</code>
@@ -252,7 +278,7 @@ class ClosureSearchableDomainClassMapper extends GroovyObjectSupport {
             customMappedProperties.put(name, propertyMapping);
         }
         //noinspection unchecked
-        propertyMapping.addAttributes((Map<String, Object>) ((Object[])args)[0]);
+        propertyMapping.addAttributes((Map<String, Object>) ((Object[]) args)[0]);
         return null;
     }
 

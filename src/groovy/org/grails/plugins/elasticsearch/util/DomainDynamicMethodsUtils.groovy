@@ -17,7 +17,7 @@ package org.grails.plugins.elasticsearch.util
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.mapping.ClosureSearchableDomainClassMapper
+import org.grails.plugins.elasticsearch.mapping.SearchableDomainClassMapper
 import org.apache.commons.logging.LogFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
 
@@ -40,7 +40,7 @@ class DomainDynamicMethodsUtils {
         def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
         for (GrailsDomainClass domain in grailsApplication.domainClasses) {
-            if (domain.getPropertyValue(ClosureSearchableDomainClassMapper.SEARCHABLE_PROPERTY_NAME)) {
+            if (domain.getPropertyValue(SearchableDomainClassMapper.SEARCHABLE_PROPERTY_NAME)) {
                 def domainCopy = domain
                 // Only inject the methods if the domain is mapped as "root"
                 if (elasticSearchContextHolder.getMappingContext(domainCopy)?.root) {
