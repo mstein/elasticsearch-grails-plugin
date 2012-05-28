@@ -83,6 +83,13 @@ class ClientNodeFactoryBean implements FactoryBean {
                 } else {
                     LOG.debug "Local ElasticSearch client with default store type configured."
                 }
+                def gatewayType = elasticSearchContextHolder.config.gateway.type
+                if (gatewayType) {
+                    nb.settings().put('gateway.type', gatewayType as String)
+                    LOG.debug "Local ElasticSearch client with gateway type of ${gatewayType} configured."
+                } else {
+                    LOG.debug "Local ElasticSearch client with default gateway type configured."
+                }
                 def queryParsers = elasticSearchContextHolder.config.index.queryparser
                 if (queryParsers) {
                     queryParsers.each { type, clz ->
