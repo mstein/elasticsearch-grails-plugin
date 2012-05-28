@@ -75,7 +75,7 @@ class ClientNodeFactoryBean implements FactoryBean {
                 break
 
             case 'local':
-                // Determines how the data is store (on disk, in memory, ...)
+                // Determines how the data is stored (on disk, in memory, ...)
                 def storeType = elasticSearchContextHolder.config.index.store.type
                 if (storeType) {
                     nb.settings().put('index.store.type', storeType as String)
