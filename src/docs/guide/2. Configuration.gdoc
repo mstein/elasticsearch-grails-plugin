@@ -52,7 +52,7 @@ Set to @false@ by default (really applicable for file system based index storage
 More details on this setting on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/].
 
 * @elasticSearch.index.store.type@
-Determine the way how the indices will be store.
+Determine how the indices will be stored.
 More details on the possible values on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/store.html].
 {table}
 Possible value | Description
