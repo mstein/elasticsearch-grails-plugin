@@ -99,7 +99,7 @@ public class ElasticSearchMappingFactory {
                         props = new LinkedHashMap<String, Object>();
                         propOptions.put("properties", props);
                     }
-                    props.put("id", defaultDescriptor("long", "no", true));
+                    props.put("id", defaultDescriptor("long", "not_analyzed", true));
                     props.put("class", defaultDescriptor("string", "no", true));
                     props.put("ref", defaultDescriptor("string", "no", true));
                 }
