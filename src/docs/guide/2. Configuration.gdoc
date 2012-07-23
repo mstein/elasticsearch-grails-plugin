@@ -52,7 +52,7 @@ Set to @false@ by default (really applicable for file system based index storage
 More details on this setting on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/].
 
 * @elasticSearch.index.store.type@
-Determine the way how the indices will be store.
+Determine how the indices will be stored.
 More details on the possible values on the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/index-modules/store.html].
 {table}
 Possible value | Description
@@ -61,6 +61,11 @@ mmapfs | Stores the shard index on the file system (maps to Lucene MMapDirectory
 niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.
 simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
 {table}
+
+* @elasticSearch.gateway.type@
+Determine the gateway type to be used.
+More details on the possible values are in the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/modules/gateway/].
+Using a setting of "none" (possibly in combination with index.store.type set to "memory") can be useful for tests.
 
 * @elasticSearch.maxBulkRequest@
 Max number of requests to process at once.

@@ -34,7 +34,8 @@ grails.project.dependency.resolution = {
         runtime "org.elasticsearch:elasticsearch-lang-groovy:1.1.0"
     }
     plugins {
-        build (":release:latest.integration") {
+		runtime ":hibernate:$grailsVersion"
+        build (":release:latest.integration", ":rest-client-builder:latest.integration") {
             export = false
         }
         test (":spock:0.6") {

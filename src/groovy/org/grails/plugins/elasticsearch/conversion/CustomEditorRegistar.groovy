@@ -7,9 +7,10 @@ import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class CustomEditorRegistar implements PropertyEditorRegistrar {
   def elasticSearchContextHolder
+  def grailsApplication
 
   void registerCustomEditors(PropertyEditorRegistry reg) {
-    elasticSearchContextHolder = ApplicationHolder.application.mainContext.getBean('elasticSearchContextHolder')
+    elasticSearchContextHolder = grailsApplication.mainContext.getBean('elasticSearchContextHolder')
     reg.registerCustomEditor(Date.class, new JSONDateBinder(elasticSearchContextHolder.config.date.formats as List))
   }
 

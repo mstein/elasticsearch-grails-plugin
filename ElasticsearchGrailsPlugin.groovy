@@ -117,7 +117,9 @@ class ElasticsearchGrailsPlugin {
             elasticSearchClient = ref("elasticSearchClient")
             grailsApplication = ref("grailsApplication")
         }
-        customEditorRegistrar(CustomEditorRegistar)
+        customEditorRegistrar(CustomEditorRegistar) {
+            grailsApplication = ref("grailsApplication")
+        }
         jsonDomainFactory(JSONDomainFactory) {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
             grailsApplication = ref("grailsApplication")

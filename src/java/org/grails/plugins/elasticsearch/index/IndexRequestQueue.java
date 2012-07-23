@@ -18,13 +18,10 @@ package org.grails.plugins.elasticsearch.index;
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil;
 import org.codehaus.groovy.grails.orm.hibernate.support.HibernatePersistenceContextInterceptor;
-import org.codehaus.groovy.grails.support.PersistenceContextInterceptor;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -42,6 +39,8 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Holds objects to be indexed.
@@ -239,10 +238,12 @@ public class IndexRequestQueue implements InitializingBean {
     }
 
     private void cleanOperationBatchList() {
-        for (Iterator<OperationBatch> it = operationBatchList.iterator(); it.hasNext(); ) {
-            OperationBatch current = it.next();
-            if (current.isComplete()) {
-                it.remove();
+        synchronized (this) {
+            for (Iterator<OperationBatch> it = operationBatchList.iterator(); it.hasNext(); ) {
+                OperationBatch current = it.next();
+                if (current.isComplete()) {
+                    it.remove();
+                }
             }
         }
         LOG.debug("OperationBatchList cleaned");
@@ -253,7 +254,7 @@ public class IndexRequestQueue implements InitializingBean {
         private int attempts;
         private Map<IndexEntityKey, Object> toIndex;
         private Set<IndexEntityKey> toDelete;
-        private boolean complete = false;
+        private CountDownLatch synchronizedCompletion = new CountDownLatch(1);
 
         OperationBatch(int attempts, Map<IndexEntityKey, Object> toIndex, Set<IndexEntityKey> toDelete) {
             this.attempts = attempts;
@@ -262,7 +263,7 @@ public class IndexRequestQueue implements InitializingBean {
         }
 
         public boolean isComplete() {
-            return complete;
+            return synchronizedCompletion.getCount() == 0;
         }
 
         public void waitComplete() {
@@ -277,19 +278,18 @@ public class IndexRequestQueue implements InitializingBean {
          */
         public void waitComplete(Integer msTimeout) {
             msTimeout = msTimeout == null ? 5000 : msTimeout;
-            Long startTime = new Date().getTime();
-            Long currentTime = startTime;
+            
             try {
-                while (!complete && currentTime - startTime < msTimeout) {
-                    Thread.sleep(100);
-                    currentTime = new Date().getTime();
+                if(!synchronizedCompletion.await(msTimeout, TimeUnit.MILLISECONDS)) {
+                    LOG.warn("OperationBatchList.waitComplete() timed out after " + msTimeout.toString() + "ms");
                 }
             } catch (InterruptedException ie) {
+                LOG.warn("OperationBatchList.waitComplete() interrupted");
             }
         }
 
         public void fireComplete() {
-            complete = true;
+            synchronizedCompletion.countDown();
         }
 
         public void onResponse(BulkResponse bulkResponse) {
