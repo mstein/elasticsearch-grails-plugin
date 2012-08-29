@@ -53,7 +53,11 @@ public class ElasticSearchMappingFactory {
             Map<String, Object> propOptions = new LinkedHashMap<String, Object>();
             // Add the custom mapping (searchable static property in domain model)
             propOptions.putAll(scpm.getAttributes());
-            if (!(SUPPORTED_FORMAT.contains(scpm.getGrailsProperty().getTypePropertyName()))) {
+            if (scpm.isGeoPoint()) {
+
+                propType = "geo_point";
+                
+            } else if (!(SUPPORTED_FORMAT.contains(scpm.getGrailsProperty().getTypePropertyName()))) {
                 // Handle embedded persistent collections, ie List<String> listOfThings
                 if (scpm.getGrailsProperty().isBasicCollectionType()) {
                     String basicType = ClassUtils.getShortName(scpm.getGrailsProperty().getReferencedPropertyType()).toLowerCase(Locale.ENGLISH);
