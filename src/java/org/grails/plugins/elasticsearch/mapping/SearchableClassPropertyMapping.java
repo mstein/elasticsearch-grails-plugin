@@ -26,7 +26,7 @@ import java.util.*;
 public class SearchableClassPropertyMapping {
 
     public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("boost", "index", "analyzer"));
-    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth"));
+    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth","geoPoint"));
 
     /** Grails attributes of this property */
     GrailsDomainClassProperty grailsProperty;
@@ -186,5 +186,13 @@ public class SearchableClassPropertyMapping {
     public boolean isAnalyzed() {
         String index = (String) attributes.get("index");
         return (index == null || index.equals("analyzed"));
+    }
+
+    /**
+     * True if property is a variant of geo_point type
+     */
+    public boolean isGeoPoint() {
+        Object geoPoint = specialAttributes.get("geoPoint");
+        return (geoPoint != null && ((Boolean)geoPoint));
     }
 }
