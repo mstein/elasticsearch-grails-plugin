@@ -103,7 +103,7 @@ class JSONDomainFactory {
             // TODO : support user custom marshaller/converter (& marshaller registration)
             // Check for domain classes
             def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
-            if (propertyMapping.isGeoPoint()) {
+            if (propertyMapping?.isGeoPoint()) {
                 marshaller = new GeoPointMarshaller()
             } else if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
                 /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
