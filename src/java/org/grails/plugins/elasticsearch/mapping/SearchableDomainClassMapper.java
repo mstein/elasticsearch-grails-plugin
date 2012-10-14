@@ -28,7 +28,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Options applied to searchable class itself
      */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except"));
+    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except", "where"));
     /**
      * Searchable property name
      */

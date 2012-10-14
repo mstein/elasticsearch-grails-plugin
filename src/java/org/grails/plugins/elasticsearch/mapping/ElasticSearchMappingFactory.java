@@ -87,7 +87,11 @@ public class ElasticSearchMappingFactory {
                 } else if (scpm.isComponent()) {
                     // Proceed with nested mapping.
                     // todo limit depth to avoid endless recursion?
-                    propType = "object";
+                	if(scpm.getGrailsProperty().isManyToMany() || scpm.getGrailsProperty().isOneToMany()){
+                        propType = "nested";
+                    } else {
+                        propType = "object";    
+                    }
                     //noinspection unchecked
                     propOptions.putAll((Map<String, Object>)
                             (getElasticMapping(scpm.getComponentPropertyMapping()).values().iterator().next()));

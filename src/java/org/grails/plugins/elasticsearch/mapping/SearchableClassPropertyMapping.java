@@ -18,6 +18,8 @@ package org.grails.plugins.elasticsearch.mapping;
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 
+import groovy.lang.Closure;
+
 import java.util.*;
 
 /**
@@ -26,7 +28,7 @@ import java.util.*;
 public class SearchableClassPropertyMapping {
 
     public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("boost", "index", "analyzer"));
-    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth","geoPoint"));
+    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth","geoPoint","where"));
 
     /** Grails attributes of this property */
     GrailsDomainClassProperty grailsProperty;
@@ -69,6 +71,10 @@ public class SearchableClassPropertyMapping {
 
     public Object getReference() {
         return specialAttributes.get("reference");
+    }
+    
+    public Closure getWhere(){
+        return (Closure) specialAttributes.get("where");
     }
 
     /**
