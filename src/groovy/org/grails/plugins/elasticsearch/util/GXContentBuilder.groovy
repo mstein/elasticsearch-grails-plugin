@@ -60,7 +60,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         XContentBuilder builder = XContentFactory.contentBuilder(contentType);
         def json = build(c)
         builder.map(json);
-        return builder.copiedBytes();
+        return builder.bytes().toBytes();
     }
 
     private buildRoot(Closure c) {

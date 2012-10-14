@@ -27,6 +27,7 @@ import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.SearchHit
+import org.grails.plugins.elasticsearch.index.IndexRequestQueue.OperationBatch;
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.elasticsearch.action.count.CountRequest
@@ -158,7 +159,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     public void index(GroovyObject... instances) {
         index(instances as Collection<GroovyObject>)
     }
-
+	
     /**
      * Unindexes all searchable instances of the specified class.
      * If call without arguments, unindex ALL searchable instances.
@@ -197,6 +198,12 @@ public class ElasticSearchService implements GrailsApplicationAware {
     public void unindex(GroovyObject... instances) {
         unindex(instances as Collection<GroovyObject>)
     }
+	
+	private boolean syncMode = false
+	
+	public setSyncMode(boolean mode){
+		syncMode = true
+	}
 
     /**
      * Computes a bulk operation on class level.
@@ -246,8 +253,9 @@ public class ElasticSearchService implements GrailsApplicationAware {
                                 indexRequestQueue.addDeleteRequest(it)
                             }
                         }
-                        indexRequestQueue.executeRequests()
+                        OperationBatch ob = indexRequestQueue.executeRequests()
                         session.clear()
+                        if(syncMode) ob.waitComplete()
                     }
                 }
 
@@ -317,7 +325,9 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
         source.from(params.from ? params.from as int : 0)
         source.size(params.size ? params.size as int : 60)
-        source.explain(params.explain ?: true)
+		if(params.explain){
+        	source.explain(true)
+		}
         if (params.sort) {
             source.sort(params.sort, SortOrder.valueOf(params.order?.toUpperCase() ?: "ASC"))
         }
@@ -429,9 +439,13 @@ public class ElasticSearchService implements GrailsApplicationAware {
             result.total = searchHits.totalHits()
 
             LOG.debug "Search returned ${result.total ?: 0} result(s)."
-
-            // Convert the hits back to their initial type
-            result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
+			
+			if(params.idsOnly){
+				result.searchResults = searchHits*.id
+			} else {
+            	//Convert the hits back to their initial type
+            	result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
+			}
 
             // Extract highlight information.
             // Right now simply give away raw results...
