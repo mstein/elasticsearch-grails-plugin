@@ -175,7 +175,7 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
 
     void onFlush(FlushEvent flushEvent) {
         // When a flush occurs, execute the pending requests in the buffer (the buffer is cleared automatically)
-        indexRequestQueue.executeRequests()
+        indexRequestQueue.executeRequests(flushEvent.session)
     }
 
     void setApplicationContext(ApplicationContext applicationContext) {
@@ -230,6 +230,7 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
             def objsToDelete = deletedObjects.get()
             switch (status) {
                 case STATUS_COMMITTED:
+                    LOG.debug "Committing ${objsToIndex ? objsToIndex.size() : 0} objs."
                     if (objsToIndex && objsToDelete) {
                         objsToIndex.keySet().removeAll(objsToDelete.keySet())
                     }
