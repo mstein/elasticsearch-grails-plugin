@@ -442,12 +442,12 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
             LOG.debug "Search returned ${result.total ?: 0} result(s)."
 			
-			if(!params.fetchType){
+			if(params.fetchType && params.fetchType.equals("ids")){
 				result.searchResults = searchHits*.id
-			} else if (params.fetchType.equals("gorm")){
+			} else if (params.fetchType && params.fetchType.equals("gorm")){
 				def res = []
 				for(def hit in searchHits){
-					String domainClassName = hit.index().equals(hit.type()) ? capitalize(hit.index()) : (hit.index() + '.' + capitalize(hit.type()));
+					String domainClassName = hit.index().equals(hit.type()) ? hit.index().capitalize() : (hit.index() + '.' + hit.type().capitalize());
 					def classForHit =  grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, domainClassName)
 					res.add(classForHit.get(hit.id))
 				}
