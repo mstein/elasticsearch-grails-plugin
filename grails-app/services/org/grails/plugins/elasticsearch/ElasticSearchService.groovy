@@ -15,8 +15,10 @@
  */
 package org.grails.plugins.elasticsearch
 
+import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.elasticsearch.client.Client
 import org.elasticsearch.action.search.SearchType
 import static org.elasticsearch.client.Requests.searchRequest
@@ -440,12 +442,20 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
             LOG.debug "Search returned ${result.total ?: 0} result(s)."
 			
-			if(params.idsOnly){
+			if(!params.fetchType){
 				result.searchResults = searchHits*.id
+			} else if (params.fetchType.equals("gorm")){
+				def res = []
+				for(def hit in searchHits){
+					String domainClassName = hit.index().equals(hit.type()) ? capitalize(hit.index()) : (hit.index() + '.' + capitalize(hit.type()));
+					def classForHit =  grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, domainClassName)
+					res.add(classForHit.get(hit.id))
+				}
+				result.searchResults = res
 			} else {
             	//Convert the hits back to their initial type
             	result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
-			}
+			} 
 
             // Extract highlight information.
             // Right now simply give away raw results...

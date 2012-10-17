@@ -29,8 +29,30 @@ class ClientNodeFactoryBean implements FactoryBean {
     private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
 
     def node
+	
+	private boolean isContainsOnlyStrings(List obj){
+		for(def elm in obj)
+			if(!(elm instanceof String))
+				return false
+
+		return true
+	}
+	
+	private void readSettingsFromConfig(settings){
+		for(def elm in elasticSearchContextHolder.config.flatten()){
+			if(elm.value instanceof List){
+				if(!isContainsOnlyStrings(elm.value))
+					continue
+				settings.putArray(elm.key, elm.value.toArray(new String[0]))
+			} else {
+				settings.put(elm.key,elm.value)
+			}
+		}
+	}
 
     Object getObject() {
+		for(def elm in elasticSearchContextHolder.config)
+			println elm.toString()
         // Retrieve client mode, default is "node"
         def clientMode = elasticSearchContextHolder.config.client.mode ?: 'node'
         if (!(clientMode in SUPPORTED_MODES)) {
@@ -43,6 +65,9 @@ class ClientNodeFactoryBean implements FactoryBean {
         if (elasticSearchContextHolder.config.cluster.name) {
             nb.clusterName(elasticSearchContextHolder.config.cluster.name)
         }
+		
+		//Read all settings from grails config 'elasticSerach' section
+		readSettingsFromConfig(nb.settings)
 
         // Path to the data folder of ES
         def dataPath = elasticSearchContextHolder.config.path.data

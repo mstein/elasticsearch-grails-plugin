@@ -249,7 +249,7 @@ public class IndexRequestQueue implements InitializingBean {
         LOG.debug("OperationBatchList cleaned");
     }
 
-    class OperationBatch implements ActionListener<BulkResponse> {
+    public class OperationBatch implements ActionListener<BulkResponse> {
 
         private int attempts;
         private Map<IndexEntityKey, Object> toIndex;
