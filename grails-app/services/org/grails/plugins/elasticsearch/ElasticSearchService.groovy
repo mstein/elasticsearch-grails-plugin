@@ -336,7 +336,11 @@ public class ElasticSearchService implements GrailsApplicationAware {
 
         // Handle the query, can either be a closure or a string
         if (query instanceof Closure) {
-            source.query(new GXContentBuilder().buildAsBytes(query))
+            GXContentBuilder builder = new GXContentBuilder()
+            source.query(builder.buildAsBytes(query))
+            if(LOG.isDebugEnabled()){
+                LOG.debug("REQUEST: "+builder.buildAsString(query));
+            }
         } else {
             source.query(queryString(query))
         }

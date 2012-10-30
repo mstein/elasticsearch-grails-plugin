@@ -17,6 +17,8 @@
 package org.grails.plugins.elasticsearch.mapping;
 
 import grails.util.GrailsNameUtils;
+import groovy.lang.Closure;
+
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 
@@ -31,6 +33,8 @@ public class SearchableClassMapping {
     /** Searchable root? */
     private boolean root = true;
     private boolean all = true;
+    private Closure where = null;
+    private String indexName = null;
 
     public SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass;
@@ -52,6 +56,18 @@ public class SearchableClassMapping {
 
     public void setRoot(Boolean root) {
         this.root = root != null && root;
+    }
+    
+    public Closure getWhere(){
+        return where;
+    }
+    
+    public void setWhere(Closure where){
+        this.where = where;
+    }
+    
+    public void setIndexName(String _indexName){
+        indexName = _indexName;
     }
 
     public Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
@@ -77,7 +93,10 @@ public class SearchableClassMapping {
      * @return ElasticSearch index name
      */
     public String getIndexName() {
-        String name = domainClass.getPackageName();
+        String name = indexName;
+        if(name == null) {
+            name = domainClass.getPackageName();
+        }
         if (name == null || name.length() == 0) {
             // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
             name = domainClass.getPropertyName();

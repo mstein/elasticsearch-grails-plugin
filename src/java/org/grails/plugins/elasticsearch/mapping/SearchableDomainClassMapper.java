@@ -19,8 +19,12 @@ package org.grails.plugins.elasticsearch.mapping;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.util.ConfigObject;
-import org.codehaus.groovy.grails.commons.*;
 
+import org.codehaus.groovy.grails.commons.*;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -28,7 +32,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Options applied to searchable class itself
      */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except", "where"));
+    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except", "where", "indexName"));
     /**
      * Searchable property name
      */
@@ -39,6 +43,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      */
     private Boolean all = true;
     private Boolean root = true;
+    private Closure where = null;
+    private String indexName = null;
 
     private Set<String> mappableProperties = new HashSet<String>();
     private Map<String, SearchableClassPropertyMapping> customMappedProperties = new HashMap<String, SearchableClassPropertyMapping>();
@@ -80,6 +86,18 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
     public void root(Boolean rootFlag) {
         this.root = rootFlag;
+    }
+    
+    public void indexName(String _indexName){
+        this.indexName = _indexName;
+    }
+    
+    public void setWhere(Closure _where){
+        this.where = _where;
+    }
+    
+    public void setIndexName(String _indexName){
+        indexName = _indexName;
     }
 
     /**
@@ -169,6 +187,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, customMappedProperties.values());
         scm.setRoot(root);
+        scm.setWhere(where);
+        scm.setIndexName(indexName);
         return scm;
     }
 
@@ -251,15 +271,16 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      */
     public Object invokeMethod(String name, Object args) {
         // Predefined mapping options
-//        if (CLASS_MAPPING_OPTIONS.contains(name)) {
-//            if (args == null || ObjectUtils.isEmpty((Object[])args)) {
-//                throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.");
-//            }
-//            Field target = ReflectionUtils.findField(this.getClass(), name);
-//            ReflectionUtils.makeAccessible(target);
-//            ReflectionUtils.setField(target, this, ((Object[])args)[0]);
-//            return null;
-//        }
+        //if (CLASS_MAPPING_OPTIONS.contains(name)) {
+        //    if (args == null || ObjectUtils.isEmpty((Object[])args)) {
+        //        throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.");
+        //    }
+        //    Field target = ReflectionUtils.findField(this.getClass(), name);
+        //    ReflectionUtils.makeAccessible(target);
+        //    ReflectionUtils.setField(target, this, ((Object[])args)[0]);
+        //    //this."$name" = ((Object[])args)[0];
+        //    return null;
+        //}
 
         // Custom properties mapping options
         GrailsDomainClassProperty property = grailsDomainClass.getPropertyByName(name);
