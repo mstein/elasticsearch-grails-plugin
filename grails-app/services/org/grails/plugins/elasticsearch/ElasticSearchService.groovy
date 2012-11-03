@@ -450,7 +450,10 @@ public class ElasticSearchService implements GrailsApplicationAware {
             if (params.score) {
                 def scoreResults = [:]
                 for (SearchHit hit: searchHits) {
-                    scoreResults[(hit.id)] = hit.score
+                    if ( scoreResults[ hit.index + "." + hit.type ] == null ) {
+                        scoreResults[ hit.index + "." + hit.type ] = [:]
+                    }
+                    scoreResults[ hit.index + "." + hit.type ][ hit.id ] = hit.score
                 }
                 result.scores = scoreResults
             }
