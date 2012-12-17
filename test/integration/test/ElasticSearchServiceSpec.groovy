@@ -16,6 +16,7 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
 
     def setup() {
         // Make sure the indices are cleaned
+        println "cleaning indices"
         elasticSearchAdminService.deleteIndex()
         elasticSearchAdminService.refresh()
     }

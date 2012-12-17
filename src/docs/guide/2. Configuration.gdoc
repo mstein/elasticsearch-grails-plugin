@@ -10,9 +10,11 @@ The mode is defined with the following config key:
 {table}
 *Value* | *Description*
 node | The plugin create its own node and join the ElasticSearch cluster as a client node (@node.client = true@). This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
+dataNode | The plugin create its own node and join the ElasticSearch cluster as a node that can hold data. This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
 local | The plugin create its own local (to the JVM) node. Does not require any running ElasticSearch instance. Useful for development or testing.
 transport | The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.
 {table}
+
 "Transport" mode needs you to provide the host address and port. You can define one or multiple hosts with the following config key:
 {code}elasticSearch.client.hosts = [
        [host:'192.168.0.3', port:9300],
@@ -128,7 +130,7 @@ elasticSearch {
 environments {
   development {
     /**
-     * Possible values : "local", "node", "transport"
+     * Possible values : "local", "node", "dataNode", "transport"
      * If set to null, "node" mode is used by default.
      */
     elasticSearch.client.mode = 'local'
