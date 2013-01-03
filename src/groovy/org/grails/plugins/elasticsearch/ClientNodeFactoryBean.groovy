@@ -24,7 +24,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress
 import org.apache.log4j.Logger
 
 class ClientNodeFactoryBean implements FactoryBean {
-    def elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
     static SUPPORTED_MODES = ['local', 'transport', 'node', 'dataNode']
     private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
 
@@ -36,7 +36,6 @@ class ClientNodeFactoryBean implements FactoryBean {
         if (!(clientMode in SUPPORTED_MODES)) {
             throw new IllegalArgumentException("Invalid client mode, expected values were ${SUPPORTED_MODES}.")
         }
-
         def nb = nodeBuilder()
         def transportClient = null
         // Cluster name

@@ -80,9 +80,11 @@ public class SearchableClassMappingConfigurator {
                 // todo wait for success, maybe retry.
                 // If the index does not exist, create it
                 if (!installedIndices.contains(scm.getIndexName())) {
+                    LOG.debug("Index " + scm.getIndexName() + " does not exists, initiating creation...");
                     try {
                         // Could be blocked on index level, thus wait.
                         try {
+                            LOG.debug("Waiting at least yellow status on " + scm.getIndexName() + " ...");
                             elasticSearchClient.admin().cluster().prepareHealth(scm.getIndexName())
                                     .setWaitForYellowStatus()
                                     .execute().actionGet();

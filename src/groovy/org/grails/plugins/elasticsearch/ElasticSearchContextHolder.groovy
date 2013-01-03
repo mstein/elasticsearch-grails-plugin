@@ -15,6 +15,14 @@ class ElasticSearchContextHolder {
     Map<String, SearchableClassMapping> mapping = [:]
 
     /**
+     * Setter for dependency injection
+     * @param config
+     */
+    public void setConfig(ConfigObject config) {
+        this.config = config
+    }
+
+    /**
      * Adds a mapping context to the current mapping holder
      *
      * @param scm The SearchableClassMapping instance to add

@@ -20,7 +20,7 @@ grails.project.dependency.resolution = {
 
         // uncomment the below to enable remote dependency resolution
         // from public Maven repositories
-        mavenLocal()
+        // mavenLocal()
         mavenCentral()
         //mavenRepo "http://snapshots.repository.codehaus.org"
         //mavenRepo "http://repository.codehaus.org"
@@ -32,6 +32,7 @@ grails.project.dependency.resolution = {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
         runtime "org.elasticsearch:elasticsearch:0.20.2"
         runtime "org.elasticsearch:elasticsearch-lang-groovy:1.2.0"
+        runtime 'com.spatial4j:spatial4j:0.3'
     }
     plugins {
 		runtime ":hibernate:$grailsVersion"
