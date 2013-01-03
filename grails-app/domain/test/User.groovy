@@ -4,7 +4,7 @@ class User extends SuperUser {
   static searchable = {
     except = 'password'
     lastname boost:20
-    firstname boost:15, index:'not_analyzed', excludeFromAll:true
+    firstname boost:15, excludeFromAll:true
     name index:'analyzed'
     listOfThings index:'not_analyzed', excludeFromAll:true
     someThings index:'no'
