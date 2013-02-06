@@ -53,7 +53,8 @@ public class DomainClassUnmarshaller {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext();
         List results = new ArrayList();
         for(SearchHit hit : hits) {
-            String domainClassName = hit.index().equals(hit.type()) ? DefaultGroovyMethods.capitalize(hit.index()) : (hit.index() + '.' + DefaultGroovyMethods.capitalize(hit.type()));
+            String type = hit.type();
+            String domainClassName = hit.index().equals(type) ? DefaultGroovyMethods.capitalize(hit.index()) : (hit.index() + '.' + DefaultGroovyMethods.capitalize(type.substring(type.lastIndexOf(".") + 1)));
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainClassName);
             if (scm == null) {
                 LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: " + domainClassName);
