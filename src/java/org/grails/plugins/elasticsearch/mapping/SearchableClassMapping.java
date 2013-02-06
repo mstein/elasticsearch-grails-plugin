@@ -89,7 +89,7 @@ public class SearchableClassMapping {
      * @return type name for ES mapping.
      */
     public String getElasticTypeName() {
-        return GrailsNameUtils.getPropertyName(domainClass.getClazz());
+        return domainClass.getFullName().toLowerCase();
     }
 
     public boolean isAll() {
