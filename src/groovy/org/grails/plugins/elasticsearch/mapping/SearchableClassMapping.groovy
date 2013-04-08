@@ -16,11 +16,8 @@
 
 package org.grails.plugins.elasticsearch.mapping;
 
-import grails.util.GrailsNameUtils;
 import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
-
-import java.util.Collection;
 
 public class SearchableClassMapping {
     
@@ -77,7 +74,7 @@ public class SearchableClassMapping {
      * @return ElasticSearch index name
      */
     public String getIndexName() {
-        String name = domainClass.getPackageName();
+        String name = domainClass.grailsApplication.config.elasticSearch.index.name ?: domainClass.packageName
         if (name == null || name.length() == 0) {
             // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
             name = domainClass.getPropertyName();
