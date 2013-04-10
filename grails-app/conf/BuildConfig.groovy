@@ -33,7 +33,9 @@ grails.project.dependency.resolution = {
         runtime "org.elasticsearch:elasticsearch:0.20.6"
         runtime "org.elasticsearch:elasticsearch-lang-groovy:1.2.0"
         runtime 'com.spatial4j:spatial4j:0.3'
-		test "org.spockframework:spock-grails-support:0.7-groovy-2.0"
+		test("org.spockframework:spock-grails-support:0.7-groovy-2.0"){
+            export = false
+        }
     }
     plugins {
 		runtime ":hibernate:$grailsVersion"
@@ -41,6 +43,7 @@ grails.project.dependency.resolution = {
             export = false
         }
         test(":spock:0.7") {
+            export = false
             exclude "spock-grails-support"
         }
     }
