@@ -178,7 +178,7 @@ public class DomainClassUnmarshaller {
                 return unmarshallReference(refDomainClass, data, unmarshallingContext);
             }
 
-            if (data.containsKey("class")) {
+            if (data.containsKey("class") && (Boolean)grailsApplication.getFlatConfig().get("elasticSearch.unmarshallComponents")) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?
