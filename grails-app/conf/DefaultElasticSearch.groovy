@@ -50,6 +50,11 @@ elasticSearch {
    *  at once. If this setting is not specified, 500 will be use by default.
    */
   maxBulkRequest = 500
+  
+  /**
+   * Should component-mapped properties be unmarshalled. The default is true.
+   */
+  unmarshallComponents = true
 }
 
 environments {
