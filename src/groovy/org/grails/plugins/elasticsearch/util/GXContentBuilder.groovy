@@ -22,7 +22,6 @@ package org.grails.plugins.elasticsearch.util
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.common.xcontent.XContentFactory
 import org.elasticsearch.common.xcontent.XContentType
-import org.codehaus.groovy.runtime.metaclass.MissingPropertyExceptionNoStack
 
 /**
  * This is a hacked version of EC's GXContentBuilder with patched property delegation.
@@ -33,7 +32,7 @@ class GXContentBuilder extends GroovyObjectSupport {
 
     static NODE_ELEMENT = "element"
 
-    static int rootResolveStrategy = Closure.DELEGATE_FIRST; // the default
+    static int rootResolveStrategy = Closure.DELEGATE_FIRST // the default
 
     def root
 
@@ -46,26 +45,26 @@ class GXContentBuilder extends GroovyObjectSupport {
     }
 
     String buildAsString(Closure c) {
-        XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
+        XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON)
         def json = build(c)
-        builder.map(json);
-        return builder.string();
+        builder.map(json)
+        return builder.string()
     }
 
     byte[] buildAsBytes(Closure c) {
-        return buildAsBytes(c, XContentType.JSON);
+        return buildAsBytes(c, XContentType.JSON)
     }
 
     byte[] buildAsBytes(Closure c, XContentType contentType) {
-        XContentBuilder builder = XContentFactory.contentBuilder(contentType);
+        XContentBuilder builder = XContentFactory.contentBuilder(contentType)
         def json = build(c)
-        builder.map(json);
-        return builder.copiedBytes();
+        builder.map(json)
+        return builder.copiedBytes()
     }
 
     private buildRoot(Closure c) {
         c.delegate = this
-        c.resolveStrategy = rootResolveStrategy;
+        c.resolveStrategy = rootResolveStrategy
         root = [:]
         current = root
         def returnValue = c.call()
@@ -170,8 +169,7 @@ class GXContentBuilder extends GroovyObjectSupport {
     void setProperty(String propName, Object value) {
         if (value instanceof Closure) {
             handleClosureNode(propName, value)
-        }
-        else if (value instanceof List) {
+        } else if (value instanceof List) {
             value = value.collect {
                 if (it instanceof Closure) {
                     def callable = it
@@ -180,15 +178,13 @@ class GXContentBuilder extends GroovyObjectSupport {
                     callable.resolveStrategy = Closure.DELEGATE_FIRST
                     final Map nestedObject = localBuilder.buildRoot(callable)
                     return nestedObject
-                }
-                else {
+                } else {
                     return it
                 }
 
             }
             current[propName] = value
-        }
-        else {
+        } else {
             current[propName] = value
         }
     }

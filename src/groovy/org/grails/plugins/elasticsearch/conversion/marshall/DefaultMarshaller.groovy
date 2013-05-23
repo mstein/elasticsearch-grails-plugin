@@ -4,6 +4,7 @@ class DefaultMarshaller implements Marshaller {
     DefaultMarshallingContext marshallingContext
     def elasticSearchContextHolder
     def maxDepth
+    def grailsApplication
 
     /**
      * Marshall the object considering the marshallingContext maxDepth.
@@ -18,7 +19,7 @@ class DefaultMarshaller implements Marshaller {
             return nullValue()
         }
         // Cycle detection
-        def cycleIndex = marshallingContext.marshallStack.findIndexOf {it.instance.is(object)}
+        def cycleIndex = marshallingContext.marshallStack.findIndexOf { it.instance.is(object) }
         if (cycleIndex != -1) {
             def ref = []
             def refPos = marshallingContext.marshallStack.size() - cycleIndex

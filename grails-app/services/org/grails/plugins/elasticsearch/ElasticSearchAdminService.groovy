@@ -1,10 +1,9 @@
 package org.grails.plugins.elasticsearch
 
 import org.apache.log4j.Logger
-import org.elasticsearch.client.Client
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
+import org.elasticsearch.client.Client
 import org.elasticsearch.client.Requests
-import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 
 class ElasticSearchAdminService {
     static transactional = false
@@ -26,7 +25,7 @@ class ElasticSearchAdminService {
         indexRequestQueue.waitComplete()
 
         // Refresh ES
-        elasticSearchHelper.withElasticSearch {Client client ->
+        elasticSearchHelper.withElasticSearch { Client client ->
             BroadcastOperationResponse response
             if (!indices) {
                 response = client.admin().indices().refresh(Requests.refreshRequest()).actionGet()
@@ -112,7 +111,7 @@ class ElasticSearchAdminService {
         }
         // We do not trigger the deleteIndex with an empty list as it would delete ALL indices.
         // If toDelete is empty, it might be because of a misuse of a Class the user thought to be a searchable class
-        if(!toDelete.isEmpty()) {
+        if (!toDelete.isEmpty()) {
             deleteIndex(toDelete.unique())
         }
     }

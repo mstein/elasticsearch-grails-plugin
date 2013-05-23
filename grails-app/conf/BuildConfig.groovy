@@ -3,14 +3,9 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
-//grails.tomcat.jvmArgs = ["-Xmx1024m","-Xms512m", "-agentpath:C:\\Program Files (x86)\\YourKit Java Profiler 9.0.9\\bin\\win64\\yjpagent.dll=sampling,onexit=snapshot"]
-
-//grails.project.war.file = "target/${appName}-${appVersion}.war"
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
     inherits("global") {
-        // uncomment to disable ehcache
-        // excludes 'ehcache'
     }
     log "warn" // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
     repositories {
@@ -18,32 +13,38 @@ grails.project.dependency.resolution = {
         grailsHome()
         grailsCentral()
 
-        // uncomment the below to enable remote dependency resolution
-        // from public Maven repositories
-        // mavenLocal()
         mavenCentral()
-        //mavenRepo "http://snapshots.repository.codehaus.org"
-        //mavenRepo "http://repository.codehaus.org"
-        //mavenRepo "http://download.java.net/maven/2/"
-        //mavenRepo "http://repository.jboss.com/maven2/"
-        mavenRepo "http://oss.sonatype.org/content/repositories/releases/"
     }
     dependencies {
-        // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
-        runtime "org.elasticsearch:elasticsearch:0.20.6"
-        runtime "org.elasticsearch:elasticsearch-lang-groovy:1.2.0"
+        def excludes = {
+            excludes "slf4j-simple", "persistence-api", "commons-logging", "jcl-over-slf4j", "slf4j-api", "jta"
+            excludes "spring-core", "spring-beans", "spring-aop", "spring-asm", "spring-webmvc", "spring-tx", "spring-context", "spring-web", "log4j", "slf4j-log4j12"
+            excludes group: "org.grails", name: 'grails-core'
+            excludes group: "org.grails", name: 'grails-gorm'
+            excludes group: "org.grails", name: 'grails-test'
+            excludes group: 'xml-apis', name: 'xml-apis'
+            excludes 'ehcache-core'
+            transitive = false
+        }
+
+        def datastoreVersion = "1.1.7.RELEASE"
+
+        provided("org.grails:grails-datastore-gorm-plugin-support:$datastoreVersion",
+                "org.grails:grails-datastore-gorm:$datastoreVersion",
+                "org.grails:grails-datastore-core:$datastoreVersion",
+                "org.grails:grails-datastore-web:$datastoreVersion", excludes)
+
+        runtime "org.elasticsearch:elasticsearch:0.90.0"
+        runtime "org.elasticsearch:elasticsearch-lang-groovy:1.4.0"
         runtime 'com.spatial4j:spatial4j:0.3'
-		test("org.spockframework:spock-grails-support:0.7-groovy-2.0"){
-            export = false
+        test("org.spockframework:spock-grails-support:0.7-groovy-2.0") {
         }
     }
     plugins {
-		runtime ":hibernate:$grailsVersion"
-        build (":release:2.2.1", ":rest-client-builder:1.0.3") {
+        compile (":release:2.2.1", ":rest-client-builder:1.0.3") {
             export = false
         }
         test(":spock:0.7") {
-            export = false
             exclude "spock-grails-support"
         }
     }

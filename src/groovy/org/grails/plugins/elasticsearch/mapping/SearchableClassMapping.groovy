@@ -14,49 +14,49 @@
  * limitations under the License.
  */
 
-package org.grails.plugins.elasticsearch.mapping;
+package org.grails.plugins.elasticsearch.mapping
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClass;
-import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
+import org.codehaus.groovy.grails.commons.GrailsDomainClass
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 
 public class SearchableClassMapping {
-    
+
     /** All searchable properties */
-    private Collection<SearchableClassPropertyMapping> propertiesMapping;
+    private Collection<SearchableClassPropertyMapping> propertiesMapping
     /** Owning domain class */
-    private GrailsDomainClass domainClass;
+    private GrailsDomainClass domainClass
     /** Searchable root? */
-    private boolean root = true;
-    private boolean all = true;
+    private boolean root = true
+    private boolean all = true
 
     public SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
-        this.domainClass = domainClass;
-        this.propertiesMapping = propertiesMapping;
+        this.domainClass = domainClass
+        this.propertiesMapping = propertiesMapping
     }
 
     public SearchableClassPropertyMapping getPropertyMapping(String propertyName) {
-        for(SearchableClassPropertyMapping scpm : propertiesMapping) {
+        for (SearchableClassPropertyMapping scpm : propertiesMapping) {
             if (scpm.getPropertyName().equals(propertyName)) {
-                return scpm;
+                return scpm
             }
         }
-        return null;
+        return null
     }
 
     public Boolean isRoot() {
-        return root;
+        return root
     }
 
     public void setRoot(Boolean root) {
-        this.root = root != null && root;
+        this.root = root != null && root
     }
 
     public Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
-        return propertiesMapping;
+        return propertiesMapping
     }
 
     public GrailsDomainClass getDomainClass() {
-        return domainClass;
+        return domainClass
     }
 
     /**
@@ -64,11 +64,10 @@ public class SearchableClassMapping {
      * @param contextHolder context holding all known searchable mappings.
      */
     public void validate(ElasticSearchContextHolder contextHolder) {
-        for(SearchableClassPropertyMapping scpm : propertiesMapping) {
-            scpm.validate(contextHolder);
+        for (SearchableClassPropertyMapping scpm : propertiesMapping) {
+            scpm.validate(contextHolder)
         }
     }
-
 
     /**
      * @return ElasticSearch index name
@@ -77,9 +76,9 @@ public class SearchableClassMapping {
         String name = domainClass.grailsApplication.config.elasticSearch.index.name ?: domainClass.packageName
         if (name == null || name.length() == 0) {
             // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
-            name = domainClass.getPropertyName();
+            name = domainClass.getPropertyName()
         }
-        return name.toLowerCase();
+        return name.toLowerCase()
     }
 
     /**
@@ -91,6 +90,6 @@ public class SearchableClassMapping {
     }
 
     public boolean isAll() {
-        return all;
+        return all
     }
 }

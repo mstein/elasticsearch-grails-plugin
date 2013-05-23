@@ -15,28 +15,23 @@
  */
 package org.grails.plugins.elasticsearch
 
+import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
-import org.elasticsearch.client.Client
-import org.elasticsearch.action.search.SearchType
-import org.elasticsearch.groovy.common.xcontent.GXContentBuilder
-
-import static org.elasticsearch.client.Requests.searchRequest
-import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource
-import static org.elasticsearch.index.query.QueryBuilders.queryString
-import org.apache.log4j.Logger
+import org.elasticsearch.action.count.CountRequest
 import org.elasticsearch.action.search.SearchRequest
+import org.elasticsearch.action.search.SearchType
+import org.elasticsearch.client.Client
+import org.elasticsearch.groovy.common.xcontent.GXContentBuilder
+import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
-import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.sort.SortOrder
-import org.elasticsearch.action.count.CountRequest
-import org.elasticsearch.action.ActionRequest
-import org.elasticsearch.client.Requests
-import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
+
+import static org.elasticsearch.index.query.QueryBuilders.queryString
 
 public class ElasticSearchService implements GrailsApplicationAware {
-    static LOG = Logger.getLogger(ElasticSearchService.class)
+    static LOG = Logger.getLogger(ElasticSearchService)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1
@@ -235,8 +230,8 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 def count = scm.domainClass.clazz.count() ?: 0
                 int nbRun = Math.ceil(count / maxRes)
 
-                scm.domainClass.clazz.withNewSession {session ->
-                    for(int i = 0; i < nbRun; i++) {
+                scm.domainClass.clazz.withNewSession { session ->
+                    for (int i = 0; i < nbRun; i++) {
                         scm.domainClass.clazz.withCriteria {
                             firstResult(i * maxRes)
                             maxResults(maxRes)
@@ -366,7 +361,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
                 def scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
                 indices = [scm.indexName]
             } else if (params.indices instanceof Collection<Class>) {
-                 indices = params.indices.collect { c ->
+                indices = params.indices.collect { c ->
                     def scm = elasticSearchContextHolder.getMappingContextByType(c)
                     scm.indexName
                 }
@@ -438,7 +433,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             // Right now simply give away raw results...
             if (params.highlight) {
                 def highlightResults = []
-                for (SearchHit hit: searchHits) {
+                for (SearchHit hit : searchHits) {
                     highlightResults << hit.highlightFields
                 }
                 result.highlight = highlightResults
@@ -450,11 +445,11 @@ public class ElasticSearchService implements GrailsApplicationAware {
             //Records a map from hits of (hit.id, hit.score) returned in 'scores'
             if (params.score) {
                 def scoreResults = [:]
-                for (SearchHit hit: searchHits) {
-                    if ( scoreResults[ hit.index + "." + hit.type ] == null ) {
-                        scoreResults[ hit.index + "." + hit.type ] = [:]
+                for (SearchHit hit : searchHits) {
+                    if (scoreResults[hit.index + "." + hit.type] == null) {
+                        scoreResults[hit.index + "." + hit.type] = [:]
                     }
-                    scoreResults[ hit.index + "." + hit.type ][ hit.id ] = hit.score
+                    scoreResults[hit.index + "." + hit.type][hit.id] = hit.score
                 }
                 result.scores = scoreResults
             }

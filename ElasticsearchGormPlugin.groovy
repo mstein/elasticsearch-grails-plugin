@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import grails.util.Environment
 import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
@@ -32,18 +28,13 @@ import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 
 class ElasticsearchGrailsPlugin {
 
-
     static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
-    def version = "0.20.6.2-SNAPSHOT"
+    def version = "0.90.0-SNAPSHOT"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "1.3.0 > *"
-    // the other plugins this plugin depends on
-    def dependsOn = [
-            domainClass: "1.0 > *",
-            hibernate: "1.0 > *"
-    ]
+    def grailsVersion = "2.2.0 > *"
+
     def loadAfter = ['services']
 
     // resources that are excluded from plugin packaging
@@ -123,21 +114,10 @@ class ElasticsearchGrailsPlugin {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
             grailsApplication = ref("grailsApplication")
         }
-        auditListener(AuditEventListener) {
-            elasticSearchContextHolder = ref("elasticSearchContextHolder")
-        }
-
         if (!esConfig.disableAutoIndex) {
-            // do not install audit listener if auto-indexing is disabled.
-            hibernateEventListeners(HibernateEventListeners) {
-                listenerMap = [
-                        'post-delete': auditListener,
-                        'post-collection-update': auditListener,
-//                        'save-update': auditListener,
-                        'post-update': auditListener,
-                        'post-insert': auditListener,
-                        'flush': auditListener
-                ]
+            auditListener(AuditEventListener, ref(esConfig.datastoreImpl)) {
+                elasticSearchContextHolder = ref("elasticSearchContextHolder")
+                indexRequestQueue = ref("indexRequestQueue")
             }
         }
     }
