@@ -1,7 +1,7 @@
 /*
  * Copyright 2002-2010 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,45 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.plugins.elasticsearch.mapping;
+package org.grails.plugins.elasticsearch.mapping
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
-import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
-
-import java.util.*;
+import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 
 /**
  * Custom searchable property mapping.
  */
 public class SearchableClassPropertyMapping {
 
-    public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("boost", "index", "analyzer"));
-    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component","converter","reference","excludeFromAll","maxDepth"));
+    public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("boost", "index", "analyzer"))
+    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("component", "converter", "reference", "excludeFromAll", "maxDepth"))
 
     /** Grails attributes of this property */
-    GrailsDomainClassProperty grailsProperty;
+    GrailsDomainClassProperty grailsProperty
     /** Mapping attributes values, will be added in the ElasticSearch JSON mapping request  */
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<String, Object>()
     /** Special mapping attributes, only used by the plugin itself (eg: 'component', 'reference')  */
-    Map<String, Object> specialAttributes = new HashMap<String, Object>();
+    Map<String, Object> specialAttributes = new HashMap<String, Object>()
 
     public SearchableClassPropertyMapping(GrailsDomainClassProperty property) {
-        this.grailsProperty = property;
+        this.grailsProperty = property
     }
 
     public SearchableClassPropertyMapping(GrailsDomainClassProperty property, Map options) {
-        this.grailsProperty = property;
-        this.addAttributes(options);
+        this.grailsProperty = property
+        this.addAttributes(options)
     }
 
     public void addAttributes(Map<String, Object> attributesMap) {
-        for(Map.Entry<String, Object> entry : attributesMap.entrySet()) {
+        for (Map.Entry<String, Object> entry : attributesMap.entrySet()) {
             if (SEARCHABLE_MAPPING_OPTIONS.contains(entry.getKey())) {
-                attributes.put(entry.getKey(), entry.getValue());
+                attributes.put(entry.getKey(), entry.getValue())
             } else if (SEARCHABLE_SPECIAL_MAPPING_OPTIONS.contains(entry.getKey())) {
-                specialAttributes.put(entry.getKey(), entry.getValue());
+                specialAttributes.put(entry.getKey(), entry.getValue())
             } else {
-                throw new IllegalArgumentException("Invalid option " + entry.getKey() + " found in searchable mapping.");
+                throw new IllegalArgumentException("Invalid option " + entry.getKey() + " found in searchable mapping.")
             }
         }
     }
@@ -60,15 +58,15 @@ public class SearchableClassPropertyMapping {
      * @return component property?
      */
     public boolean isComponent() {
-        return specialAttributes.get("component") != null;
+        return specialAttributes.get("component") != null
     }
 
     public Object getConverter() {
-        return specialAttributes.get("converter");
+        return specialAttributes.get("converter")
     }
 
     public Object getReference() {
-        return specialAttributes.get("reference");
+        return specialAttributes.get("reference")
     }
 
     /**
@@ -76,23 +74,23 @@ public class SearchableClassPropertyMapping {
      * @return exclude this property from ALL aggregate field?
      */
     public boolean shouldExcludeFromAll() {
-        Object excludeFromAll = specialAttributes.get("excludeFromAll");
+        Object excludeFromAll = specialAttributes.get("excludeFromAll")
         if (excludeFromAll == null) {
-            return false;
+            return false
         } else if (excludeFromAll instanceof Boolean) {
-            return (Boolean) excludeFromAll;
+            return (Boolean) excludeFromAll
         } else {
             // introduce behaviour compatible with Searchable Plugin.
-            return excludeFromAll.toString().equalsIgnoreCase("yes");
+            return excludeFromAll.toString().equalsIgnoreCase("yes")
         }
     }
 
     public int getMaxDepth() {
-        Object maxDepth = specialAttributes.get("maxDepth");
+        Object maxDepth = specialAttributes.get("maxDepth")
         if (maxDepth != null) {
-            return (Integer)maxDepth;
+            return (Integer) maxDepth
         } else {
-            return 0;
+            return 0
         }
     }
 
@@ -101,15 +99,15 @@ public class SearchableClassPropertyMapping {
     public Class getBestGuessReferenceType() {
         // is type defined explicitly?
         if (getReference() instanceof Class) {
-            return (Class) this.getReference();
+            return (Class) this.getReference()
         }
 
         // is it association?
         if (this.grailsProperty.isAssociation()) {
-            return this.grailsProperty.getReferencedPropertyType();
+            return this.grailsProperty.getReferencedPropertyType()
         }
 
-        throw new IllegalStateException("Property " + getPropertyName() + " is not an association, cannot be defined as 'reference'");
+        throw new IllegalStateException("Property " + getPropertyName() + " is not an association, cannot be defined as 'reference'")
     }
 
     /**
@@ -119,25 +117,25 @@ public class SearchableClassPropertyMapping {
      */
     public void validate(ElasticSearchContextHolder contextHolder) {
         if (this.isComponent() && this.getReference() != null) {
-            throw new IllegalArgumentException("Property " + grailsProperty.getName() + " cannot be 'component' and 'reference' at once.");
+            throw new IllegalArgumentException("Property " + grailsProperty.getName() + " cannot be 'component' and 'reference' at once.")
         }
 
         if (this.isComponent() && this.componentPropertyMapping == null) {
-            throw new IllegalArgumentException("Property " + grailsProperty.getName() + " is mapped as component, but dependent mapping is not injected.");
+            throw new IllegalArgumentException("Property " + grailsProperty.getName() + " is mapped as component, but dependent mapping is not injected.")
         }
 
         // Are we referencing searchable class?
         if (this.getReference() != null) {
-            Class myReferenceType = getBestGuessReferenceType();
+            Class myReferenceType = getBestGuessReferenceType()
             // Compare using exact match of classes.
             // May not be correct to inheritance model.
-            SearchableClassMapping scm = contextHolder.getMappingContextByType(myReferenceType);
+            SearchableClassMapping scm = contextHolder.getMappingContextByType(myReferenceType)
             if (scm == null) {
-                throw new IllegalArgumentException("Property " + grailsProperty.getName() + " declared as reference to non-searchable class " + myReferenceType);
+                throw new IllegalArgumentException("Property " + grailsProperty.getName() + " declared as reference to non-searchable class " + myReferenceType)
             }
             // Should it be a root class????
             if (!scm.isRoot()) {
-                throw new IllegalArgumentException("Property " + grailsProperty.getName() + " declared as reference to non-root class " + myReferenceType);
+                throw new IllegalArgumentException("Property " + grailsProperty.getName() + " declared as reference to non-root class " + myReferenceType)
             }
         }
     }
@@ -151,40 +149,40 @@ public class SearchableClassPropertyMapping {
                 ", propertyType=" + getPropertyType() +
                 ", attributes=" + attributes +
                 ", specialAttributes=" + specialAttributes +
-                '}';
+                '}'
     }
 
     private Class<?> getPropertyType() {
-        return grailsProperty.getType();
+        return grailsProperty.getType()
     }
 
     public String getPropertyName() {
-        return grailsProperty.getName();
+        return grailsProperty.getName()
     }
 
     public GrailsDomainClassProperty getGrailsProperty() {
-        return grailsProperty;
+        return grailsProperty
     }
 
-    public Map<String,Object> getAttributes() {
-        return Collections.unmodifiableMap(attributes);
+    public Map<String, Object> getAttributes() {
+        return Collections.unmodifiableMap(attributes)
     }
 
-    private SearchableClassMapping componentPropertyMapping;
+    private SearchableClassMapping componentPropertyMapping
 
     public SearchableClassMapping getComponentPropertyMapping() {
-        return componentPropertyMapping;
+        return componentPropertyMapping
     }
 
     void setComponentPropertyMapping(SearchableClassMapping componentPropertyMapping) {
-        this.componentPropertyMapping = componentPropertyMapping;
+        this.componentPropertyMapping = componentPropertyMapping
     }
 
     /**
      * @return true if field is analyzed. NOTE it doesn't have to be stored.
      */
     public boolean isAnalyzed() {
-        String index = (String) attributes.get("index");
-        return (index == null || index.equals("analyzed"));
+        String index = (String) attributes.get("index")
+        return (index == null || index.equals("analyzed"))
     }
 }

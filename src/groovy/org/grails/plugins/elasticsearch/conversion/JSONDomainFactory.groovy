@@ -16,22 +16,14 @@
 
 package org.grails.plugins.elasticsearch.conversion
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
-import org.elasticsearch.common.xcontent.XContentBuilder
-import static org.elasticsearch.common.xcontent.XContentFactory.*
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.ApplicationHolder
-import org.grails.plugins.elasticsearch.conversion.marshall.DeepDomainClassMarshaller
-import org.grails.plugins.elasticsearch.conversion.marshall.DefaultMarshallingContext
-import org.grails.plugins.elasticsearch.conversion.marshall.DefaultMarshaller
-import org.grails.plugins.elasticsearch.conversion.marshall.MapMarshaller
-import org.grails.plugins.elasticsearch.conversion.marshall.CollectionMarshaller
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
+import org.codehaus.groovy.grails.commons.GrailsDomainClass
+import org.elasticsearch.common.xcontent.XContentBuilder
+import org.grails.plugins.elasticsearch.conversion.marshall.*
+
 import java.beans.PropertyEditor
-import org.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller
-import org.grails.plugins.elasticsearch.conversion.marshall.Marshaller
-import org.grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
-import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
 
 /**
  * Marshall objects as JSON.
@@ -86,12 +78,12 @@ class JSONDomainFactory {
                     // Property editor?
                     if (converter instanceof Class) {
                         if (PropertyEditor.isAssignableFrom(converter)) {
-                            marshaller = new PropertyEditorMarshaller(propertyEditorClass:converter)
+                            marshaller = new PropertyEditorMarshaller(propertyEditorClass: converter)
                         }
                     }
                 } else if (propertyMapping?.reference) {
                     def refClass = propertyMapping.getBestGuessReferenceType()
-                    marshaller = new SearchableReferenceMarshaller(refClass:refClass)
+                    marshaller = new SearchableReferenceMarshaller(refClass: refClass)
                 } else if (propertyMapping?.component) {
                     marshaller = new DeepDomainClassMarshaller()
                 }
@@ -107,7 +99,7 @@ class JSONDomainFactory {
                 marshaller = new DeepDomainClassMarshaller()
             } else {
                 // Check for inherited marshaller matching
-                def inheritedMarshaller = DEFAULT_MARSHALLERS.find { key, value -> key.isAssignableFrom(objectClass)}
+                def inheritedMarshaller = DEFAULT_MARSHALLERS.find { key, value -> key.isAssignableFrom(objectClass) }
                 if (inheritedMarshaller) {
                     marshaller = DEFAULT_MARSHALLERS[inheritedMarshaller.key].newInstance()
                     // If no marshaller was found, use the default one
@@ -119,12 +111,13 @@ class JSONDomainFactory {
 
         marshaller.marshallingContext = marshallingContext
         marshaller.elasticSearchContextHolder = elasticSearchContextHolder
+        marshaller.grailsApplication = grailsApplication
         marshaller.maxDepth = maxDepth
         marshaller.marshall(object)
     }
 
     private GrailsDomainClass getDomainClass(instance) {
-        grailsApplication.domainClasses.find {it.clazz == GrailsHibernateUtil.unwrapIfProxy(instance).class}
+        grailsApplication.domainClasses.find { it.clazz == instance.class }
     }
 
     /**

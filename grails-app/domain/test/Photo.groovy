@@ -9,7 +9,7 @@ class Photo extends AbstractImage {
     }
 
     static searchable = {
-        url index:"not_analyzed"
+        url index: "not_analyzed"
     }
 
 
@@ -17,6 +17,6 @@ class Photo extends AbstractImage {
         return "Photo{" +
                 "id=" + id +
                 ",url='" + url + '\'' +
-                '}';
+                '}'
     }
 }
