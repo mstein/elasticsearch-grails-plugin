@@ -22,24 +22,22 @@ import org.elasticsearch.action.count.CountRequest
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.action.search.SearchType
 import org.elasticsearch.client.Client
-import org.elasticsearch.groovy.common.xcontent.GXContentBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortOrder
+import org.grails.plugins.elasticsearch.util.GXContentBuilder
 
 import static org.elasticsearch.index.query.QueryBuilders.queryString
 
 public class ElasticSearchService implements GrailsApplicationAware {
-    static LOG = Logger.getLogger(ElasticSearchService)
+    static LOG = Logger.getLogger(ElasticSearchService.class)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1
 
     GrailsApplication grailsApplication
     def elasticSearchHelper
-    def sessionFactory
-    def persistenceInterceptor
     def domainInstancesRebuilder
     def elasticSearchContextHolder
     def indexRequestQueue
@@ -382,14 +380,6 @@ public class ElasticSearchService implements GrailsApplicationAware {
                     throw new IllegalArgumentException("Unknown object type: ${params.types}")
                 }
                 types = [scm.elasticTypeName]
-            } else if (params.types instanceof Collection<String>) {
-                types = params.types.collect { t ->
-                    def scm = elasticSearchContextHolder.getMappingContext(t)
-                    if (!scm) {
-                        throw new IllegalArgumentException("Unknown object type: ${params.types}")
-                    }
-                    scm.elasticTypeName
-                }
             } else if (params.types instanceof Class) {
                 // User can also pass a class to determine the type
                 def scm = elasticSearchContextHolder.getMappingContextByType(params.types)
@@ -397,9 +387,21 @@ public class ElasticSearchService implements GrailsApplicationAware {
                     throw new IllegalArgumentException("Unknown object type: ${params.types}")
                 }
                 types = [scm.elasticTypeName]
-            } else if (params.types instanceof Collection<Class>) {
+            } else if (params.types instanceof Collection && !params.types.empty) {
+                def firstCollectionElement = params.types.first()
+
+                def typeCollectionMethod
+                if (firstCollectionElement instanceof Class) {
+                    typeCollectionMethod = { type ->
+                        elasticSearchContextHolder.getMappingContextByType(type)
+                    }
+                } else {
+                    typeCollectionMethod = { name ->
+                        elasticSearchContextHolder.getMappingContext(name)
+                    }
+                }
                 types = params.types.collect { t ->
-                    def scm = elasticSearchContextHolder.getMappingContextByType(t)
+                    def scm = typeCollectionMethod.call(t)
                     if (!scm) {
                         throw new IllegalArgumentException("Unknown object type: ${params.types}")
                     }
@@ -446,10 +448,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
             if (params.score) {
                 def scoreResults = [:]
                 for (SearchHit hit : searchHits) {
-                    if (scoreResults[hit.index + "." + hit.type] == null) {
-                        scoreResults[hit.index + "." + hit.type] = [:]
-                    }
-                    scoreResults[hit.index + "." + hit.type][hit.id] = hit.score
+                    scoreResults[(hit.id)] = hit.score
                 }
                 result.scores = scoreResults
             }
