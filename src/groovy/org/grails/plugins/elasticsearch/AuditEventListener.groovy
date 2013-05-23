@@ -70,7 +70,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
                 pendingObjects.set(objs)
             }
 
-            def key = new EntityKey(entity.name, entity.id)
+            def key = new EntityKey(entity.class.simpleName, entity.id)
             if (deletedObjects.get()) {
                 deletedObjects.get().remove(key)
             }
@@ -93,7 +93,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
                 deletedObjects.set(objs)
             }
 
-            def key = new EntityKey(entity.name, entity.id)
+            def key = new EntityKey(entity.class.simpleName, entity.id)
             if (pendingObjects.get()) {
                 pendingObjects.get().remove(key)
             }
