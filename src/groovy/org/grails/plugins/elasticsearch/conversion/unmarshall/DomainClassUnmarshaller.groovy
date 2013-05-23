@@ -63,11 +63,16 @@ public class DomainClassUnmarshaller {
             /*def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping*/
             Map rebuiltProperties = new HashMap()
             for (Map.Entry<String, Object> entry : hit.getSource().entrySet()) {
-                unmarshallingContext.getUnmarshallingStack().push(entry.getKey())
-                rebuiltProperties.put(entry.getKey(),
-                        unmarshallProperty(scm.getDomainClass(), entry.getKey(), entry.getValue(), unmarshallingContext))
-                populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
-                unmarshallingContext.resetContext()
+                try {
+                    unmarshallingContext.getUnmarshallingStack().push(entry.getKey())
+                    rebuiltProperties.put(entry.getKey(),
+                            unmarshallProperty(scm.getDomainClass(), entry.getKey(), entry.getValue(), unmarshallingContext))
+                    populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
+                } catch (Throwable t) {
+                    LOG.error("Error unmarshalling Class ${scm.getDomainClass().getName()} with id $id", t);
+                } finally {
+                    unmarshallingContext.resetContext()
+                }
             }
             // todo manage read-only transient properties...
             bind.invoke(instance, "bind", [instance, rebuiltProperties] as Object[])
