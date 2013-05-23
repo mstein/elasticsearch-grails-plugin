@@ -35,7 +35,10 @@ grails.project.dependency.resolution = {
                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
         runtime "org.elasticsearch:elasticsearch:0.90.0"
-        runtime "org.elasticsearch:elasticsearch-lang-groovy:1.4.0"
+        runtime("org.elasticsearch:elasticsearch-lang-groovy:1.4.0") {
+            excludes 'junit'
+            excludes 'elasticsearch'
+        }
         runtime 'com.spatial4j:spatial4j:0.3'
         test("org.spockframework:spock-grails-support:0.7-groovy-2.0") {
         }
