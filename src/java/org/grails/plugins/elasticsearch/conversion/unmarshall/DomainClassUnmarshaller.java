@@ -54,12 +54,12 @@ public class DomainClassUnmarshaller {
         List results = new ArrayList();
         for(SearchHit hit : hits) {
             String type = hit.type();
-            String domainClassName = hit.index().equals(type) ? DefaultGroovyMethods.capitalize(hit.index()) : (hit.index() + '.' + DefaultGroovyMethods.capitalize(type.substring(type.lastIndexOf(".") + 1)));
-            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainClassName);
+            SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type);
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: " + domainClassName);
+                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: ");
                 continue;
             }
+            String domainClassName = scm.getDomainClass().getFullName();
 
             GrailsDomainClassProperty identifier = scm.getDomainClass().getIdentifier();
             Object id = typeConverter.convertIfNecessary(hit.id(), identifier.getType());

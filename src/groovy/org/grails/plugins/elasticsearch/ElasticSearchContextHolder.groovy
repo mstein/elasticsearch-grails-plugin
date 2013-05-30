@@ -76,6 +76,15 @@ class ElasticSearchContextHolder {
      * @return A Class instance or NULL if the class was not found
      */
     Class findMappedClassByElasticType(String elasticTypeName) {
-        mapping.values().find { scm -> scm.elasticTypeName == elasticTypeName }?.domainClass?.clazz
+        findMappingContextByElasticType(elasticTypeName)?.domainClass?.clazz
+    }
+
+    /**
+     * Returns the SearchableClassMapping that is associated to a elasticSearch type
+     * @param elasticTypeName
+     * @return
+     */
+    SearchableClassMapping findMappingContextByElasticType(String elasticTypeName) {
+        mapping.values().find { scm -> scm.elasticTypeName == elasticTypeName }
     }
 }

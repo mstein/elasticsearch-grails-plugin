@@ -86,7 +86,8 @@ public class SearchableClassMapping {
      * @return type name for ES mapping.
      */
     public String getElasticTypeName() {
-        return domainClass.getFullName().toLowerCase();
+        // dot in ES type cause some issue on elastic search
+        return domainClass.getFullName().toLowerCase().replace('.', '_');
     }
 
     public boolean isAll() {

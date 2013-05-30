@@ -41,6 +41,7 @@ elasticSearch {
     index {
         compound_format = true
     }
+    unmarshallComponents = true
 }
 
 environments {
