@@ -16,7 +16,6 @@
 
 
 import grails.util.Environment
-import grails.util.GrailsUtil
 import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.orm.hibernate.HibernateEventListeners
@@ -30,7 +29,6 @@ import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarsh
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
-import org.springframework.context.ApplicationContext
 
 class ElasticsearchGrailsPlugin {
 
@@ -38,7 +36,7 @@ class ElasticsearchGrailsPlugin {
     static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
-    def version = "0.20.6.1-SNAPSHOT"
+    def version = "0.20.6.2-SNAPSHOT"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.3.0 > *"
     // the other plugins this plugin depends on
@@ -144,31 +142,18 @@ class ElasticsearchGrailsPlugin {
         }
     }
 
-    def onShutdown = { event ->
-    }
+    def onShutdown = { event -> }
 
     def doWithDynamicMethods = { ctx ->
         // Define the custom ElasticSearch mapping for searchable domain classes
         DomainDynamicMethodsUtils.injectDynamicMethods(application.domainClasses, application, ctx)
     }
 
-    def doWithApplicationContext = { applicationContext ->
-        // Implement post initialization spring config (optional)
-    }
+    def doWithApplicationContext = { applicationContext -> }
 
-    def onChange = { event ->
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
-    }
-
-    def onConfigChange = { event ->
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
-    }
+    def onConfigChange = { event -> }
 
     // Get a configuration instance
-
     private getConfiguration(GrailsApplication application) {
         def config = application.config
         // try to load it from class file and merge into GrailsApplication#config
