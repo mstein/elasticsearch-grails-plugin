@@ -174,7 +174,7 @@ class ElasticsearchGrailsPlugin {
             newElasticSearchConfig.putAll(defaultConfig.elasticSearch.merge(config.elasticSearch))
 
             config.elasticSearch = newElasticSearchConfig
-
+            application.configChanged()
             return config.elasticSearch
         } catch (ClassNotFoundException e) {
             LOG.debug("ElasticSearch default configuration file not found: ${e.message}")
@@ -188,13 +188,14 @@ class ElasticsearchGrailsPlugin {
             if(config.elasticSearch.unmarshallComponents == [:]) {
                 config.elasticSearch.unmarshallComponents = true
             }
+            application.configChanged()
             return config.elasticSearch
         }
 
         // No config found, add some default and obligatory properties
         config.elasticSearch.date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
         config.elasticSearch.unmarshallComponents = true
-
+        application.configChanged()
         return config
     }
 }
