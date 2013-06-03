@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+import grails.util.Environment
 import grails.util.GrailsUtil
 import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -86,7 +88,7 @@ class ElasticsearchGrailsPlugin {
     }
 
     def doWithSpring = {
-        def esConfig = getConfiguration(parentCtx, application)
+        def esConfig = getConfiguration(application)
         elasticSearchContextHolder(ElasticSearchContextHolder) {
             config = esConfig
         }
@@ -167,40 +169,46 @@ class ElasticsearchGrailsPlugin {
 
     // Get a configuration instance
 
-    private getConfiguration(ApplicationContext applicationContext, GrailsApplication application) {
+    private getConfiguration(GrailsApplication application) {
         def config = application.config
         // try to load it from class file and merge into GrailsApplication#config
         // Config.groovy properties override the default one
         try {
             Class dataSourceClass = application.getClassLoader().loadClass("DefaultElasticSearch")
-            ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment())
+            ConfigSlurper configSlurper = new ConfigSlurper(Environment.current.name)
             Map binding = new HashMap()
             binding.userHome = System.properties['user.home']
             binding.grailsEnv = application.metadata["grails.env"]
             binding.appName = application.metadata["app.name"]
             binding.appVersion = application.metadata["app.version"]
             configSlurper.binding = binding
-            def defaultConfig = configSlurper.parse(dataSourceClass)
-            config = defaultConfig.merge(config)
+
+            ConfigObject defaultConfig = configSlurper.parse(dataSourceClass)
+
+            ConfigObject newElasticSearchConfig = new ConfigObject()
+            newElasticSearchConfig.putAll(defaultConfig.elasticSearch.merge(config.elasticSearch))
+
+            config.elasticSearch = newElasticSearchConfig
+
             return config.elasticSearch
         } catch (ClassNotFoundException e) {
-            LOG.debug("Not found: ${e.message}")
+            LOG.debug("ElasticSearch default configuration file not found: ${e.message}")
         }
-        // try to get it from GrailsApplication#config
+        // Here the default configuration file was not found, so we
+        // try to get it from GrailsApplication#config and add some mandatory default values
         if (config.containsKey("elasticSearch")) {
             if (!config.elasticSearch.date?.formats) {
                 config.elasticSearch.date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+            }
+            if(config.elasticSearch.unmarshallComponents == [:]) {
+                config.elasticSearch.unmarshallComponents = true
             }
             return config.elasticSearch
         }
 
         // No config found, add some default and obligatory properties
-        ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment())
-        config.merge(configSlurper.parse({
-            elasticSeatch {
-                date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
-            }
-        }))
+        config.elasticSearch.date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
+        config.elasticSearch.unmarshallComponents = true
 
         return config
     }
