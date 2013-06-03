@@ -30,6 +30,15 @@ public class ElasticSearchMappingFactory {
 
     private static Class JODA_TIME_BASE;
 
+    static Map<String, String> javaPrimitivesToElastic = new HashMap<String, String>(){{
+        put("int", "integer");
+        put("long", "long");
+        put("short", "short");
+        put("double", "double");
+        put("float", "float");
+        put("byte", "byte");
+    }};
+
     static {
         try {
             JODA_TIME_BASE = Class.forName("org.joda.time.ReadableInstant");
@@ -73,6 +82,13 @@ public class ElasticSearchMappingFactory {
                     // Use 'string' type for properties with custom converter.
                     // Arrays are automatically resolved by ElasticSearch, so no worries.
                     propType = "string";
+                // Handle primitive types, see https://github.com/mstein/elasticsearch-grails-plugin/issues/61
+                } else if(scpm.getGrailsProperty().getReferencedPropertyType().isPrimitive()) {
+                    if(javaPrimitivesToElastic.containsKey(scpm.getGrailsProperty().getReferencedPropertyType().toString())) {
+                        propType = javaPrimitivesToElastic.get(scpm.getGrailsProperty().getReferencedPropertyType().toString());
+                    } else {
+                        propType = "object";
+                    }
                 } else {
                     propType = "object";
                 }
