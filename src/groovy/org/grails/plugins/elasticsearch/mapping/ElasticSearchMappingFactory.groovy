@@ -159,4 +159,3 @@ public class ElasticSearchMappingFactory {
     }
 
 }
->>>>>>> * General cleanup:src/groovy/org/grails/plugins/elasticsearch/mapping/ElasticSearchMappingFactory.groovy

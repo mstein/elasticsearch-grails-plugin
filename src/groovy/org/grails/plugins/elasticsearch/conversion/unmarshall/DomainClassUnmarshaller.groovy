@@ -48,10 +48,14 @@ public class DomainClassUnmarshaller {
 
 
     public Collection buildResults(SearchHits hits) {
+        DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
+        List results = new ArrayList()
+        for (SearchHit hit : hits) {
+            String type = hit.type()
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type);
             if (scm == null) {
                 LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: " + domainClassName)
-                continue;
+                continue
             }
             String domainClassName = scm.getDomainClass().getFullName();
 
