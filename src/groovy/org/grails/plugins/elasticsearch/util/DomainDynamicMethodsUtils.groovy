@@ -17,6 +17,7 @@ package org.grails.plugins.elasticsearch.util
 
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.grails.plugins.elasticsearch.mapping.SearchableDomainClassMapper
 import org.apache.commons.logging.LogFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
@@ -42,40 +43,31 @@ class DomainDynamicMethodsUtils {
         for (GrailsDomainClass domain in grailsApplication.domainClasses) {
             if (domain.getPropertyValue(SearchableDomainClassMapper.SEARCHABLE_PROPERTY_NAME)) {
                 def domainCopy = domain
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainCopy)
                 // Only inject the methods if the domain is mapped as "root"
-                if (elasticSearchContextHolder.getMappingContext(domainCopy)?.root) {
+                if (scm?.root) {
+                    def indexAndType = [indices: scm.indexName, types: domainCopy.clazz]
+
                     // Inject the search method
                     domain.metaClass.'static'.search << { String q, Map params = [:] ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.search(q, params)
+                        elasticSearchService.search(q, params + indexAndType)
                     }
                     domain.metaClass.'static'.search << { Map params = [:], Closure q ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.search(params, q)
+                        elasticSearchService.search(params + indexAndType, q)
                     }
                     domain.metaClass.'static'.search << { Closure q, Map params = [:] ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.search(params, q)
+                        elasticSearchService.search(params + indexAndType, q)
                     }
 
                     // Inject the countHits method
                     domain.metaClass.'static'.countHits << { String q, Map params = [:] ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.countHits(q, params)
+                        elasticSearchService.countHits(q, params + indexAndType)
                     }
                     domain.metaClass.'static'.countHits << { Map params = [:], Closure q ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.countHits(params, q)
+                        elasticSearchService.countHits(params + indexAndType, q)
                     }
                     domain.metaClass.'static'.countHits << { Closure q, Map params = [:] ->
-                        params.indices = domainCopy.packageName ?: domainCopy.propertyName
-                        params.types = domainCopy.clazz
-                        elasticSearchService.countHits(params, q)
+                        elasticSearchService.countHits(params + indexAndType, q)
                     }
 
                     // Inject the index method
