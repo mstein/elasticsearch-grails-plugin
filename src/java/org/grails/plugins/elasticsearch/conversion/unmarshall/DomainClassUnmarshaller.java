@@ -253,7 +253,7 @@ public class DomainClassUnmarshaller {
                 .type(name)
                 .id(typeConverter.convertIfNecessary(id, String.class)))
                 .actionGet();
-        return unmarshallDomain(domainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
+        return unmarshallDomain(domainClass, response.getId(), response.getSourceAsMap(), unmarshallingContext);
     }
 
 
