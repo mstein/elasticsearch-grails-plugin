@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class ElasticsearchGrailsPlugin {
     static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
 
     // the plugin version
-    def version = "0.20.6.2-SNAPSHOT"
+    def version = "0.90.3.0-SNAPSHOT"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.3.0 > *"
     // the other plugins this plugin depends on
