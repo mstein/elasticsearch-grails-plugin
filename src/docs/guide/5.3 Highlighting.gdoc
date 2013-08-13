@@ -2,7 +2,7 @@ The search method support highlighting: automatic wrapping of the matching terms
 HTML/XML/Whatever tags.
 You can activate this with a @Closure@ containing the highlight settings in the search method @highlight@ parameter.
 The format of the @Closure@ for defining the highlight settings is the same as the
-[ElasticSearch REST API|http://www.elasticsearch.org/guide/reference/api/search/highlighting.html].
+[ElasticSearch REST API|http://www.elasticsearch.org/guide/reference/api/search/highlighting/].
 
 *Example*
 {code:groovy}
