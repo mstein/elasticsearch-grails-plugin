@@ -133,7 +133,7 @@ class AuditEventListener extends SaveOrUpdateEventListener implements PostCollec
 
         } else {
             // No transaction - Fire immediately.
-            indexRequestQueue.addIndexRequest(obj)
+            indexRequestQueue.addDeleteRequest(obj)
         }
     }
 
