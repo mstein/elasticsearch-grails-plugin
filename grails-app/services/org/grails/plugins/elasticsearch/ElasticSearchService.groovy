@@ -422,7 +422,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     private doSearch(SearchRequest request, Map params) {
         elasticSearchHelper.withElasticSearch { Client client ->
             def response = client.search(request).actionGet()
-            def searchHits = response.hits()
+            def searchHits = response.getHits()
             def result = [:]
             result.total = searchHits.totalHits()
 

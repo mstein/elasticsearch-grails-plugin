@@ -94,7 +94,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         while (currentClass != null) {
             currentClass = currentClass.getSuperclass()
             if (currentClass != null && DomainClassArtefactHandler.isDomainClass(currentClass)) {
-                GrailsDomainClass superDomainClass = (GrailsDomainClass)
+                def superDomainClass = currentClass
                 grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, currentClass.getName())
 
                 // If the super class is abstract, it needs peculiar processing
