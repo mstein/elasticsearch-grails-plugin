@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import grails.util.Environment
 import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
@@ -26,9 +28,9 @@ import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 
-class ElasticsearchGrailsPlugin {
+class ElasticsearchGormGrailsPlugin {
 
-    static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGrailsPlugin")
+    static LOG = Logger.getLogger("org.grails.plugins.elasticsearch.ElasticsearchGormGrailsPlugin")
 
     // the plugin version
     def version = "0.90.0-SNAPSHOT"
@@ -92,7 +94,7 @@ class ElasticsearchGrailsPlugin {
             elasticSearchContextHolder = ref("elasticSearchContextHolder")
             elasticSearchClient = ref("elasticSearchClient")
             jsonDomainFactory = ref("jsonDomainFactory")
-            sessionFactory = ref("sessionFactory")
+            persistenceInterceptor = ref("persistenceInterceptor")
         }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref("elasticSearchContextHolder")
@@ -165,7 +167,7 @@ class ElasticsearchGrailsPlugin {
             if (!config.elasticSearch.date?.formats) {
                 config.elasticSearch.date.formats = ["yyyy-MM-dd'T'HH:mm:ss'Z'"]
             }
-            if(config.elasticSearch.unmarshallComponents == [:]) {
+            if (config.elasticSearch.unmarshallComponents == [:]) {
                 config.elasticSearch.unmarshallComponents = true
             }
             application.configChanged()
