@@ -3,7 +3,15 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
+grails.project.dependency.distribution = {
+    remoteRepository(id: "snapshots-repo", url: "http://noams.artifactoryonline.com/noams/grails-elasticsearch-plugin-snapshots/") {
+        authentication username: System.getProperty('DEPLOYER_USERNAME'), password: System.getProperty('DEPLOYER_PASSWORD')
+    }
+}
 grails.project.dependency.resolution = {
+
+    pom true
+
     // inherit Grails' default dependencies
     inherits("global") {
     }
@@ -27,15 +35,15 @@ grails.project.dependency.resolution = {
             transitive = false
         }
 
-        def datastoreVersion = "1.1.7.RELEASE"
+        def datastoreVersion = "1.1.9.RELEASE"
 
         provided("org.grails:grails-datastore-gorm-plugin-support:$datastoreVersion",
                 "org.grails:grails-datastore-gorm:$datastoreVersion",
                 "org.grails:grails-datastore-core:$datastoreVersion",
                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
-        runtime "org.elasticsearch:elasticsearch:0.90.0"
-        runtime("org.elasticsearch:elasticsearch-lang-groovy:1.4.0") {
+        runtime "org.elasticsearch:elasticsearch:0.90.3"
+        runtime("org.elasticsearch:elasticsearch-lang-groovy:1.5.0") {
             excludes 'junit'
             excludes 'elasticsearch'
         }
@@ -44,7 +52,7 @@ grails.project.dependency.resolution = {
         }
     }
     plugins {
-        compile (":release:2.2.1", ":rest-client-builder:1.0.3") {
+        compile(":release:2.2.1", ":rest-client-builder:1.0.3") {
             export = false
         }
         test(":spock:0.7") {
