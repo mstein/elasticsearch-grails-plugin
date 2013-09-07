@@ -17,6 +17,8 @@
 package org.grails.plugins.elasticsearch
 
 import org.springframework.beans.factory.FactoryBean
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+
 import static org.elasticsearch.node.NodeBuilder.*
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
@@ -37,6 +39,13 @@ class ClientNodeFactoryBean implements FactoryBean {
             throw new IllegalArgumentException("Invalid client mode, expected values were ${SUPPORTED_MODES}.")
         }
         def nb = nodeBuilder()
+
+        def configFile = elasticSearchContextHolder.config.file
+        if (configFile) {
+            def resource = new PathMatchingResourcePatternResolver().getResource(configFile)
+            nb.settings(ImmutableSettings.settingsBuilder().loadFromUrl(resource.URL))
+        }
+
         def transportClient = null
         // Cluster name
         if (elasticSearchContextHolder.config.cluster.name) {
