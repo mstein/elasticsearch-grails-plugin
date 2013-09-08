@@ -119,7 +119,8 @@ public class SearchableClassMappingConfigurator {
 
         }
 
-        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(new ClusterHealthRequest().waitForYellowStatus()).actionGet()
+        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
+                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
         LOG.debug("Cluster status: " + response.getStatus())
     }
 
