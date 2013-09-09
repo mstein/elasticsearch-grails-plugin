@@ -129,7 +129,7 @@ class JSONDomainFactory {
     public XContentBuilder buildJSON(instance) {
         def domainClass = getDomainClass(instance)
         def json = jsonBuilder().startObject()
-        // TODO : add maxDepth in custom mapping (only for "seachable components")
+        // TODO : add maxDepth in custom mapping (only for "searchable components")
         def scm = elasticSearchContextHolder.getMappingContext(domainClass)
         def marshallingContext = new DefaultMarshallingContext(maxDepth: 5, parentFactory: this)
         marshallingContext.push(instance)
