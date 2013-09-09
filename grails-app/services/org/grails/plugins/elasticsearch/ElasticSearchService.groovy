@@ -30,6 +30,7 @@ import org.elasticsearch.search.sort.SortOrder
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
 
 import static org.elasticsearch.index.query.QueryBuilders.queryString
+import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
 
 public class ElasticSearchService implements GrailsApplicationAware {
     static LOG = Logger.getLogger(ElasticSearchService.class)
@@ -325,7 +326,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
         if (query instanceof Closure) {
             source.query(new GXContentBuilder().buildAsBytes(query))
         } else {
-            QueryStringQueryBuilder.Operator defaultOperator = params['default_operator'] ?: QueryStringQueryBuilder.Operator.AND
+            Operator defaultOperator = params['default_operator'] ?: Operator.AND
             QueryStringQueryBuilder builder = queryString(query).defaultOperator(defaultOperator)
             if (params.analyzer) {
                 builder.analyzer(params.analyzer)
