@@ -111,8 +111,8 @@ public class IndexRequestQueue implements InitializingBean {
     public XContentBuilder toJSON(Object instance) {
         try {
             return jsonDomainFactory.buildJSON(instance)
-        } catch (Exception e) {
-            throw new IndexException("Failed to marshall domain instance [" + instance + "]", e)
+        } catch (Throwable t) {
+            throw new IndexException("Failed to marshall domain instance [" + instance + "]", t)
         }
     }
 
