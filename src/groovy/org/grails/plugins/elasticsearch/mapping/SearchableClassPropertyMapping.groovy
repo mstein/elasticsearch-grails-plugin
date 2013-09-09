@@ -25,7 +25,7 @@ public class SearchableClassPropertyMapping {
 
     public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index', 'analyzer'] as Set<String>
     public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
-        ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field'] as Set<String>
+        ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent'] as Set<String>
 
     /** Grails attributes of this property */
     GrailsDomainClassProperty grailsProperty
@@ -72,6 +72,11 @@ public class SearchableClassPropertyMapping {
 
     public boolean isMultiField() {
         specialAttributes.multi_field != null
+    }
+
+    public boolean isParent() {
+        Object parentVal = specialAttributes.parent
+        (parentVal != null) && ((Boolean) parentVal)
     }
 
     /**

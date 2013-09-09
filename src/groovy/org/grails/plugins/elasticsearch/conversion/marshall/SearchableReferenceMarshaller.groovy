@@ -17,6 +17,7 @@
 package org.grails.plugins.elasticsearch.conversion.marshall
 
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 
 /**
  * Marshall only searchable class ID.
@@ -37,10 +38,15 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
         def domainClass = grailsApplication.domainClasses.find { it.clazz == refClass }
         assert domainClass: "Class ${refClass} is not a Grails domain class."
         // todo encapsulate me
-        def scm = marshallingContext.parentFactory.elasticSearchContextHolder.getMappingContext(domainClass)
+        SearchableClassMapping scm = marshallingContext.parentFactory.elasticSearchContextHolder.getMappingContext(domainClass)
         assert scm
-        return [id: InvokerHelper.invokeMethod(object, "ident", null)]
+
+        def referenceMap = [id: InvokerHelper.invokeMethod(object, 'ident', null)]
+
+        def parentProperty = scm.propertiesMapping.find { it.isParent() }
+        if (parentProperty) {
+            referenceMap.'parent' = object."$parentProperty.propertyName".ident()
+        }
+        return referenceMap
     }
-
-
 }

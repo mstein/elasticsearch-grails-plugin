@@ -15,6 +15,7 @@
  */
 package org.grails.plugins.elasticsearch.mapping
 
+import grails.util.GrailsNameUtils
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
@@ -40,6 +41,19 @@ public class ElasticSearchMappingFactory {
     }
 
     public static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
+        Map mappingFields = [properties: getMappingProperties(scm)]
+
+        SearchableClassPropertyMapping parentProperty = scm.propertiesMapping.find { it.parent }
+        if (parentProperty) {
+            mappingFields.'_parent' = [type: GrailsNameUtils.getPropertyName(parentProperty.grailsProperty.type)]
+        }
+
+        Map<String, Object> mapping = [:]
+        mapping."${scm.getElasticTypeName()}" = mappingFields
+        mapping
+    }
+
+    private static LinkedHashMap<String, Object> getMappingProperties(SearchableClassMapping scm) {
         Map<String, Object> elasticTypeMappingProperties = [:]
 
         if (!scm.isAll()) {
@@ -142,18 +156,14 @@ public class ElasticSearchMappingFactory {
             }
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
-
-        Map<String, Object> mapping = [:]
-        mapping."${scm.getElasticTypeName()}" = Collections.singletonMap('properties', elasticTypeMappingProperties)
-        mapping
+        elasticTypeMappingProperties
     }
 
     private static boolean isDateType(Class type) {
-        (JODA_TIME_BASE != null && JODA_TIME_BASE.isAssignableFrom(type)) || java.util.Date.isAssignableFrom(type)
+        (JODA_TIME_BASE != null && JODA_TIME_BASE.isAssignableFrom(type)) || Date.isAssignableFrom(type)
     }
 
     private static Map<String, Object> defaultDescriptor(String type, String index, boolean excludeFromAll) {
         [type: type, index: index, include_in_all: !excludeFromAll]
     }
-
 }

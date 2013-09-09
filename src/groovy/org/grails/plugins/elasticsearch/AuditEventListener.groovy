@@ -45,7 +45,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         super(datastore)
     }
 
-    def registerMySynchronization() {
+    void registerMySynchronization() {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
                 if (sync instanceof IndexSynchronization) {
@@ -60,7 +60,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
     /**
      * Push object to index. Save as pending if transaction is not committed yet.
      */
-    public def pushToIndex(entity) {
+    public void pushToIndex(entity) {
         // Register transaction synchronization
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             // Save object as pending
@@ -226,7 +226,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
                     LOG.debug "Rollbacking ${objsToIndex ? objsToIndex.size() : 0} objs."
                     break
                 default:
-                    LOG.error "Unknown transaction state."
+                    LOG.error 'Unknown transaction state.'
             }
 
             // Clear objs

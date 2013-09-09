@@ -249,13 +249,18 @@ public class DomainClassUnmarshaller {
         String indexName = elasticSearchContextHolder.getMappingContext(domainClass).getIndexName()
         String name = elasticSearchContextHolder.getMappingContext(domainClass).getElasticTypeName()
         // A property value is expected to be a map in the form [id:ident]
-        Object id = data.get("id")
-        GetResponse response = elasticSearchClient.get(new GetRequest(indexName)
-                .operationThreaded(false)
-                .type(name)
-                .id(typeConverter.convertIfNecessary(id, String)))
-                .actionGet()
-        return unmarshallDomain(domainClass, response.id(), response.sourceAsMap(), unmarshallingContext)
+        Object id = data.id
+        GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
+                .id(typeConverter.convertIfNecessary(id, String.class));
+        if (data.containsKey('parent')) {
+            request.parent(typeConverter.convertIfNecessary(data.parent, String.class));
+        }
+        GetResponse response = elasticSearchClient.get(request).actionGet();
+        Map<String, Object> resolvedReferenceData = response.getSourceAsMap();
+        if (resolvedReferenceData == null) {
+            throw new IllegalStateException("Could not find and resolve searchable reference: ${request.toString()}");
+        }
+        return unmarshallDomain(domainClass, response.getId(), resolvedReferenceData, unmarshallingContext);
     }
 
 
