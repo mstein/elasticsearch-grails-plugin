@@ -28,11 +28,11 @@ public class SearchableClassPropertyMapping {
         ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent'] as Set<String>
 
     /** Grails attributes of this property */
-    GrailsDomainClassProperty grailsProperty
+    private GrailsDomainClassProperty grailsProperty
     /** Mapping attributes values, will be added in the ElasticSearch JSON mapping request  */
-    Map<String, Object> attributes = [:]
+    private Map<String, Object> attributes = [:]
     /** Special mapping attributes, only used by the plugin itself (eg: 'component', 'reference')  */
-    Map<String, Object> specialAttributes = [:]
+    private Map<String, Object> specialAttributes = [:]
 
     public SearchableClassPropertyMapping(GrailsDomainClassProperty property) {
         this.grailsProperty = property
@@ -46,9 +46,9 @@ public class SearchableClassPropertyMapping {
     public void addAttributes(Map<String, Object> attributesMap) {
         attributesMap.each { key, value ->
             if (SEARCHABLE_MAPPING_OPTIONS.contains(key)) {
-                attributes.put(key, value)
+                this.attributes.put(key, value)
             } else if (SEARCHABLE_SPECIAL_MAPPING_OPTIONS.contains(key)) {
-                specialAttributes.put(key, value)
+                this.specialAttributes.put(key, value)
             } else {
                 throw new IllegalArgumentException("Invalid option $key found in searchable mapping.")
             }
@@ -148,16 +148,16 @@ public class SearchableClassPropertyMapping {
      * @return searchable property mapping information.
      */
     public String toString() {
-        return "SearchableClassPropertyMapping{propertyName=${getPropertyName()}, propertyType='${getPropertyType()}, " +
+        "SearchableClassPropertyMapping{propertyName=${getPropertyName()}, propertyType='${getPropertyType()}, " +
                 "attributes=${attributes}, specialAttributes=${specialAttributes}"
     }
 
     private Class<?> getPropertyType() {
-        return grailsProperty.getType()
+        grailsProperty.getType()
     }
 
     public String getPropertyName() {
-        return grailsProperty.getName()
+        grailsProperty.getName()
     }
 
     public GrailsDomainClassProperty getGrailsProperty() {
@@ -165,13 +165,13 @@ public class SearchableClassPropertyMapping {
     }
 
     public Map<String, Object> getAttributes() {
-        return Collections.unmodifiableMap(attributes)
+        Collections.unmodifiableMap(attributes)
     }
 
     private SearchableClassMapping componentPropertyMapping
 
     public SearchableClassMapping getComponentPropertyMapping() {
-        return componentPropertyMapping
+        componentPropertyMapping
     }
 
     void setComponentPropertyMapping(SearchableClassMapping componentPropertyMapping) {
