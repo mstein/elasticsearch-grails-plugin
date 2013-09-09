@@ -23,16 +23,18 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
  */
 public class SearchableClassPropertyMapping {
 
-    public static final Set<String> SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index', 'analyzer'] as Set<String>
-    public static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
+    private static final Set<String> SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index', 'analyzer'] as Set<String>
+    private static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
         ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent'] as Set<String>
 
     /** Grails attributes of this property */
     private GrailsDomainClassProperty grailsProperty
     /** Mapping attributes values, will be added in the ElasticSearch JSON mapping request  */
-    private Map<String, Object> attributes = [:]
+    private Map<String, Object> mappingAttributes = [:]
     /** Special mapping attributes, only used by the plugin itself (eg: 'component', 'reference')  */
-    private Map<String, Object> specialAttributes = [:]
+    private Map<String, Object> specialMappingAttributes = [:]
+
+    private SearchableClassMapping componentPropertyMapping
 
     public SearchableClassPropertyMapping(GrailsDomainClassProperty property) {
         this.grailsProperty = property
@@ -46,9 +48,9 @@ public class SearchableClassPropertyMapping {
     public void addAttributes(Map<String, Object> attributesMap) {
         attributesMap.each { key, value ->
             if (SEARCHABLE_MAPPING_OPTIONS.contains(key)) {
-                this.attributes.put(key, value)
+                this.mappingAttributes.put(key, value)
             } else if (SEARCHABLE_SPECIAL_MAPPING_OPTIONS.contains(key)) {
-                this.specialAttributes.put(key, value)
+                this.specialMappingAttributes.put(key, value)
             } else {
                 throw new IllegalArgumentException("Invalid option $key found in searchable mapping.")
             }
@@ -59,23 +61,23 @@ public class SearchableClassPropertyMapping {
      * @return component property?
      */
     public boolean isComponent() {
-        specialAttributes.component != null
+        specialMappingAttributes.component != null
     }
 
     public Object getConverter() {
-        specialAttributes.converter
+        specialMappingAttributes.converter
     }
 
     public Object getReference() {
-        specialAttributes.reference
+        specialMappingAttributes.reference
     }
 
     public boolean isMultiField() {
-        specialAttributes.multi_field != null
+        specialMappingAttributes.multi_field != null
     }
 
     public boolean isParent() {
-        Object parentVal = specialAttributes.parent
+        Object parentVal = specialMappingAttributes.parent
         (parentVal != null) && ((Boolean) parentVal)
     }
 
@@ -84,7 +86,7 @@ public class SearchableClassPropertyMapping {
      * @return exclude this property from ALL aggregate field?
      */
     public boolean shouldExcludeFromAll() {
-        Object excludeFromAll = specialAttributes.excludeFromAll
+        Object excludeFromAll = specialMappingAttributes.excludeFromAll
         if (excludeFromAll == null) {
             return false
         } else if (excludeFromAll instanceof Boolean) {
@@ -96,7 +98,7 @@ public class SearchableClassPropertyMapping {
     }
 
     public int getMaxDepth() {
-        Object maxDepth = specialAttributes.maxDepth
+        Object maxDepth = specialMappingAttributes.maxDepth
         maxDepth != null ? (Integer) maxDepth : 0
     }
 
@@ -149,7 +151,7 @@ public class SearchableClassPropertyMapping {
      */
     public String toString() {
         "SearchableClassPropertyMapping{propertyName=${getPropertyName()}, propertyType='${getPropertyType()}, " +
-                "attributes=${attributes}, specialAttributes=${specialAttributes}"
+                "mappingAttributes=$mappingAttributes, specialMappingAttributes=$specialMappingAttributes"
     }
 
     private Class<?> getPropertyType() {
@@ -165,10 +167,8 @@ public class SearchableClassPropertyMapping {
     }
 
     public Map<String, Object> getAttributes() {
-        Collections.unmodifiableMap(attributes)
+        Collections.unmodifiableMap(mappingAttributes)
     }
-
-    private SearchableClassMapping componentPropertyMapping
 
     public SearchableClassMapping getComponentPropertyMapping() {
         componentPropertyMapping
@@ -182,7 +182,7 @@ public class SearchableClassPropertyMapping {
      * @return true if field is analyzed. NOTE it doesn't have to be stored.
      */
     public boolean isAnalyzed() {
-        String index = (String) attributes.index
+        String index = (String) mappingAttributes.index
         (index == null || index == 'analyzed')
     }
 }
