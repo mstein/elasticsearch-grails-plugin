@@ -49,15 +49,11 @@ grails.project.dependency.resolution = {
             excludes 'groovy-all'
         }
         runtime 'com.spatial4j:spatial4j:0.3'
-        test('org.spockframework:spock-grails-support:0.7-groovy-2.0') {
-        }
     }
     plugins {
         compile(':release:2.2.1', ':rest-client-builder:1.0.3') {
             export = false
         }
-        test(':spock:0.7') {
-            exclude 'spock-grails-support'
-        }
+        test(':spock:0.7')
     }
 }
