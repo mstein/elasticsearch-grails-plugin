@@ -55,8 +55,6 @@ elasticSearch {
      * Should component-mapped properties be unmarshalled. The default is true.
      */
     unmarshallComponents = true
-
-    datastoreImpl = 'mongoDatastore'
 }
 
 environments {

@@ -39,7 +39,6 @@ elasticSearch {
         compound_format = true
     }
     unmarshallComponents = true
-    datastoreImpl = 'mongoDatastore'
 }
 
 environments {
