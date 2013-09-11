@@ -101,7 +101,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
             registerMySynchronization()
 
         } else {
-            indexRequestQueue.addIndexRequest(entity)
+            indexRequestQueue.addDeleteRequest(entity)
             indexRequestQueue.executeRequests()
         }
     }
