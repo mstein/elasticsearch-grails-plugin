@@ -116,6 +116,9 @@ class ElasticsearchGormGrailsPlugin {
             grailsApplication = ref('grailsApplication')
         }
         if (!esConfig.disableAutoIndex) {
+            if (!esConfig.datastoreImpl) {
+                throw new Exception('No datastore implementation specified')
+            }
             auditListener(AuditEventListener, ref(esConfig.datastoreImpl)) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 indexRequestQueue = ref('indexRequestQueue')
