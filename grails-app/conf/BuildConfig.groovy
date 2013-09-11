@@ -47,6 +47,7 @@ grails.project.dependency.resolution = {
             excludes 'junit'
             excludes 'elasticsearch'
             excludes 'groovy-all'
+            excludes 'log4j'
         }
         runtime 'com.spatial4j:spatial4j:0.3'
     }
