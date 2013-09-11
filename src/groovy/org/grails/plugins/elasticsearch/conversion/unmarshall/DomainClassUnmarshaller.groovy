@@ -1,7 +1,7 @@
 /*
  * Copyright 2002-2011 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -46,7 +46,6 @@ public class DomainClassUnmarshaller {
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
 
-
     public Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
         List results = new ArrayList()
@@ -54,7 +53,7 @@ public class DomainClassUnmarshaller {
             String type = hit.type()
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type);
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: " + domainClassName)
+                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type())
                 continue
             }
             String domainClassName = scm.getDomainClass().getFullName();
@@ -64,7 +63,6 @@ public class DomainClassUnmarshaller {
             GroovyObject instance = (GroovyObject) scm.getDomainClass().newInstance()
             instance.setProperty(identifier.getName(), id)
 
-            /*def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping*/
             Map rebuiltProperties = new HashMap()
             for (Map.Entry<String, Object> entry : hit.getSource().entrySet()) {
                 try {
@@ -187,8 +185,7 @@ public class DomainClassUnmarshaller {
                     throw new IllegalStateException("Property " + domainClass.getName() + "." + propertyName +
                             " is not mapped as [component], but broken search hit found.")
                 }
-                GrailsDomainClass nestedDomainClass = (GrailsDomainClass)
-                grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, (String) data.get("class"))
+                GrailsDomainClass nestedDomainClass = ((GrailsDomainClass) grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, (String) data.get("class")))
                 if (domainClass != null) {
                     // Unmarshall 'component' instance.
                     if (!scpm.isComponent()) {
@@ -242,7 +239,6 @@ public class DomainClassUnmarshaller {
         }
     }
 
-
     private Object unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
@@ -251,18 +247,17 @@ public class DomainClassUnmarshaller {
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id
         GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
-                .id(typeConverter.convertIfNecessary(id, String.class));
+                .id(typeConverter.convertIfNecessary(id, String))
         if (data.containsKey('parent')) {
-            request.parent(typeConverter.convertIfNecessary(data.parent, String.class));
+            request.parent(typeConverter.convertIfNecessary(data.parent, String))
         }
-        GetResponse response = elasticSearchClient.get(request).actionGet();
-        Map<String, Object> resolvedReferenceData = response.getSourceAsMap();
+        GetResponse response = elasticSearchClient.get(request).actionGet()
+        Map<String, Object> resolvedReferenceData = response.getSourceAsMap()
         if (resolvedReferenceData == null) {
             throw new IllegalStateException("Could not find and resolve searchable reference: ${request.toString()}");
         }
         return unmarshallDomain(domainClass, response.getId(), resolvedReferenceData, unmarshallingContext);
     }
-
 
     private Object unmarshallDomain(GrailsDomainClass domainClass, Object providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.getIdentifier()

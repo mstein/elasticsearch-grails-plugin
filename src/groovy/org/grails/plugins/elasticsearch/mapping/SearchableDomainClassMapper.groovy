@@ -94,8 +94,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         while (currentClass != null) {
             currentClass = currentClass.getSuperclass()
             if (currentClass != null && DomainClassArtefactHandler.isDomainClass(currentClass)) {
-                def superDomainClass = currentClass
-                grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, currentClass.getName())
+                GrailsDomainClass superDomainClass = ((GrailsDomainClass) grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, currentClass.getName()))
 
                 // If the super class is abstract, it needs peculiar processing
                 // The abstract class won't be actually mapped to ES, but the concrete subclasses will have to inherit
@@ -190,10 +189,6 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         }
     }
 
-    public void buildDefaultMapping(Class clazz) {
-
-    }
-
     public void buildClosureMapping(GrailsDomainClass grailsDomainClass, Closure searchable, Set<String> inheritedProperties) {
         assert searchable != null
 
@@ -246,26 +241,11 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      * @return <code>null</code>
      */
     public Object invokeMethod(String name, Object args) {
-        // Predefined mapping options
-//        if (CLASS_MAPPING_OPTIONS.contains(name)) {
-//            if (args == null || ObjectUtils.isEmpty((Object[])args)) {
-//                throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.")
-//            }
-//            Field target = ReflectionUtils.findField(this.getClass(), name)
-//            ReflectionUtils.makeAccessible(target)
-//            ReflectionUtils.setField(target, this, ((Object[])args)[0])
-//            return null
-//        }
-
         // Custom properties mapping options
         GrailsDomainClassProperty property = grailsDomainClass.getPropertyByName(name)
         if (property == null) {
             throw new IllegalArgumentException("Unable to find property [" + name + "] used in [" + grailsDomainClass.getPropertyName() + "}#searchable].")
         }
-//        if (!mappableProperties.contains(name)) {
-//            throw new IllegalArgumentException("Unable to map [" + grailsDomainClass.getPropertyName() + "." +
-//                    property.getName() + "]")
-//        }
 
         // Check if we already has mapping for this property.
         SearchableClassPropertyMapping propertyMapping = customMappedProperties.get(name)
