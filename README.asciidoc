@@ -11,9 +11,29 @@ The original Elasticsearch plugin relies on *Hibernate-specific* GORM components
 The plugin is still in beta, so it hasn't been officially released to Grails' plugin center. +
 In the meantime you can install the plugin in one of two ways:
 
-==== Inline
+==== 1. Inline
 
-==== Binary Dependency
+Clone this repository and add an inline plugin dependency to your project's +BuildConfig.groovy+ file:
+
+----
+grails.plugin.location.'elasticsearch-gorm-grails-plugin' = '/path/to/cloned/repo'
+----
+
+==== 2. Binary Dependency
+
+Snapshot versions of the plugin are deployed to a repository at http://noams.artifactoryonline.com. +
+You can resolve the snapshot version by editting your project's +BuildConfig.groovy+ file, by adding the plugins' snapshot repository and a standard snasphot dependency declaration:
+
+----
+grails.project.dependency.resolution = {
+    repositories {
+        mavenRepo 'http://noams.artifactoryonline.com/noams/grails-elasticsearch-plugin-snapshots/'
+    }
+    plugins {
+        compile ':elasticsearch-gorm:0.0.1-SNAPSHOT'
+    }
+}
+----
 
 == License
 
@@ -31,4 +51,28 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+----
+
+
+
+
+==== Here, have a yak:
+----
+                            _,,,_
+                        .-'`  (  '.
+                     .-'    ,_  ;  \___      _,
+                 __.'    )   \'.__.'(:;'.__.'/
+         __..--""       (     '.__{':');}__.'
+       .'         (    ;    (   .-|` '  |-.
+      /    (       )     )      '-p     q-'
+     (    ;     ;          ;    ; |.---.|
+     ) (              (      ;    \ o  o)
+     |  )     ;       |    )    ) /'.__/
+     )    ;  )    ;   | ;       //
+     ( )             _,\    ;  //
+     ; ( ,_,,-~""~`""   \ (   //
+      \_.'\\_            '.  /<_
+       \\_)--\             \ \--\
+   jgs )--\""`             )--\"`
+       `""`                `""`
 ----
