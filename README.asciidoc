@@ -35,6 +35,26 @@ grails.project.dependency.resolution = {
 }
 ----
 
+=== Ohs Nos! I'm hitting a +java.lang.Exception: No datastore implementation specified+
+
+This error means that you probably haven't specified your datastore type in your +Config.groovy+ file.
+This plugin has an auto-index feature which automatically propogates any changes made to searchable Domains into the search index;
+this is done by hooking into GORM's storage events but also requires a reference to the active datastore implementation.+
+To fix, edit your project's +Config.groovy+ file and add:
+----
+elasticSearch {
+    ...
+    datastoreImpl = 'nameOfDatastoreBean'
+    ...
+}
+----
+Where the value should be the name of the datastore bean as it is configued in the Spring context; some possible values:
+
+MongoDB::
+    +mongoDatastore+
+Hibernate::
+    +hibernateDatastore+
+
 == License
 
 ----
