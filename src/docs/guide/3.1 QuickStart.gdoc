@@ -1,5 +1,5 @@
 h4. Default mapping
-To declare a domain class to be searchable, the simpliest way is to define the following static property in the code:
+To declare a domain class to be searchable, the simplest way is to define the following static property in the code:
 {code}static searchable = true{code}
 The plugin will generate a default mapping for each properties of the domain.
 

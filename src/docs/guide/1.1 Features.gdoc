@@ -1,6 +1,6 @@
 * Maps domain classes to their corresponding index in ElasticSearch
 * Provides an ElasticSearch service for cross-domain searching
 * Injects domain class methods for specific domain searching, indexing and unindexing
-* Automatically mirrors any changes made throught Hibernate to the index
+* Automatically mirrors any changes made through GORM to the index
 * Allow to use the Groovy Content Builder DSL for search queries
 * Support for term highlighting

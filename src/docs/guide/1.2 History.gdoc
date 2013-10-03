@@ -10,8 +10,11 @@ h4. History
 * December 16, 2010
 ** initial 0.13.0a release
 
-
 h4. Authors and Contributors
+
+Noam Y. Tenne
+
+h4. Authors and Contributors of the original plugin
 
 Manuarii Stein (doc4web consulting),
 Stephane Maldini (doc4web consulting),
@@ -19,11 +22,10 @@ Serge P. Nekoval
 
 Get the full and updated list of contributors on the [github|http://github.com/mstein/elasticsearch-grails-plugin] repository.
 
-h4. Licence
+h4. License
 
-Doc4web consulting and the contributors provide this plugin without any guarantees under Apache Software Licence 2.
 {quote}
-    Copyright 2002-2011 the original author or authors.
+    Copyright 2002-2013 the original author or authors.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
