@@ -15,7 +15,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
     if (!scm) {
         throw new IllegalStateException("Domain class ${domainClass} is not searchable.")
     }
-    for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
+    for (GrailsDomainClassProperty prop in domainClass.properties) {
       def propertyMapping = scm.getPropertyMapping(prop.name)
       if (!propertyMapping) {
         continue
