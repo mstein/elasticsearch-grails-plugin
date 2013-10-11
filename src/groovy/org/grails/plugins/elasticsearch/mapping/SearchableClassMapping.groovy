@@ -29,9 +29,14 @@ public class SearchableClassMapping {
     private boolean root = true;
     private boolean all = true;
 
+    /** Identifier properties used for indexing */
+    private List<String> identityProperties;
+    private String identitySeparator = ':';
+
     public SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass;
         this.propertiesMapping = propertiesMapping;
+        this.identityProperties = [domainClass.identifier.name];
     }
 
     public SearchableClassPropertyMapping getPropertyMapping(String propertyName) {
@@ -57,6 +62,22 @@ public class SearchableClassMapping {
 
     public GrailsDomainClass getDomainClass() {
         return domainClass;
+    }
+
+    public List<String> getIdentityProperties() {
+        return identityProperties;
+    }
+
+    public void setIdentityProperties(List<String> propertyNames) {
+        this.identityProperties = propertyNames;
+    }
+
+    public String getIdentitySeparator() {
+        return identitySeparator;
+    }
+
+    public void setIdentitySeparator(String separator) {
+        this.identitySeparator = separator;
     }
 
     /**
