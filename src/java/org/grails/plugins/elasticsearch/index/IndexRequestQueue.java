@@ -15,6 +15,8 @@
  */
 package org.grails.plugins.elasticsearch.index;
 
+import groovy.lang.GroovyObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil;
 import org.codehaus.groovy.grails.orm.hibernate.support.HibernatePersistenceContextInterceptor;
@@ -94,13 +96,8 @@ public class IndexRequestQueue {
     }
 
     public void addIndexRequest(Object instance) {
-        addIndexRequest(instance, null);
-    }
-
-    public void addIndexRequest(Object instance, Serializable id) {
         synchronized (this) {
-            IndexEntityKey key = id == null ? new IndexEntityKey(instance) :
-                    new IndexEntityKey(id.toString(), GrailsHibernateUtil.unwrapIfProxy(instance).getClass());
+            IndexEntityKey key = new IndexEntityKey(instance);
             indexRequests.put(key, GrailsHibernateUtil.unwrapIfProxy(instance));
         }
     }
@@ -315,7 +312,7 @@ public class IndexRequestQueue {
                         LOG.error("Elastic type [" + item.getType() + "] is not mapped.");
                         continue;
                     }
-                    IndexEntityKey key = new IndexEntityKey(item.getId(), entityClass);
+                    IndexEntityKey key = new IndexEntityKey(item);
                     toIndex.remove(key);
                     toDelete.remove(key);
                 }
@@ -373,18 +370,19 @@ public class IndexRequestQueue {
         private final String id;
         private final Class clazz;
 
-        IndexEntityKey(String id, Class clazz) {
-            this.id = id;
-            this.clazz = clazz;
-        }
-
         IndexEntityKey(Object instance) {
             this.clazz = GrailsHibernateUtil.unwrapIfProxy(instance).getClass();
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(this.clazz);
             if (scm == null) {
                 throw new IllegalArgumentException("Class " + clazz + " is not a searchable domain class.");
             }
-            this.id = (InvokerHelper.invokeMethod(instance, "ident", null)).toString();
+
+            // Set the id based on the fields configured in the indexId searchable property
+            List<String> idValues = new ArrayList<String>();
+            for (String property : scm.getIdentityProperties()) {
+                idValues.add(InvokerHelper.getGroovyObjectProperty((GroovyObject)instance, property).toString());
+            }
+            this.id = StringUtils.join(idValues, scm.getIdentitySeparator());
         }
 
         public String getId() {
