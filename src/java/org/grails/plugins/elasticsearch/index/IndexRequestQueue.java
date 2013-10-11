@@ -312,7 +312,7 @@ public class IndexRequestQueue {
                         LOG.error("Elastic type [" + item.getType() + "] is not mapped.");
                         continue;
                     }
-                    IndexEntityKey key = new IndexEntityKey(item);
+                    IndexEntityKey key = new IndexEntityKey(item.getId(), entityClass);
                     toIndex.remove(key);
                     toDelete.remove(key);
                 }
@@ -369,6 +369,11 @@ public class IndexRequestQueue {
          */
         private final String id;
         private final Class clazz;
+
+        IndexEntityKey(String id, Class clazz) {
+            this.id = id;
+            this.clazz = clazz;
+        }
 
         IndexEntityKey(Object instance) {
             this.clazz = GrailsHibernateUtil.unwrapIfProxy(instance).getClass();
