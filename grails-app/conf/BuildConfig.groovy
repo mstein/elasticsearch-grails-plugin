@@ -42,7 +42,7 @@ grails.project.dependency.resolution = {
                 "org.grails:grails-datastore-core:$datastoreVersion",
                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
-        runtime 'org.elasticsearch:elasticsearch:0.90.3'
+        runtime 'org.elasticsearch:elasticsearch:0.90.5'
         runtime('org.elasticsearch:elasticsearch-lang-groovy:1.5.0') {
             excludes 'junit'
             excludes 'elasticsearch'
