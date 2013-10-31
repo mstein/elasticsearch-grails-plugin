@@ -67,11 +67,10 @@ class ElasticsearchGormGrailsPlugin {
     def author = 'Noam Y. Tenne'
     def authorEmail = 'noam@10ne.org'
     def title = 'Elastic Search Plugin'
-    def description = """\
-[Elastic Search|http://www.elasticsearch.com] is a distributed, RESTful service for full text search. This plugin provides a Grails-friendly API for the service based on the tremendously successful [Searchable plugin|/plugin/searchable]. It even provides an embedded version of the service for easy testing and development."""
+    def description = 'An Elasticsearch plugin for Grails'
 
     // URL to the plugin's documentation
-    def documentation = 'http://smaldini.github.com/elasticsearch-grails-plugin/docs/guide/index.html'
+    def documentation = 'http://noamt.github.io/elasticsearch-gorm-plugin'
 
     def doWithWebDescriptor = { xml ->
         // TODO Implement additions to web.xml (optional), this event occurs before
