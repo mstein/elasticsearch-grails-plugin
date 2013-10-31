@@ -1,14 +1,6 @@
 h4. History
-* February 01, 2012
-** maintenance release 0.18.7.1-SNAPSHOT
-* October 25, 2011
-** 0.17.8.1 release
-* March 25, 2011
-** 0.15.2.1 release
-* March 8, 2011
-** 0.15.1.1 release
-* December 16, 2010
-** initial 0.13.0a release
+* November 2, 2013
+** initial 0.0.1 release
 
 h4. Authors and Contributors
 
@@ -20,7 +12,7 @@ Manuarii Stein (doc4web consulting),
 Stephane Maldini (doc4web consulting),
 Serge P. Nekoval
 
-Get the full and updated list of contributors on the [github|http://github.com/mstein/elasticsearch-grails-plugin] repository.
+Get the full and updated list of contributors on the [github|https://github.com/noamt/elasticsearch-gorm-plugin] repository.
 
 h4. License
 

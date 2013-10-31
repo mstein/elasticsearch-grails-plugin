@@ -1,7 +1,7 @@
 The plugin provide a default configuration, but you may add your own settings in your *Config.groovy* script.
 
 h4. Client mode
-You can set the plugin in 3 different modes, detailled on the [official ElasticSearch doc|http://www.elasticsearch.org/guide/reference/java-api/client.html].
+You can set the plugin in 3 different modes, detailed on the [official ElasticSearch doc|http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/current/].
 The mode is defined with the following config key:
 
 {code}elasticSearch.client.mode = '<mode>'{code}
@@ -24,6 +24,20 @@ transport | The plugin create a transport client that will connect to a remote E
 If no host is defined, @localhost:9300@ will be used by the transport client.
 
 h4. Others properties
+* @elasticSearch.datastoreImpl@
+Only required when enabling the auto-index feature.
+This property specifies which GORM datastore implementation should be watched for storage events.
+The value should be the name of the datastore bean as it is configured in the Spring context; some possible values:
+{table}
+Value | Description
+mongoDatastore | The name of the MongoDB datastore bean.
+hibernateDatastore | The name of the Hibernate datastore bean.
+{table}
+
+* @elasticSearch.bootstrap.config.file@
+When using then plugin to construct a local node, the default Elasticsearch configuration is used by default.
+If you use a modified Elasticsearch configuration, you can use this property to specify the location of the file (as an application resource).
+
 * @elasticSearch.client.transport.sniff@
 Only usable in with a transport client.
 Allows to sniff the rest of the cluster, and add those into its list of machines to use.
