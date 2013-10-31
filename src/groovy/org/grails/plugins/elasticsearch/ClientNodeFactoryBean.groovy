@@ -16,14 +16,14 @@
 
 package org.grails.plugins.elasticsearch
 
-import org.springframework.beans.factory.FactoryBean
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-
-import static org.elasticsearch.node.NodeBuilder.*
+import org.apache.log4j.Logger
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
-import org.apache.log4j.Logger
+import org.springframework.beans.factory.FactoryBean
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder
 
 class ClientNodeFactoryBean implements FactoryBean {
     ElasticSearchContextHolder elasticSearchContextHolder
@@ -40,8 +40,9 @@ class ClientNodeFactoryBean implements FactoryBean {
         }
         def nb = nodeBuilder()
 
-        def configFile = elasticSearchContextHolder.config.file
+        def configFile = elasticSearchContextHolder.config.bootstrap.config.file
         if (configFile) {
+            LOG.info "Looking for bootstrap configuration file at: $configFile"
             def resource = new PathMatchingResourcePatternResolver().getResource(configFile)
             nb.settings(ImmutableSettings.settingsBuilder().loadFromUrl(resource.URL))
         }
