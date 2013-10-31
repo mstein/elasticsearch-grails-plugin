@@ -56,8 +56,7 @@ class ElasticsearchGormGrailsPlugin {
     def organization = [name: '10ne.org', url: 'http://www.10ne.org/']
 
     def developers = [
-            [name: 'Manuarii Stein', email: 'mstein@doc4web.com'],
-            [name: 'Stéphane Maldini', email: 'smaldini@doc4web.com']
+            [name: 'Noam Y. Tenne', email: 'noam@10ne.org']
     ]
 
     def issueManagement = [system: 'github', url: 'https://github.com/noamt/elasticsearch-gorm-plugin/issues']
