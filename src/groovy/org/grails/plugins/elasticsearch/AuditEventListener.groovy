@@ -21,9 +21,7 @@ import org.grails.datastore.mapping.engine.event.*
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.springframework.context.ApplicationEvent
 import org.springframework.transaction.support.TransactionSynchronization
-import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager
-
 /**
  * Listen to GORM events.
  */
@@ -53,7 +51,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
                     return
                 }
             }
-            TransactionSynchronizationManager.registerSynchronization(new IndexSynchronization(indexRequestQueue))
+            TransactionSynchronizationManager.registerSynchronization(new IndexSynchronization(indexRequestQueue, this))
         }
     }
 
@@ -151,87 +149,19 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         this.indexRequestQueue = indexRequestQueue
     }
 
-    static class EntityKey {
-
-        private String entityName
-        private Serializable id
-
-
-        EntityKey(String entityName, Serializable id) {
-            this.entityName = entityName
-            this.id = id
-        }
-
-
-        boolean equals(o) {
-            if (this.is(o)) return true
-            if (getClass() != o.class) return false
-
-            EntityKey entityKey = (EntityKey) o
-
-            if (entityName != entityKey.entityName) return false
-            if (id != entityKey.id) return false
-
-            return true
-        }
-
-        int hashCode() {
-            int result
-            result = (entityName != null ? entityName.hashCode() : 0)
-            result = 31 * result + (id != null ? id.hashCode() : 0)
-            return result
-        }
+    Map getPendingObjects() {
+        pendingObjects.get()
     }
 
-    /**
-     * Helper class for indexing objects on transaction commit.
-     */
-    class IndexSynchronization extends TransactionSynchronizationAdapter {
+    Map getDeletedObjects() {
+        deletedObjects.get()
+    }
 
-        private IndexRequestQueue indexRequestQueue
+    void clearPendingObjects() {
+        pendingObjects.remove()
+    }
 
-        IndexSynchronization(IndexRequestQueue indexRequestQueue) {
-            this.indexRequestQueue = indexRequestQueue
-        }
-
-        /**
-         * Fired on transaction completion (commit or rollback).
-         * @param status transaction completion status
-         */
-        def void afterCompletion(int status) {
-            def objsToIndex = pendingObjects.get()
-            def objsToDelete = deletedObjects.get()
-            switch (status) {
-                case STATUS_COMMITTED:
-                    if (objsToIndex && objsToDelete) {
-                        objsToIndex.keySet().removeAll(objsToDelete.keySet())
-                    }
-
-                    if (objsToIndex) {
-                        for (def obj : objsToIndex.values()) {
-                            indexRequestQueue.addIndexRequest(obj)
-                        }
-                    }
-                    if (objsToDelete) {
-                        for (def obj : objsToDelete.values()) {
-                            indexRequestQueue.addDeleteRequest(obj)
-                        }
-                    }
-
-                    // flush to index.
-                    indexRequestQueue.executeRequests()
-
-                    break
-                case STATUS_ROLLED_BACK:
-                    LOG.debug "Rollbacking ${objsToIndex ? objsToIndex.size() : 0} objs."
-                    break
-                default:
-                    LOG.error 'Unknown transaction state.'
-            }
-
-            // Clear objs
-            pendingObjects.set(null)
-            deletedObjects.set(null)
-        }
+    void clearDeletedObjects() {
+        deletedObjects.remove()
     }
 }
