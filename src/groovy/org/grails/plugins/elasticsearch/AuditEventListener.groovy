@@ -36,10 +36,10 @@ class AuditEventListener extends AbstractPersistenceEventListener {
     IndexRequestQueue indexRequestQueue
 
     /** List of pending objects to reindex. */
-    private static ThreadLocal<Map> pendingObjects = new ThreadLocal<Map>()
+    static ThreadLocal<Map> pendingObjects = new ThreadLocal<Map>()
 
     /** List of pending object to delete */
-    private static ThreadLocal<Map> deletedObjects = new ThreadLocal<Map>()
+    static ThreadLocal<Map> deletedObjects = new ThreadLocal<Map>()
 
     public AuditEventListener(Datastore datastore) {
         super(datastore)
