@@ -15,10 +15,11 @@
  */
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.engine.event.*
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEvent
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
@@ -28,7 +29,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 class AuditEventListener extends AbstractPersistenceEventListener {
 
-    private static final Logger LOG = Logger.getLogger(this)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     ElasticSearchContextHolder elasticSearchContextHolder
 

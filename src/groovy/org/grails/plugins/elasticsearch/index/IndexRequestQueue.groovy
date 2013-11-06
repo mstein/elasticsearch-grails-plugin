@@ -20,7 +20,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.apache.log4j.Logger
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.bulk.BulkRequestBuilder
@@ -32,6 +31,8 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.util.Assert
 
@@ -45,7 +46,7 @@ import org.springframework.util.Assert
  */
 class IndexRequestQueue implements InitializingBean {
 
-    private static final Logger LOG = Logger.getLogger(this)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private JSONDomainFactory jsonDomainFactory
     private ElasticSearchContextHolder elasticSearchContextHolder

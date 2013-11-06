@@ -1,13 +1,16 @@
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.client.Requests
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class ElasticSearchAdminService {
+
     static transactional = false
-    static LOG = Logger.getLogger(this)
+
+    static final Logger LOG = LoggerFactory.getLogger(this)
 
     def elasticSearchHelper
     def elasticSearchContextHolder

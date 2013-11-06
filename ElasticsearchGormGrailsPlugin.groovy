@@ -15,7 +15,7 @@
  */
 
 import grails.util.Environment
-import org.apache.log4j.Logger
+
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
@@ -27,10 +27,12 @@ import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarsh
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class ElasticsearchGormGrailsPlugin {
 
-    private static final LOG = Logger.getLogger(this)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     def version = '0.0.2-SNAPSHOT'
     def grailsVersion = '2.1.0 > *'

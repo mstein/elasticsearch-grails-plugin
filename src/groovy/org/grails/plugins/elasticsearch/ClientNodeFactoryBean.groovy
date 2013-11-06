@@ -18,10 +18,11 @@ package org.grails.plugins.elasticsearch
 
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder
 
-import org.apache.log4j.Logger
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 
@@ -29,7 +30,7 @@ class ClientNodeFactoryBean implements FactoryBean {
 
     static final SUPPORTED_MODES = ['local', 'transport', 'node', 'dataNode']
 
-    private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     ElasticSearchContextHolder elasticSearchContextHolder
 	 def node

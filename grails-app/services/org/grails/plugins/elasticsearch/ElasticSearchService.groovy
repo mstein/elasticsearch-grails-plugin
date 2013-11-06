@@ -18,7 +18,6 @@ package org.grails.plugins.elasticsearch
 import static org.elasticsearch.index.query.QueryBuilders.queryString
 import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
 
-import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 import org.elasticsearch.action.count.CountRequest
@@ -31,9 +30,11 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class ElasticSearchService implements GrailsApplicationAware {
-    static final LOG = Logger.getLogger(this)
+    static final Logger LOG = LoggerFactory.getLogger(this)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1

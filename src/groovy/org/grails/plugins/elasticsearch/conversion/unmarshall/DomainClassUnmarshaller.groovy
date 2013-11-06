@@ -18,7 +18,6 @@ package org.grails.plugins.elasticsearch.conversion.unmarshall
 
 import java.beans.PropertyEditor
 
-import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.*
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -30,6 +29,8 @@ import org.elasticsearch.search.SearchHits
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.SimpleTypeConverter
 import org.springframework.beans.TypeConverter
 import org.springframework.util.Assert
@@ -39,7 +40,7 @@ import org.springframework.util.Assert
  */
 class DomainClassUnmarshaller {
 
-    private static final Logger LOG = Logger.getLogger(this)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private TypeConverter typeConverter = new SimpleTypeConverter()
     private ElasticSearchContextHolder elasticSearchContextHolder

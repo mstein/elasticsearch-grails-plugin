@@ -16,7 +16,6 @@
 
 package org.grails.plugins.elasticsearch.mapping
 
-import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.GrailsClass
@@ -28,6 +27,8 @@ import org.elasticsearch.client.Client
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Build searchable mappings, configure ElasticSearch indexes,
@@ -35,7 +36,7 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
  */
 class SearchableClassMappingConfigurator {
 
-    private static final Logger LOG = Logger.getLogger(this)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private ElasticSearchContextHolder elasticSearchContext
     private GrailsApplication grailsApplication
