@@ -9,7 +9,4 @@ class ElasticsearchBootStrap {
             elasticSearchService.index()
         }
     }
-
-    def destroy = {
-    }
 }

@@ -31,8 +31,8 @@ class DefaultMarshallingContext {
      * and calculate maxDepth based on current stack state.
      * @param instance instance to push
      */
-    public push(instance) {
-        def depth = 5 //marshallStack.empty ? this.maxDepth : marshallStack.peek().maxDepth - 1
+    boolean push(instance) {
+        def depth = 5 //marshallStack.empty ? maxDepth : marshallStack.peek().maxDepth - 1
         if (depth <= 0) {
             return false
         }
@@ -46,16 +46,15 @@ class DefaultMarshallingContext {
      * @param instance instance to push
      * @param maxDepth remained maxDepth
      */
-    public push(instance, maxDepth) {
+    def push(instance, maxDepth) {
         marshallStack.push(new MarshalledObject(instance:instance,maxDepth:maxDepth ?: this.maxDepth))
     }
 
-    public def pop() {
+    def pop() {
         marshallStack.pop()?.instance
     }
 
-
-    public def peekDomainObject() {
+    def peekDomainObject() {
         if (marshallStack.empty) {
             return null
         }
@@ -70,11 +69,9 @@ class DefaultMarshallingContext {
         o
     }
 
-
-    public delegateMarshalling(object, maxDepth = 0) {
+    def delegateMarshalling(object, maxDepth = 0) {
         parentFactory.delegateMarshalling(object, this, maxDepth)
     }
-
 
     static class MarshalledObject {
         def instance

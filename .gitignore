@@ -2,7 +2,10 @@
 *.iml
 out
 data
-target
-prodDb.properties
-prodDb.script
 .link_to_grails_plugins
+*.log
+/target
+grails-elasticsearch-*.zip
+grails-elasticsearch-*.zip.sha1
+plugin.xml
+web-app

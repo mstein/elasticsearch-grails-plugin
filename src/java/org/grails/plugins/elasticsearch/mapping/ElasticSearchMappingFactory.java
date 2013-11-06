@@ -15,10 +15,16 @@
  */
 package org.grails.plugins.elasticsearch.mapping;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.codehaus.groovy.grails.commons.GrailsClassUtils;
 import org.springframework.util.ClassUtils;
-
-import java.util.*;
 
 /**
  * Build ElasticSearch class mapping based on attributes provided by closure.

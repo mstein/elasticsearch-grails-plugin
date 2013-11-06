@@ -23,14 +23,12 @@ import java.beans.PropertyEditorSupport
 class RoleConverter extends PropertyEditorSupport {
 
     @Override
-    def String getAsText() {
+    String getAsText() {
         return value.name().toLowerCase()
     }
 
     @Override
     void setAsText(String text) {
-        this.value = text ? User.Role.valueOf(text.toUpperCase()) : null
+        value = text ? User.Role.valueOf(text.toUpperCase()) : null
     }
-
-
 }

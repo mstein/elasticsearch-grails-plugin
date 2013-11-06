@@ -47,9 +47,9 @@ class User extends SuperUser {
   String[] anArray = ["haha", "blabla"]
   Role role = Role.ORDINARY
 
-  // synthetic property, not persistent. 
-  public String getName() {
-      return firstname + ' ' + lastname
+  // synthetic property, not persistent.
+  String getName() {
+      "$firstname $lastname"
   }
 
   enum Role {

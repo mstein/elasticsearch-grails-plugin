@@ -1,9 +1,9 @@
 package org.grails.plugins.elasticsearch.conversion.marshall
 
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 import org.codehaus.groovy.grails.commons.ApplicationHolder
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
+import org.codehaus.groovy.grails.commons.GrailsDomainClass
+import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil
 
 class DeepDomainClassMarshaller extends DefaultMarshaller {

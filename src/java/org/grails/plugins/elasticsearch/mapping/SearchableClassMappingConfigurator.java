@@ -17,8 +17,21 @@
 package org.grails.plugins.elasticsearch.mapping;
 
 import groovy.util.ConfigObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
-import org.codehaus.groovy.grails.commons.*;
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
+import org.codehaus.groovy.grails.commons.GrailsApplication;
+import org.codehaus.groovy.grails.commons.GrailsClass;
+import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
@@ -26,8 +39,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.transport.RemoteTransportException;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
-
-import java.util.*;
 
 /**
  * Build searchable mappings, configure ElasticSearch indexes,

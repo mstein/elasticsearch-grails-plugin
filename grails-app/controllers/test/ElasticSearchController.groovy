@@ -5,7 +5,6 @@ class ElasticSearchController {
   def testCaseService
 
   def index = {
-    render(view: 'index')
   }
 
   def createMassProducts = {
@@ -104,7 +103,6 @@ class ElasticSearchController {
   }
 
   def searchUserTerm = {
-      
   }
 
   def manualIndex = {
