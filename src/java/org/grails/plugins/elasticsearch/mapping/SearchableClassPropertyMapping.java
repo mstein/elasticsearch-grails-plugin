@@ -15,10 +15,15 @@
  */
 package org.grails.plugins.elasticsearch.mapping;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
-
-import java.util.*;
 
 /**
  * Custom searchable property mapping.
@@ -40,8 +45,8 @@ public class SearchableClassPropertyMapping {
     }
 
     public SearchableClassPropertyMapping(GrailsDomainClassProperty property, Map options) {
-        this.grailsProperty = property;
-        this.addAttributes(options);
+        grailsProperty = property;
+        addAttributes(options);
     }
 
     public void addAttributes(Map<String, Object> attributesMap) {
@@ -79,34 +84,31 @@ public class SearchableClassPropertyMapping {
         Object excludeFromAll = specialAttributes.get("excludeFromAll");
         if (excludeFromAll == null) {
             return false;
-        } else if (excludeFromAll instanceof Boolean) {
-            return (Boolean) excludeFromAll;
-        } else {
-            // introduce behaviour compatible with Searchable Plugin.
-            return excludeFromAll.toString().equalsIgnoreCase("yes");
         }
+        if (excludeFromAll instanceof Boolean) {
+            return (Boolean) excludeFromAll;
+        }
+        // introduce behaviour compatible with Searchable Plugin.
+        return excludeFromAll.toString().equalsIgnoreCase("yes");
     }
 
     public int getMaxDepth() {
         Object maxDepth = specialAttributes.get("maxDepth");
         if (maxDepth != null) {
             return (Integer)maxDepth;
-        } else {
-            return 0;
         }
+        return 0;
     }
-
-
 
     public Class getBestGuessReferenceType() {
         // is type defined explicitly?
         if (getReference() instanceof Class) {
-            return (Class) this.getReference();
+            return (Class) getReference();
         }
 
         // is it association?
-        if (this.grailsProperty.isAssociation()) {
-            return this.grailsProperty.getReferencedPropertyType();
+        if (grailsProperty.isAssociation()) {
+            return grailsProperty.getReferencedPropertyType();
         }
 
         throw new IllegalStateException("Property " + getPropertyName() + " is not an association, cannot be defined as 'reference'");
@@ -118,16 +120,16 @@ public class SearchableClassPropertyMapping {
      * as it will throw an error if a mapping value is invalid.
      */
     public void validate(ElasticSearchContextHolder contextHolder) {
-        if (this.isComponent() && this.getReference() != null) {
+        if (isComponent() && getReference() != null) {
             throw new IllegalArgumentException("Property " + grailsProperty.getName() + " cannot be 'component' and 'reference' at once.");
         }
 
-        if (this.isComponent() && this.componentPropertyMapping == null) {
+        if (isComponent() && componentPropertyMapping == null) {
             throw new IllegalArgumentException("Property " + grailsProperty.getName() + " is mapped as component, but dependent mapping is not injected.");
         }
 
         // Are we referencing searchable class?
-        if (this.getReference() != null) {
+        if (getReference() != null) {
             Class myReferenceType = getBestGuessReferenceType();
             // Compare using exact match of classes.
             // May not be correct to inheritance model.

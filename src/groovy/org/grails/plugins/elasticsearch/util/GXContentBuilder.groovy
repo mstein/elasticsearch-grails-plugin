@@ -22,18 +22,15 @@ package org.grails.plugins.elasticsearch.util
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.common.xcontent.XContentFactory
 import org.elasticsearch.common.xcontent.XContentType
-import org.codehaus.groovy.runtime.metaclass.MissingPropertyExceptionNoStack
 
 /**
  * This is a hacked version of EC's GXContentBuilder with patched property delegation.
- *
- * @author me
  */
 class GXContentBuilder extends GroovyObjectSupport {
 
-    static NODE_ELEMENT = "element"
+    static final String NODE_ELEMENT = "element"
 
-    static int rootResolveStrategy = Closure.DELEGATE_FIRST; // the default
+    static int rootResolveStrategy = Closure.DELEGATE_FIRST // the default
 
     def root
 
@@ -46,26 +43,26 @@ class GXContentBuilder extends GroovyObjectSupport {
     }
 
     String buildAsString(Closure c) {
-        XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
+        XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON)
         def json = build(c)
-        builder.map(json);
-        return builder.string();
+        builder.map(json)
+        return builder.string()
     }
 
     byte[] buildAsBytes(Closure c) {
-        return buildAsBytes(c, XContentType.JSON);
+        return buildAsBytes(c, XContentType.JSON)
     }
 
     byte[] buildAsBytes(Closure c, XContentType contentType) {
-        XContentBuilder builder = XContentFactory.contentBuilder(contentType);
+        XContentBuilder builder = XContentFactory.contentBuilder(contentType)
         def json = build(c)
-        builder.map(json);
-        return builder.copiedBytes();
+        builder.map(json)
+        return builder.copiedBytes()
     }
 
     private buildRoot(Closure c) {
         c.delegate = this
-        c.resolveStrategy = rootResolveStrategy;
+        c.resolveStrategy = rootResolveStrategy
         root = [:]
         current = root
         def returnValue = c.call()
@@ -83,7 +80,6 @@ class GXContentBuilder extends GroovyObjectSupport {
         def prev = current
         def list = []
         try {
-
             current = list
             c.call(list)
         }
@@ -93,7 +89,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         return list
     }
 
-    def invokeMethod(String methodName, Object args) {
+    def invokeMethod(String methodName, args) {
         if (args.size()) {
             if (args[0] instanceof Map) {
                 // switch root to an array if elements used at top level
@@ -113,7 +109,7 @@ class GXContentBuilder extends GroovyObjectSupport {
                 }
                 n.putAll(args[0])
             } else if (args[-1] instanceof Closure) {
-                final Object callable = args[-1]
+                final callable = args[-1]
                 handleClosureNode(methodName, callable)
             } else if (args.size() == 1) {
                 if (methodName != NODE_ELEMENT) {
@@ -167,7 +163,7 @@ class GXContentBuilder extends GroovyObjectSupport {
     }
 
 
-    void setProperty(String propName, Object value) {
+    void setProperty(String propName, value) {
         if (value instanceof Closure) {
             handleClosureNode(propName, value)
         }
@@ -181,10 +177,8 @@ class GXContentBuilder extends GroovyObjectSupport {
                     final Map nestedObject = localBuilder.buildRoot(callable)
                     return nestedObject
                 }
-                else {
-                    return it
-                }
 
+                return it
             }
             current[propName] = value
         }
@@ -196,9 +190,7 @@ class GXContentBuilder extends GroovyObjectSupport {
     def getProperty(String propName) {
         if (current?.containsKey(propName)) {
             return current[propName]
-        } else {
-            return super.getProperty(propName)
         }
+        return super.getProperty(propName)
     }
-
 }

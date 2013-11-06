@@ -23,12 +23,10 @@ class PropertyEditorMarshaller extends DefaultMarshaller {
 
     def propertyEditorClass
 
-    protected Object doMarshall(Object object) {
-        assert propertyEditorClass != null
+    protected doMarshall(object) {
+        assert propertyEditorClass
         def editor = propertyEditorClass.newInstance()
         editor.setValue(object)
         editor.getAsText()
     }
-
-
 }

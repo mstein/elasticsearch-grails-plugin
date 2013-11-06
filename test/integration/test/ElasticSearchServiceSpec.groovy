@@ -1,18 +1,17 @@
 package test
 
 import grails.plugin.spock.IntegrationSpec
-import org.elasticsearch.client.Client
-import org.elasticsearch.client.Requests
-import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
+
 import org.apache.log4j.Logger
-import org.elasticsearch.action.delete.DeleteResponse
 
 class ElasticSearchServiceSpec extends IntegrationSpec {
+
     def elasticSearchService
     def elasticSearchAdminService
     def elasticSearchContextHolder
     def elasticSearchHelper
-    private static final Logger LOG = Logger.getLogger(ElasticSearchServiceSpec.class);
+
+    private static final Logger LOG = Logger.getLogger(this)
 
     def setup() {
         // Make sure the indices are cleaned

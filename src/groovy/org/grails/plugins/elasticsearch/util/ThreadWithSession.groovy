@@ -1,13 +1,13 @@
 package org.grails.plugins.elasticsearch.util
 
-import org.springframework.orm.hibernate3.SessionFactoryUtils
-import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.hibernate.FlushMode
-import org.springframework.orm.hibernate3.SessionHolder
 import org.hibernate.Session
+import org.springframework.orm.hibernate3.SessionFactoryUtils
+import org.springframework.orm.hibernate3.SessionHolder
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 class ThreadWithSession extends Thread {
-  public static Thread startWithSession(sessionFactory, persistenceInterceptor, Closure c) {
+  static Thread startWithSession(sessionFactory, persistenceInterceptor, Closure c) {
     def threadClosure = {
       def sessionBound = false
       try {
@@ -20,8 +20,6 @@ class ThreadWithSession extends Thread {
         if (sessionHolder != null && !FlushMode.MANUAL.equals(sessionHolder.session.flushMode)) {
           sessionHolder.session.flush()
         }
-      } catch (Exception e) {
-        throw e
       } finally {
         if (sessionBound) {
           unbindSession(sessionFactory)
@@ -38,16 +36,15 @@ class ThreadWithSession extends Thread {
     if (sessionFactory == null) {
       throw new IllegalStateException("SessionFactory not provided.")
     }
-    final Object inStorage = TransactionSynchronizationManager.getResource(sessionFactory)
+    final inStorage = TransactionSynchronizationManager.getResource(sessionFactory)
     if (inStorage != null) {
       ((SessionHolder) inStorage).session.flush()
       return false
-    } else {
-      Session session = SessionFactoryUtils.getSession(sessionFactory, true)
-      session.setFlushMode(FlushMode.AUTO)
-      TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session))
-      return true
     }
+    Session session = SessionFactoryUtils.getSession(sessionFactory, true)
+    session.setFlushMode(FlushMode.AUTO)
+    TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session))
+    return true
   }
 
   // unbind session & flush it
@@ -60,8 +57,6 @@ class ThreadWithSession extends Thread {
       if (!FlushMode.MANUAL.equals(sessionHolder.session.flushMode)) {
         sessionHolder.session.flush()
       }
-    } catch (Exception e) {
-      throw e
     } finally {
       TransactionSynchronizationManager.unbindResource(sessionFactory)
       SessionFactoryUtils.releaseSession(sessionHolder.session,sessionFactory)

@@ -11,6 +11,4 @@ class Event {
     static mapping = {
         id generator: "uuid"
     }
-    static constraints = {
-    }
 }

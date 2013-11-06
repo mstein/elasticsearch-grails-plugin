@@ -15,6 +15,19 @@
  */
 package org.grails.plugins.elasticsearch.index;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.orm.hibernate.cfg.GrailsHibernateUtil;
 import org.codehaus.groovy.grails.orm.hibernate.support.HibernatePersistenceContextInterceptor;
@@ -35,12 +48,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.util.Assert;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Holds objects to be indexed.
@@ -379,12 +386,12 @@ public class IndexRequestQueue {
         }
 
         IndexEntityKey(Object instance) {
-            this.clazz = GrailsHibernateUtil.unwrapIfProxy(instance).getClass();
-            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(this.clazz);
+            clazz = GrailsHibernateUtil.unwrapIfProxy(instance).getClass();
+            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz);
             if (scm == null) {
                 throw new IllegalArgumentException("Class " + clazz + " is not a searchable domain class.");
             }
-            this.id = (InvokerHelper.invokeMethod(instance, "ident", null)).toString();
+            id = (InvokerHelper.invokeMethod(instance, "ident", null)).toString();
         }
 
         public String getId() {

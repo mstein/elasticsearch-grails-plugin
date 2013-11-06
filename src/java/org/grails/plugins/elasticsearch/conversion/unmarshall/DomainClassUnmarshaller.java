@@ -17,8 +17,22 @@
 package org.grails.plugins.elasticsearch.conversion.unmarshall;
 
 import groovy.lang.GroovyObject;
+
+import java.beans.PropertyEditor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import org.apache.log4j.Logger;
-import org.codehaus.groovy.grails.commons.*;
+import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
+import org.codehaus.groovy.grails.commons.GrailsApplication;
+import org.codehaus.groovy.grails.commons.GrailsClass;
+import org.codehaus.groovy.grails.commons.GrailsDomainClass;
+import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.elasticsearch.action.get.GetRequest;
@@ -32,9 +46,6 @@ import org.grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 
-import java.beans.PropertyEditor;
-import java.util.*;
-
 /**
  * Domain class unmarshaller.
  */
@@ -47,7 +58,6 @@ public class DomainClassUnmarshaller {
     private BindDynamicMethod bind = new BindDynamicMethod();
     private GrailsApplication grailsApplication;
     private Client elasticSearchClient;
-
 
     public Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext();
@@ -240,7 +250,6 @@ public class DomainClassUnmarshaller {
         }
     }
 
-
     private Object unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
@@ -255,7 +264,6 @@ public class DomainClassUnmarshaller {
                 .actionGet();
         return unmarshallDomain(domainClass, response.id(), response.sourceAsMap(), unmarshallingContext);
     }
-
 
     private Object unmarshallDomain(GrailsDomainClass domainClass, Object providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.getIdentifier();

@@ -19,10 +19,25 @@ package org.grails.plugins.elasticsearch.mapping;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.util.ConfigObject;
-import org.codehaus.groovy.grails.commons.*;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass;
+import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler;
+import org.codehaus.groovy.grails.commons.GrailsApplication;
+import org.codehaus.groovy.grails.commons.GrailsClassUtils;
+import org.codehaus.groovy.grails.commons.GrailsDomainClass;
+import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty;
 
 class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
@@ -58,7 +73,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      */
     SearchableDomainClassMapper(GrailsApplication grailsApplication, GrailsDomainClass domainClass, ConfigObject esConfig) {
         this.esConfig = esConfig;
-        this.grailsDomainClass = domainClass;
+        grailsDomainClass = domainClass;
         this.grailsApplication = grailsApplication;
     }
 
@@ -79,7 +94,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     }
 
     public void root(Boolean rootFlag) {
-        this.root = rootFlag;
+        root = rootFlag;
     }
 
     /**
@@ -129,7 +144,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         // hmm. should we only consider persistent properties?
         for (GrailsDomainClassProperty prop : grailsDomainClass.getPersistentProperties()) {
-            this.mappableProperties.add(prop.getName());
+            mappableProperties.add(prop.getName());
         }
 
         // !!!! Allow explicit identifier indexing ONLY when defined with custom attributes.
@@ -255,7 +270,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 //            if (args == null || ObjectUtils.isEmpty((Object[])args)) {
 //                throw new IllegalArgumentException(grailsDomainClass.getPropertyName() + " mapping declares " + name + " : found no argument.");
 //            }
-//            Field target = ReflectionUtils.findField(this.getClass(), name);
+//            Field target = ReflectionUtils.findField(getClass(), name);
 //            ReflectionUtils.makeAccessible(target);
 //            ReflectionUtils.setField(target, this, ((Object[])args)[0]);
 //            return null;
