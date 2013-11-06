@@ -8,17 +8,16 @@ class EntityKey {
     private String entityName
     private Serializable id
 
-
     EntityKey(String entityName, Serializable id) {
         this.entityName = entityName
         this.id = id
     }
 
     boolean equals(o) {
-        if (this.is(o)) return true
-        if (getClass() != o.class) return false
+        if (is(o)) return true
+        if (getClass() != o.getClass()) return false
 
-        EntityKey entityKey = (EntityKey) o
+        EntityKey entityKey = o
 
         if (entityName != entityKey.entityName) return false
         if (id != entityKey.id) return false

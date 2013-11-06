@@ -1,6 +1,4 @@
-grails.project.class.dir = 'target/classes'
-grails.project.test.class.dir = 'target/test-classes'
-grails.project.test.reports.dir = 'target/test-reports'
+grails.project.work.dir = 'target'
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
 grails.project.dependency.distribution = {
@@ -11,18 +9,15 @@ grails.project.dependency.distribution = {
 grails.project.dependency.resolution = {
 
     pom true
+    inherits 'global'
+    log 'warn'
 
-    // inherit Grails' default dependencies
-    inherits('global') {
-    }
-    log 'warn' // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
     repositories {
-        grailsPlugins()
-        grailsHome()
         grailsCentral()
-
+        mavenLocal()
         mavenCentral()
     }
+
     dependencies {
         def excludes = {
             excludes 'slf4j-simple', 'persistence-api', 'commons-logging', 'jcl-over-slf4j', 'slf4j-api', 'jta'
@@ -38,9 +33,9 @@ grails.project.dependency.resolution = {
         def datastoreVersion = '1.1.9.RELEASE'
 
         provided("org.grails:grails-datastore-gorm-plugin-support:$datastoreVersion",
-                "org.grails:grails-datastore-gorm:$datastoreVersion",
-                "org.grails:grails-datastore-core:$datastoreVersion",
-                "org.grails:grails-datastore-web:$datastoreVersion", excludes)
+                 "org.grails:grails-datastore-gorm:$datastoreVersion",
+                 "org.grails:grails-datastore-core:$datastoreVersion",
+                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
         runtime 'org.elasticsearch:elasticsearch:0.90.5'
         runtime('org.elasticsearch:elasticsearch-lang-groovy:1.5.0') {
@@ -51,10 +46,14 @@ grails.project.dependency.resolution = {
         }
         runtime 'com.spatial4j:spatial4j:0.3'
     }
+
     plugins {
-        compile(':release:2.2.1', ':rest-client-builder:1.0.3') {
+        build ':release:2.2.1', ':rest-client-builder:1.0.3', {
             export = false
         }
-        test(':spock:0.7')
+
+        test(':spock:0.7') {
+            export = false
+        }
     }
 }

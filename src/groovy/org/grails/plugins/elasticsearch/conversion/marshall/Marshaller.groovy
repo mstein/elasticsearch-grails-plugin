@@ -1,7 +1,7 @@
 package org.grails.plugins.elasticsearch.conversion.marshall
 
-public interface Marshaller {
-  public Object marshall(property)
+interface Marshaller {
+    Object marshall(property)
 
-  /*public unmarshall()*/
+    /*Object unmarshall()*/
 }

@@ -30,18 +30,14 @@ import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 
 class ElasticsearchGormGrailsPlugin {
 
-    static LOG = Logger.getLogger('org.grails.plugins.elasticsearch.ElasticsearchGormGrailsPlugin')
+    private static final LOG = Logger.getLogger(this)
 
-    // the plugin version
     def version = '0.0.2-SNAPSHOT'
-    // the version or versions of Grails the plugin is designed for
     def grailsVersion = '2.1.0 > *'
 
     def loadAfter = ['services']
 
-    // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            'grails-app/views/error.gsp',
             'grails-app/controllers/test/**',
             'grails-app/services/test/**',
             'grails-app/views/elasticSearch/index.gsp',
@@ -67,13 +63,7 @@ class ElasticsearchGormGrailsPlugin {
     def authorEmail = 'noam@10ne.org'
     def title = 'Elastic Search Plugin'
     def description = 'An Elasticsearch plugin for Grails'
-
-    // URL to the plugin's documentation
     def documentation = 'http://noamt.github.io/elasticsearch-gorm-plugin'
-
-    def doWithWebDescriptor = { xml ->
-        // TODO Implement additions to web.xml (optional), this event occurs before
-    }
 
     def doWithSpring = {
         def esConfig = getConfiguration(application)
@@ -124,17 +114,10 @@ class ElasticsearchGormGrailsPlugin {
         }
     }
 
-    def onShutdown = { event -> }
-
     def doWithDynamicMethods = { ctx ->
         // Define the custom ElasticSearch mapping for searchable domain classes
         DomainDynamicMethodsUtils.injectDynamicMethods(application.domainClasses, application, ctx)
     }
-
-    def doWithApplicationContext = { applicationContext -> }
-
-    def onConfigChange = { event -> }
-
     // Get a configuration instance
     private getConfiguration(GrailsApplication application) {
         def config = application.config
@@ -143,7 +126,7 @@ class ElasticsearchGormGrailsPlugin {
         try {
             Class dataSourceClass = application.getClassLoader().loadClass('DefaultElasticSearch')
             ConfigSlurper configSlurper = new ConfigSlurper(Environment.current.name)
-            Map binding = new HashMap()
+            Map binding = [:]
             binding.userHome = System.properties['user.home']
             binding.grailsEnv = application.metadata['grails.env']
             binding.appName = application.metadata['app.name']

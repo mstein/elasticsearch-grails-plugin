@@ -92,17 +92,16 @@ class GXContentBuilder extends GroovyObjectSupport {
         return list
     }
 
-    def invokeMethod(String methodName, Object args) {
+    def invokeMethod(String methodName, args) {
         if (args.size()) {
             if (args[0] instanceof Map) {
                 // switch root to an array if elements used at top level
                 if ((current == root) && (methodName == NODE_ELEMENT) && !(root instanceof List)) {
                     if (root.size()) {
                         throw new IllegalArgumentException('Cannot have array elements in root node if properties of root have already been set')
-                    } else {
-                        root = []
-                        current = root
                     }
+                    root = []
+                    current = root
                 }
                 def n = [:]
                 if (current instanceof List) {
@@ -112,7 +111,7 @@ class GXContentBuilder extends GroovyObjectSupport {
                 }
                 n.putAll(args[0])
             } else if (args[-1] instanceof Closure) {
-                final Object callable = args[-1]
+                final callable = args[-1]
                 handleClosureNode(methodName, callable)
             } else if (args.size() == 1) {
                 if (methodName != NODE_ELEMENT) {
@@ -122,7 +121,8 @@ class GXContentBuilder extends GroovyObjectSupport {
                 if (current == root) {
                     if (root.size() && methodName != NODE_ELEMENT) {
                         throw new IllegalArgumentException('Cannot have array elements in root node if properties of root have already been set')
-                    } else if (!(root instanceof List)) {
+                    }
+                    if (!(root instanceof List)) {
                         root = []
                         current = root
                     }
@@ -165,8 +165,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         current = nestingStack.pop()
     }
 
-
-    void setProperty(String propName, Object value) {
+    void setProperty(String propName, value) {
         if (value instanceof Closure) {
             handleClosureNode(propName, value)
         } else if (value instanceof List) {
@@ -176,12 +175,9 @@ class GXContentBuilder extends GroovyObjectSupport {
                     final GXContentBuilder localBuilder = new GXContentBuilder()
                     callable.delegate = localBuilder
                     callable.resolveStrategy = Closure.DELEGATE_FIRST
-                    final Map nestedObject = localBuilder.buildRoot(callable)
-                    return nestedObject
-                } else {
-                    return it
+                    return localBuilder.buildRoot(callable)
                 }
-
+                return it
             }
             current[propName] = value
         } else {
@@ -192,9 +188,7 @@ class GXContentBuilder extends GroovyObjectSupport {
     def getProperty(String propName) {
         if (current?.containsKey(propName)) {
             return current[propName]
-        } else {
-            return super.getProperty(propName)
         }
+        return super.getProperty(propName)
     }
-
 }

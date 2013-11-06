@@ -22,27 +22,19 @@ class IndexEntityKey implements Serializable {
     /**
      * stringified id.
      */
-    private final String id
-    private final Class clazz
+    final String id
+    final Class clazz
 
     IndexEntityKey(String id, Class clazz) {
         this.id = id
         this.clazz = clazz
     }
 
-    public String getId() {
-        id
-    }
-
-    public Class getClazz() {
-        clazz
-    }
-
     boolean equals(o) {
-        if (this.is(o)) return true
-        if (getClass() != o.class) return false
+        if (is(o)) return true
+        if (getClass() != o.getClass()) return false
 
-        IndexEntityKey that = (IndexEntityKey) o
+        IndexEntityKey that = o
 
         if (clazz != that.clazz) return false
         if (id != that.id) return false
@@ -58,7 +50,7 @@ class IndexEntityKey implements Serializable {
     }
 
     @Override
-    public String toString() {
+    String toString() {
         "IndexEntityKey{id=$id, clazz=$clazz}"
     }
 }

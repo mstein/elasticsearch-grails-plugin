@@ -9,10 +9,10 @@ import test.Photo
 import test.upperCase.UpperCase
 
 @Mock([Photo, UpperCase])
-public class SearchableClassMappingTest {
+class SearchableClassMappingTest {
 
     @Test
-    public void testGetIndexName() throws Exception {
+    void testGetIndexName() {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(Photo)
         dc.grailsApplication = grailsApplication
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
@@ -20,7 +20,7 @@ public class SearchableClassMappingTest {
     }
 
     @Test
-    public void testManuallyConfiguredIndexName() throws Exception {
+    void testManuallyConfiguredIndexName() {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(Photo)
         dc.grailsApplication = grailsApplication
         config.elasticSearch.index.name = "index-name"
@@ -29,7 +29,7 @@ public class SearchableClassMappingTest {
     }
 
     @Test
-    public void testIndexNameIsLowercaseWhenPackageNameIsLowercase() throws Exception {
+    void testIndexNameIsLowercaseWhenPackageNameIsLowercase() {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(UpperCase)
         dc.grailsApplication = grailsApplication
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
@@ -41,5 +41,4 @@ public class SearchableClassMappingTest {
     void cleanup() {
         config.elasticSearch.index.name = null
     }
-
 }
