@@ -273,7 +273,7 @@ class IndexRequestQueue implements InitializingBean {
         }
 
         public void onResponse(BulkResponse bulkResponse) {
-            bulkResponse.items().each {
+            bulkResponse.getItems().each {
                 boolean removeFromQueue = !it.failed || it.failureMessage.contains('UnavailableShardsException')
                 // On shard failure, do not re-push.
                 if (removeFromQueue) {
@@ -296,7 +296,7 @@ class IndexRequestQueue implements InitializingBean {
             } else {
                 fireComplete()
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Batch complete: ${bulkResponse.items().length} actions.")
+                    LOG.debug("Batch complete: ${bulkResponse.getItems().length} actions.")
                 }
             }
         }
