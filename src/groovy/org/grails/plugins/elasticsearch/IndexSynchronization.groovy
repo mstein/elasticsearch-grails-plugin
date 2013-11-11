@@ -4,6 +4,7 @@ import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.support.TransactionSynchronizationAdapter
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /**
  * @author Noam Y. Tenne
@@ -45,7 +46,26 @@ class IndexSynchronization extends TransactionSynchronizationAdapter {
                 }
 
                 // flush to index.
-                indexRequestQueue.executeRequests()
+                def resourceMap = TransactionSynchronizationManager.resourceMap
+                try {
+                    indexRequestQueue.executeRequests()
+                } finally {
+                    def resourceMapAfterOp = TransactionSynchronizationManager.resourceMap
+                    /**
+                     * If we've got a difference between the resource maps before and after the request execution phase,
+                     * it means that newly added resources were bound to the thread
+                     */
+                    if (((resourceMapAfterOp != null) && (resourceMap != null)) &&
+                            (resourceMapAfterOp != resourceMap)) {
+                        /**
+                         * Check the difference between the keys of the resource maps before and after the request execution
+                         * to find out which keys must be unbound
+                         */
+                        def keysBeforeOp = resourceMap.keySet()
+                        def addedKeys = resourceMapAfterOp.keySet().findAll { !keysBeforeOp.contains(it) }
+                        addedKeys.each { TransactionSynchronizationManager.unbindResource(it) }
+                    }
+                }
 
                 break
             case STATUS_ROLLED_BACK:
