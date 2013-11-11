@@ -16,21 +16,24 @@
 
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder
+
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder
-
 class ClientNodeFactoryBean implements FactoryBean {
-    ElasticSearchContextHolder elasticSearchContextHolder
-    static SUPPORTED_MODES = ['local', 'transport', 'node', 'dataNode']
-    private static final LOG = Logger.getLogger(ClientNodeFactoryBean)
 
-    def node
+    static final SUPPORTED_MODES = ['local', 'transport', 'node', 'dataNode']
+
+    private static final Logger LOG = LoggerFactory.getLogger(this)
+
+    ElasticSearchContextHolder elasticSearchContextHolder
+	 def node
 
     Object getObject() {
         // Retrieve client mode, default is "node"
@@ -47,7 +50,7 @@ class ClientNodeFactoryBean implements FactoryBean {
             nb.settings(ImmutableSettings.settingsBuilder().loadFromUrl(resource.URL))
         }
 
-        def transportClient = null
+        def transportClient
         // Cluster name
         if (elasticSearchContextHolder.config.cluster.name) {
             nb.clusterName(elasticSearchContextHolder.config.cluster.name)
@@ -137,16 +140,15 @@ class ClientNodeFactoryBean implements FactoryBean {
         }
         if (transportClient) {
             return transportClient
-        } else {
-            // Avoiding this:
-            node = nb.node()
-            node.start()
-            def client = node.client()
-            // Wait for the cluster to become alive.
-            //            LOG.info "Waiting for ElasticSearch GREEN status."
-            //            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
-            return client
         }
+        // Avoiding this:
+        node = nb.node()
+        node.start()
+        def client = node.client()
+        // Wait for the cluster to become alive.
+        //            LOG.info "Waiting for ElasticSearch GREEN status."
+        //            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
+        return client
     }
 
     Class getObjectType() {

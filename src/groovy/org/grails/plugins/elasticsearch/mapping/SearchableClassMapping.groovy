@@ -17,10 +17,11 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
+
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 
-public class SearchableClassMapping {
+class SearchableClassMapping {
 
     /** All searchable properties */
     private Collection<SearchableClassPropertyMapping> propertiesMapping
@@ -30,12 +31,12 @@ public class SearchableClassMapping {
     private boolean root = true
     private boolean all = true
 
-    public SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
+    SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass
         this.propertiesMapping = propertiesMapping
     }
 
-    public SearchableClassPropertyMapping getPropertyMapping(String propertyName) {
+    SearchableClassPropertyMapping getPropertyMapping(String propertyName) {
         for (SearchableClassPropertyMapping scpm : propertiesMapping) {
             if (scpm.getPropertyName().equals(propertyName)) {
                 return scpm
@@ -44,19 +45,19 @@ public class SearchableClassMapping {
         return null
     }
 
-    public Boolean isRoot() {
+    Boolean isRoot() {
         return root
     }
 
-    public void setRoot(Boolean root) {
+    void setRoot(Boolean root) {
         this.root = root != null && root
     }
 
-    public Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
+    Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
         return propertiesMapping
     }
 
-    public GrailsDomainClass getDomainClass() {
+    GrailsDomainClass getDomainClass() {
         return domainClass
     }
 
@@ -64,7 +65,7 @@ public class SearchableClassMapping {
      * Validate searchable class mapping.
      * @param contextHolder context holding all known searchable mappings.
      */
-    public void validate(ElasticSearchContextHolder contextHolder) {
+    void validate(ElasticSearchContextHolder contextHolder) {
         for (SearchableClassPropertyMapping scpm : propertiesMapping) {
             scpm.validate(contextHolder)
         }
@@ -73,7 +74,7 @@ public class SearchableClassMapping {
     /**
      * @return ElasticSearch index name
      */
-    public String getIndexName() {
+    String getIndexName() {
         String name = domainClass.grailsApplication.config.elasticSearch.index.name ?: domainClass.packageName
         if (name == null || name.length() == 0) {
             // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
@@ -85,11 +86,11 @@ public class SearchableClassMapping {
     /**
      * @return type name for ES mapping.
      */
-    public String getElasticTypeName() {
+    String getElasticTypeName() {
         GrailsNameUtils.getPropertyName(domainClass.clazz)
     }
 
-    public boolean isAll() {
+    boolean isAll() {
         return all
     }
 }

@@ -15,19 +15,21 @@
  */
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.engine.event.*
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEvent
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
+
 /**
  * Listen to GORM events.
  */
 class AuditEventListener extends AbstractPersistenceEventListener {
 
-    private static final Logger LOG = Logger.getLogger(AuditEventListener)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     ElasticSearchContextHolder elasticSearchContextHolder
 
@@ -39,7 +41,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
     /** List of pending object to delete */
     static ThreadLocal<Map> deletedObjects = new ThreadLocal<Map>()
 
-    public AuditEventListener(Datastore datastore) {
+    AuditEventListener(Datastore datastore) {
         super(datastore)
     }
 
@@ -58,7 +60,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
     /**
      * Push object to index. Save as pending if transaction is not committed yet.
      */
-    public void pushToIndex(entity) {
+    void pushToIndex(entity) {
         // Register transaction synchronization
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             // Save object as pending
@@ -81,7 +83,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         }
     }
 
-    public def pushToDelete(entity) {
+    void pushToDelete(entity) {
         // Register transaction synchronization
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             // Add to list of deleted
@@ -120,33 +122,25 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         [PostInsertEvent, PostUpdateEvent, PostDeleteEvent].any() { it.isAssignableFrom(aClass) }
     }
 
-    public void onPostInsert(PostInsertEvent event) {
+    void onPostInsert(PostInsertEvent event) {
         def entity = event.entityAccess.entity
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToIndex(entity)
         }
     }
 
-    public void onPostUpdate(PostUpdateEvent event) {
+    void onPostUpdate(PostUpdateEvent event) {
         def entity = event.entityAccess.entity
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToIndex(entity)
         }
     }
 
-    public void onPostDelete(PostDeleteEvent event) {
+    void onPostDelete(PostDeleteEvent event) {
         def entity = event.entityAccess.entity
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToDelete(entity)
         }
-    }
-
-    public void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
-        this.elasticSearchContextHolder = elasticSearchContextHolder
-    }
-
-    void setIndexRequestQueue(IndexRequestQueue indexRequestQueue) {
-        this.indexRequestQueue = indexRequestQueue
     }
 
     Map getPendingObjects() {

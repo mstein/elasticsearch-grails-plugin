@@ -32,7 +32,7 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
      * @param object object to be marshalled
      * @return raw domain class identifier.
      */
-    protected Object doMarshall(Object object) {
+    protected doMarshall(object) {
         assert refClass != null
         assert refClass.isAssignableFrom(object.getClass()): "Marshalled object ${object} is not [${refClass}]."
         def domainClass = grailsApplication.domainClasses.find { it.clazz == refClass }

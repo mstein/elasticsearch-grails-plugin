@@ -16,6 +16,7 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
+
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
@@ -24,10 +25,10 @@ import org.springframework.util.ClassUtils
 /**
  * Build ElasticSearch class mapping based on attributes provided by closure.
  */
-public class ElasticSearchMappingFactory {
+class ElasticSearchMappingFactory {
 
     private static final Set<String> SUPPORTED_FORMAT =
-        ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date'] as Set<String>
+        ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
 
     private static Class JODA_TIME_BASE
 
@@ -40,7 +41,7 @@ public class ElasticSearchMappingFactory {
         } catch (ClassNotFoundException e) {}
     }
 
-    public static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
+    static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
         Map mappingFields = [properties: getMappingProperties(scm)]
 
         SearchableClassPropertyMapping parentProperty = scm.propertiesMapping.find { it.parent }
@@ -53,7 +54,7 @@ public class ElasticSearchMappingFactory {
         mapping
     }
 
-    private static LinkedHashMap<String, Object> getMappingProperties(SearchableClassMapping scm) {
+    private static Map<String, Object> getMappingProperties(SearchableClassMapping scm) {
         Map<String, Object> elasticTypeMappingProperties = [:]
 
         if (!scm.isAll()) {

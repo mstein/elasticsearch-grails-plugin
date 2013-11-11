@@ -16,14 +16,14 @@
 
 package org.grails.plugins.elasticsearch.conversion
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
+
+import java.beans.PropertyEditor
+
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.grails.plugins.elasticsearch.conversion.marshall.*
-
-import java.beans.PropertyEditor
-
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
 
 /**
  * Marshall objects as JSON.
@@ -36,9 +36,9 @@ class JSONDomainFactory {
     /**
      * The default marshallers, not defined by user
      */
-    def static DEFAULT_MARSHALLERS = [
-            (Map): MapMarshaller,
-            (Collection): CollectionMarshaller
+    static DEFAULT_MARSHALLERS = [
+        (Map): MapMarshaller,
+        (Collection): CollectionMarshaller
     ]
 
     /**
@@ -47,11 +47,11 @@ class JSONDomainFactory {
      * @param marshallingContext The marshalling context associate with the current marshalling process
      * @return Object The result of the marshall operation.
      */
-    public delegateMarshalling(object, marshallingContext, maxDepth = 0) {
+    def delegateMarshalling(object, marshallingContext, maxDepth = 0) {
         if (object == null) {
             return null
         }
-        def marshaller = null
+        def marshaller
         def objectClass = object.getClass()
 
         // Resolve collections.
@@ -59,7 +59,6 @@ class JSONDomainFactory {
         if (object instanceof Collection) {
             marshaller = new CollectionMarshaller()
         }
-
 
         if (!marshaller && DEFAULT_MARSHALLERS[objectClass]) {
             marshaller = DEFAULT_MARSHALLERS[objectClass].newInstance()
@@ -126,7 +125,7 @@ class JSONDomainFactory {
      * @param instance A domain class instance.
      * @return
      */
-    public XContentBuilder buildJSON(instance) {
+    XContentBuilder buildJSON(instance) {
         def domainClass = getDomainClass(instance)
         def json = jsonBuilder().startObject()
         // TODO : add maxDepth in custom mapping (only for "searchable components")

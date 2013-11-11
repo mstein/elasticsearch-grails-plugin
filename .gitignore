@@ -3,6 +3,8 @@
 out
 data
 target
-prodDb.properties
-prodDb.script
 .link_to_grails_plugins
+web-app
+*.log
+*.zip
+plugin.xml

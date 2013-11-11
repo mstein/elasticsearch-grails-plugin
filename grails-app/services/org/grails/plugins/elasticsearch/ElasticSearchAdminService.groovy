@@ -1,13 +1,16 @@
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.client.Requests
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class ElasticSearchAdminService {
+
     static transactional = false
-    static LOG = Logger.getLogger(ElasticSearchAdminService.class)
+
+    static final Logger LOG = LoggerFactory.getLogger(this)
 
     def elasticSearchHelper
     def elasticSearchContextHolder
@@ -18,7 +21,7 @@ class ElasticSearchAdminService {
      * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
      * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
-    public void refresh(Collection<String> indices = null) {
+    void refresh(Collection<String> indices = null) {
         // Flush any pending operation from the index queue
         indexRequestQueue.executeRequests()
         // Wait till all the current operations are done
@@ -46,7 +49,7 @@ class ElasticSearchAdminService {
      * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
      * @param indices The indices to refresh. If null, will refresh ALL indices.
      */
-    public void refresh(String... indices) {
+    void refresh(String... indices) {
         refresh(indices as Collection<String>)
     }
 
@@ -55,7 +58,7 @@ class ElasticSearchAdminService {
      * This method will also flush all pending request in the indexRequestQueue and will wait for their completion.
      * @param searchableClasses The indices represented by the specified searchable classes to refresh. If null, will refresh ALL indices.
      */
-    public void refresh(Class... searchableClasses) {
+    void refresh(Class... searchableClasses) {
         def toRefresh = []
 
         // Retrieve indices to refresh
@@ -73,7 +76,7 @@ class ElasticSearchAdminService {
      * Delete one or more index and all its data.
      * @param indices The indices to delete. If null, will delete ALL indices.
      */
-    public void deleteIndex(Collection<String> indices = null) {
+    void deleteIndex(Collection<String> indices = null) {
         elasticSearchHelper.withElasticSearch { Client client ->
             if (!indices) {
                 client.admin().indices().delete(Requests.deleteIndexRequest("_all")).actionGet()
@@ -91,7 +94,7 @@ class ElasticSearchAdminService {
      * Delete one or more index and all its data.
      * @param indices The indices to delete. If null, will delete ALL indices.
      */
-    public void deleteIndex(String... indices) {
+    void deleteIndex(String... indices) {
         deleteIndex(indices as Collection<String>)
     }
 
@@ -99,7 +102,7 @@ class ElasticSearchAdminService {
      * Delete one or more index and all its data.
      * @param indices The indices to delete in the form of searchable class(es).
      */
-    public void deleteIndex(Class... searchableClasses) {
+    void deleteIndex(Class... searchableClasses) {
         def toDelete = []
 
         // Retrieve indices to delete

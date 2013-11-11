@@ -1,12 +1,14 @@
 package test
 
 import grails.plugin.spock.IntegrationSpec
-import org.apache.log4j.Logger
+
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class ElasticSearchServiceSpec extends IntegrationSpec {
     def elasticSearchService
     def elasticSearchAdminService
-    private static final Logger LOG = Logger.getLogger(ElasticSearchServiceSpec.class);
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     def setup() {
         // Make sure the indices are cleaned
@@ -72,6 +74,5 @@ class ElasticSearchServiceSpec extends IntegrationSpec {
         def result = elasticSearchService.search(product.name, [indices: Product, types: Product])
         result.total == 1
         result.searchResults[0].name == product.name
-
     }
 }

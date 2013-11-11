@@ -1,7 +1,8 @@
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.transaction.support.TransactionSynchronizationAdapter
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
  */
 class IndexSynchronization extends TransactionSynchronizationAdapter {
 
-    private static final Logger LOG = Logger.getLogger(IndexSynchronization)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private IndexRequestQueue indexRequestQueue
     private AuditEventListener auditEventListener
@@ -23,7 +24,7 @@ class IndexSynchronization extends TransactionSynchronizationAdapter {
      * Fired on transaction completion (commit or rollback).
      * @param status transaction completion status
      */
-    def void afterCompletion(int status) {
+    void afterCompletion(int status) {
         def objsToIndex = auditEventListener.getPendingObjects()
         def objsToDelete = auditEventListener.getDeletedObjects()
         switch (status) {
@@ -33,12 +34,12 @@ class IndexSynchronization extends TransactionSynchronizationAdapter {
                 }
 
                 if (objsToIndex) {
-                    for (def obj : objsToIndex.values()) {
+                    for (obj in objsToIndex.values()) {
                         indexRequestQueue.addIndexRequest(obj)
                     }
                 }
                 if (objsToDelete) {
-                    for (def obj : objsToDelete.values()) {
+                    for (obj in objsToDelete.values()) {
                         indexRequestQueue.addDeleteRequest(obj)
                     }
                 }

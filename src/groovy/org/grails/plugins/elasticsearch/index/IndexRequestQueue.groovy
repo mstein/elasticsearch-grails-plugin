@@ -15,7 +15,11 @@
  */
 package org.grails.plugins.elasticsearch.index
 
-import org.apache.log4j.Logger
+import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.bulk.BulkRequestBuilder
@@ -27,12 +31,10 @@ import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
-
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+import org.springframework.util.Assert
 
 /**
  * Holds objects to be indexed.
@@ -44,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class IndexRequestQueue implements InitializingBean {
 
-    private static final Logger LOG = Logger.getLogger(IndexRequestQueue.class)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private JSONDomainFactory jsonDomainFactory
     private ElasticSearchContextHolder elasticSearchContextHolder
@@ -59,35 +61,35 @@ class IndexRequestQueue implements InitializingBean {
     /**
      * A set containing the pending delete requests.
      */
-    private Set<IndexEntityKey> deleteRequests = new HashSet<>()
+    private Set<IndexEntityKey> deleteRequests = []
 
-    private ConcurrentLinkedDeque<OperationBatch> operationBatch = new ConcurrentLinkedDeque<>()
+    private ConcurrentLinkedDeque<OperationBatch> operationBatch = new ConcurrentLinkedDeque<OperationBatch>()
 
-    public void setJsonDomainFactory(JSONDomainFactory jsonDomainFactory) {
+    void setJsonDomainFactory(JSONDomainFactory jsonDomainFactory) {
         this.jsonDomainFactory = jsonDomainFactory
     }
 
-    public void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
+    void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
         this.elasticSearchContextHolder = elasticSearchContextHolder
     }
 
-    public void setElasticSearchClient(Client elasticSearchClient) {
+    void setElasticSearchClient(Client elasticSearchClient) {
         this.elasticSearchClient = elasticSearchClient
     }
 
-    public void setPersistenceInterceptor(DatastorePersistenceContextInterceptor persistenceInterceptor) {
+    void setPersistenceInterceptor(DatastorePersistenceContextInterceptor persistenceInterceptor) {
         this.persistenceInterceptor = persistenceInterceptor
     }
 
-    public void afterPropertiesSet() throws Exception {
+    void afterPropertiesSet() {
         persistenceInterceptor.setReadOnly()
     }
 
-    public void addIndexRequest(Object instance) {
+    void addIndexRequest(instance) {
         addIndexRequest(instance, null)
     }
 
-    public void addIndexRequest(Object instance, Serializable id) {
+    void addIndexRequest(instance, Serializable id) {
         synchronized (this) {
             IndexEntityKey key = id == null ? indexEntityKeyFromInstance(instance) :
                 new IndexEntityKey(id.toString(), instance.getClass())
@@ -95,23 +97,21 @@ class IndexRequestQueue implements InitializingBean {
         }
     }
 
-    public void addDeleteRequest(Object instance) {
+    void addDeleteRequest(instance) {
         synchronized (this) {
             deleteRequests.add(indexEntityKeyFromInstance(instance))
         }
     }
 
-    public IndexEntityKey indexEntityKeyFromInstance(Object instance) {
+    IndexEntityKey indexEntityKeyFromInstance(instance) {
         def clazz = instance.getClass()
         SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
-        if (scm == null) {
-            throw new IllegalArgumentException("Class $clazz is not a searchable domain class.")
-        }
+        Assert.notNull(scm, "Class $clazz is not a searchable domain class.")
         def id = (InvokerHelper.invokeMethod(instance, 'getId', null)).toString()
         new IndexEntityKey(id, clazz)
     }
 
-    public XContentBuilder toJSON(Object instance) {
+    XContentBuilder toJSON(instance) {
         try {
             return jsonDomainFactory.buildJSON(instance)
         } catch (Throwable t) {
@@ -125,9 +125,9 @@ class IndexRequestQueue implements InitializingBean {
      * @return Returns an OperationBatch instance which is a listener to the last executed bulk operation. Returns NULL
      *         if there were no operations done on the method call.
      */
-    public void executeRequests() {
+    void executeRequests() {
         Map<IndexEntityKey, Object> toIndex = [:]
-        Set<IndexEntityKey> toDelete = new HashSet<>()
+        Set<IndexEntityKey> toDelete = []
 
         cleanOperationBatchList()
 
@@ -207,7 +207,7 @@ class IndexRequestQueue implements InitializingBean {
         }
     }
 
-    public void waitComplete() {
+    void waitComplete() {
         LOG.debug('IndexRequestQueue.waitComplete() called')
         List<OperationBatch> clone = []
         synchronized (this) {
@@ -242,11 +242,11 @@ class IndexRequestQueue implements InitializingBean {
             this.toDelete = toDelete
         }
 
-        public boolean isComplete() {
+        boolean isComplete() {
             synchronizedCompletion.count == 0
         }
 
-        public void waitComplete() {
+        void waitComplete() {
             waitComplete(null)
         }
 
@@ -256,7 +256,7 @@ class IndexRequestQueue implements InitializingBean {
          * @param msTimeout A maximum timeout (in milliseconds) before the wait method returns, whether the operation has been completed or not.
          *                  Default value is 5000 milliseconds
          */
-        public void waitComplete(Integer msTimeout) {
+        void waitComplete(Integer msTimeout) {
             msTimeout = msTimeout == null ? 5000 : msTimeout
 
             try {
@@ -268,11 +268,11 @@ class IndexRequestQueue implements InitializingBean {
             }
         }
 
-        public void fireComplete() {
+        void fireComplete() {
             synchronizedCompletion.countDown()
         }
 
-        public void onResponse(BulkResponse bulkResponse) {
+        void onResponse(BulkResponse bulkResponse) {
             bulkResponse.getItems().each {
                 boolean removeFromQueue = !it.failed || it.failureMessage.contains('UnavailableShardsException')
                 // On shard failure, do not re-push.
@@ -301,7 +301,7 @@ class IndexRequestQueue implements InitializingBean {
             }
         }
 
-        public void onFailure(Throwable e) {
+        void onFailure(Throwable e) {
             // Everything failed. Re-push all.
             LOG.error('Bulk request failure', e)
             def remainingAttempts = attempts.getAndDecrement()
@@ -316,7 +316,7 @@ class IndexRequestQueue implements InitializingBean {
         /**
          * Push specified entities to be retried.
          */
-        public void push() {
+        void push() {
             LOG.debug("Pushing retry: ${toIndex.size()} indexing, ${toDelete.size()} deletes.")
             toIndex.each { key, value ->
                 synchronized (this) {

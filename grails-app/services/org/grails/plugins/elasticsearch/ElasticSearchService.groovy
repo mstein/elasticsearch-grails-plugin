@@ -15,7 +15,9 @@
  */
 package org.grails.plugins.elasticsearch
 
-import org.apache.log4j.Logger
+import static org.elasticsearch.index.query.QueryBuilders.queryString
+import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
+
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 import org.elasticsearch.action.count.CountRequest
@@ -28,12 +30,11 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import static org.elasticsearch.index.query.QueryBuilders.queryString
-import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
-
-public class ElasticSearchService implements GrailsApplicationAware {
-    static LOG = Logger.getLogger(ElasticSearchService.class)
+class ElasticSearchService implements GrailsApplicationAware {
+    static final Logger LOG = LoggerFactory.getLogger(this)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1
@@ -44,7 +45,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
     def elasticSearchContextHolder
     def indexRequestQueue
 
-    boolean transactional = false
+    static transactional = false
 
     /**
      * Global search using Query DSL builder.
@@ -88,7 +89,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @param params
      * @return An Integer representing the number of hits for the query
      */
-    public Integer countHits(String query, Map params = [:]) {
+    Integer countHits(String query, Map params = [:]) {
         CountRequest request = buildCountRequest(query, params)
         count(request, params)
     }
@@ -100,7 +101,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @param params
      * @return An Integer representing the number of hits for the query
      */
-    public Integer countHits(Map params, Closure query) {
+    Integer countHits(Map params, Closure query) {
         CountRequest request = buildCountRequest(query, params)
         count(request, params)
     }
@@ -112,7 +113,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @param params
      * @return An Integer representing the number of hits for the query
      */
-    public Integer countHits(Closure query, Map params = [:]) {
+    Integer countHits(Closure query, Map params = [:]) {
         countHits(params, query)
     }
 
@@ -124,7 +125,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param options indexing options
      */
-    public void index(Map options) {
+    void index(Map options) {
         doBulkRequest(options, INDEX_REQUEST)
     }
 
@@ -133,7 +134,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param domainClass List of searchable class
      */
-    public void index(Class... domainClass) {
+    void index(Class... domainClass) {
         index(class: (domainClass as Collection<Class>))
     }
 
@@ -142,7 +143,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances A Collection of searchable instances to index
      */
-    public void index(Collection<GroovyObject> instances) {
+    void index(Collection<GroovyObject> instances) {
         doBulkRequest(instances, INDEX_REQUEST)
     }
 
@@ -151,7 +152,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances
      */
-    public void index(GroovyObject... instances) {
+    void index(GroovyObject... instances) {
         index(instances as Collection<GroovyObject>)
     }
 
@@ -163,7 +164,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param options indexing options
      */
-    public void unindex(Map options) {
+    void unindex(Map options) {
         doBulkRequest(options, DELETE_REQUEST)
     }
 
@@ -172,7 +173,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param domainClass List of searchable class
      */
-    public void unindex(Class... domainClass) {
+    void unindex(Class... domainClass) {
         unindex(class: (domainClass as Collection<Class>))
     }
 
@@ -181,7 +182,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances A Collection of searchable instances to index
      */
-    public void unindex(Collection<GroovyObject> instances) {
+    void unindex(Collection<GroovyObject> instances) {
         doBulkRequest(instances, DELETE_REQUEST)
     }
 
@@ -190,7 +191,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param instances
      */
-    public void unindex(GroovyObject... instances) {
+    void unindex(GroovyObject... instances) {
         unindex(instances as Collection<GroovyObject>)
     }
 
@@ -356,7 +357,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @param params Search parameters
      * @return A Map containing the search results
      */
-    public search(SearchRequest request, Map params) {
+    def search(SearchRequest request, Map params) {
         resolveIndicesAndTypes(request, params)
         elasticSearchHelper.withElasticSearch { Client client ->
             LOG.debug 'Executing search request.'
@@ -404,7 +405,7 @@ public class ElasticSearchService implements GrailsApplicationAware {
      * @param params
      * @return Integer The number of hits for the query
      */
-    public Integer count(CountRequest request, Map params) {
+    Integer count(CountRequest request, Map params) {
         resolveIndicesAndTypes(request, params)
         elasticSearchHelper.withElasticSearch { Client client ->
             LOG.debug 'Executing count request.'

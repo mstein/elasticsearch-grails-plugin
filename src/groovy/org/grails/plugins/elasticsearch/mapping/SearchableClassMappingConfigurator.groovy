@@ -16,7 +16,6 @@
 
 package org.grails.plugins.elasticsearch.mapping
 
-import org.apache.log4j.Logger
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.GrailsClass
@@ -28,14 +27,16 @@ import org.elasticsearch.client.Client
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Build searchable mappings, configure ElasticSearch indexes,
  * build and install ElasticSearch mappings.
  */
-public class SearchableClassMappingConfigurator {
+class SearchableClassMappingConfigurator {
 
-    private static final Logger LOG = Logger.getLogger(SearchableClassMappingConfigurator)
+    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private ElasticSearchContextHolder elasticSearchContext
     private GrailsApplication grailsApplication
@@ -45,7 +46,7 @@ public class SearchableClassMappingConfigurator {
     /**
      * Init method.
      */
-    public void configureAndInstallMappings() {
+    void configureAndInstallMappings() {
         Collection<SearchableClassMapping> mappings = buildMappings()
         installMappings(mappings)
     }
@@ -54,16 +55,16 @@ public class SearchableClassMappingConfigurator {
      * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
      * @param mappings searchable class mappings to be install.
      */
-    public void installMappings(Collection<SearchableClassMapping> mappings) {
-        Set<String> installedIndices = new HashSet<String>()
+    void installMappings(Collection<SearchableClassMapping> mappings) {
+        Set<String> installedIndices = []
         Map<String, Object> settings = new HashMap<String, Object>()
 //        settings.put("number_of_shards", 5)        // must have 5 shards to be Green.
 //        settings.put("number_of_replicas", 2)
         settings.put("number_of_replicas", 0)
         // Look for default index settings.
-        Map esConfig = (Map) grailsApplication.config.getProperty("elasticSearch")
+        Map esConfig = grailsApplication.config.getProperty("elasticSearch")
         if (esConfig != null) {
-            Map<String, Object> indexDefaults = (Map<String, Object>) esConfig.get("index")
+            Map<String, Object> indexDefaults = esConfig.get("index")
             LOG.debug("Retrieved index settings")
             if (indexDefaults != null) {
                 for (Map.Entry<String, Object> entry : indexDefaults.entrySet()) {
@@ -125,7 +126,7 @@ public class SearchableClassMappingConfigurator {
     }
 
     private Collection<SearchableClassMapping> buildMappings() {
-        List<SearchableClassMapping> mappings = new ArrayList<SearchableClassMapping>()
+        List<SearchableClassMapping> mappings = []
         for (GrailsClass clazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
             GrailsDomainClass domainClass = (GrailsDomainClass) clazz
             SearchableDomainClassMapper mapper = new SearchableDomainClassMapper(grailsApplication, domainClass, config)
@@ -154,19 +155,19 @@ public class SearchableClassMappingConfigurator {
         return mappings
     }
 
-    public void setElasticSearchContext(ElasticSearchContextHolder elasticSearchContext) {
+    void setElasticSearchContext(ElasticSearchContextHolder elasticSearchContext) {
         this.elasticSearchContext = elasticSearchContext
     }
 
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
+    void setGrailsApplication(GrailsApplication grailsApplication) {
         this.grailsApplication = grailsApplication
     }
 
-    public void setElasticSearchClient(Client elasticSearchClient) {
+    void setElasticSearchClient(Client elasticSearchClient) {
         this.elasticSearchClient = elasticSearchClient
     }
 
-    public void setConfig(ConfigObject config) {
+    void setConfig(ConfigObject config) {
         this.config = config
     }
 }
