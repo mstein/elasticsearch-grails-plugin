@@ -45,24 +45,26 @@ class IndexSynchronization extends TransactionSynchronizationAdapter {
                     }
                 }
 
-                // flush to index.
-                def resourceMap = TransactionSynchronizationManager.resourceMap
+                /**
+                 * Record transaction resources prior to the operation so that we're able to clean them up later
+                 */
+                Set existingResourceKeys = txResourceKeys()
                 try {
+                    // flush to index.
                     indexRequestQueue.executeRequests()
                 } finally {
-                    def resourceMapAfterOp = TransactionSynchronizationManager.resourceMap
                     /**
-                     * If we've got a difference between the resource maps before and after the request execution phase,
+                     * If we've got a difference between the resource map keys before and after the request execution phase,
                      * it means that newly added resources were bound to the thread
                      */
-                    if (((resourceMapAfterOp != null) && (resourceMap != null)) &&
-                            (resourceMapAfterOp != resourceMap)) {
+                    Set resourceKeysAfterOp = txResourceKeys()
+
+                    if (existingResourceKeys != resourceKeysAfterOp) {
                         /**
                          * Check the difference between the keys of the resource maps before and after the request execution
                          * to find out which keys must be unbound
                          */
-                        def keysBeforeOp = resourceMap.keySet()
-                        def addedKeys = resourceMapAfterOp.keySet().findAll { !keysBeforeOp.contains(it) }
+                        def addedKeys = resourceKeysAfterOp.findAll { !existingResourceKeys.contains(it) }
                         addedKeys.each { TransactionSynchronizationManager.unbindResource(it) }
                     }
                 }
@@ -78,5 +80,13 @@ class IndexSynchronization extends TransactionSynchronizationAdapter {
         // Clear objs
         auditEventListener.clearPendingObjects()
         auditEventListener.clearDeletedObjects()
+    }
+
+    private Set txResourceKeys() {
+        Set resourceKeys = [] as Set
+        if (!TransactionSynchronizationManager.resourceMap?.isEmpty()) {
+            resourceKeys.addAll(TransactionSynchronizationManager.resourceMap.keySet())
+        }
+        resourceKeys
     }
 }
