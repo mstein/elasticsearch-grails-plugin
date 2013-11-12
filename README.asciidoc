@@ -8,29 +8,13 @@ The original Elasticsearch plugin relies on *Hibernate-specific* GORM components
 
 === How can I obtain the plugin?
 
-The plugin is still in beta, so it hasn't been officially released to Grails' plugin center. +
-In the meantime you can install the plugin in one of two ways:
-
-==== 1. Inline
-
-Clone this repository and add an inline plugin dependency to your project's +BuildConfig.groovy+ file:
-
-----
-grails.plugin.location.'elasticsearch-gorm-grails-plugin' = '/path/to/cloned/repo'
-----
-
-==== 2. Binary Dependency
-
-Snapshot versions of the plugin are deployed to a repository at http://noams.artifactoryonline.com. +
-You can resolve the snapshot version by editting your project's +BuildConfig.groovy+ file, by adding the plugins' snapshot repository and a standard snasphot dependency declaration:
+Just like any other Grails plugin, through the Grails Plugin center.
+Edit your project's +BuildConfig.groovy+ file, by adding the plugin's dependency declaration:
 
 ----
 grails.project.dependency.resolution = {
-    repositories {
-        mavenRepo 'http://noams.artifactoryonline.com/noams/grails-elasticsearch-plugin-snapshots/'
-    }
     plugins {
-        compile ':elasticsearch-gorm:0.0.1-SNAPSHOT'
+        compile ':elasticsearch-gorm:0.0.2'
     }
 }
 ----
