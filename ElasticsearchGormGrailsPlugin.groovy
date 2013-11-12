@@ -63,8 +63,8 @@ class ElasticsearchGormGrailsPlugin {
 
     def author = 'Noam Y. Tenne'
     def authorEmail = 'noam@10ne.org'
-    def title = 'Elastic Search Plugin'
-    def description = 'An Elasticsearch plugin for Grails'
+    def title = 'ElasticSearch GORM Plugin'
+    def description = """An alternative Elasticsearch plugin for Grails. Based on, but unlike the original, this implementation aims to be DB agnostic."""
     def documentation = 'http://noamt.github.io/elasticsearch-gorm-plugin'
 
     def doWithSpring = {
