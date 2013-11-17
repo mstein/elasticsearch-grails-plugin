@@ -15,6 +15,8 @@
  */
 package org.grails.plugins.elasticsearch.index
 
+import org.codehaus.groovy.grails.support.PersistenceContextInterceptor
+
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -26,7 +28,6 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder
 import org.elasticsearch.action.bulk.BulkResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.xcontent.XContentBuilder
-import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
@@ -51,7 +52,7 @@ class IndexRequestQueue implements InitializingBean {
     private JSONDomainFactory jsonDomainFactory
     private ElasticSearchContextHolder elasticSearchContextHolder
     private Client elasticSearchClient
-    private DatastorePersistenceContextInterceptor persistenceInterceptor
+    private PersistenceContextInterceptor persistenceInterceptor
 
     /**
      * A map containing the pending index requests.
@@ -77,7 +78,7 @@ class IndexRequestQueue implements InitializingBean {
         this.elasticSearchClient = elasticSearchClient
     }
 
-    void setPersistenceInterceptor(DatastorePersistenceContextInterceptor persistenceInterceptor) {
+    void setPersistenceInterceptor(PersistenceContextInterceptor persistenceInterceptor) {
         this.persistenceInterceptor = persistenceInterceptor
     }
 
