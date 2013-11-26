@@ -231,11 +231,11 @@ public class ElasticSearchService implements GrailsApplicationAware {
                     LOG.debug("Deleting all instances of ${scm.domainClass}")
                 }
 
-                // The index is splitted to avoid out of memory exception
-                def count = scm.domainClass.clazz.count() ?: 0
-                int nbRun = Math.ceil(count / maxRes)
-
                 scm.domainClass.clazz.withNewSession {session ->
+                    // The index is splitted to avoid out of memory exception
+                    def count = scm.domainClass.clazz.count() ?: 0
+                    int nbRun = Math.ceil(count / maxRes)
+
                     for(int i = 0; i < nbRun; i++) {
                         scm.domainClass.clazz.withCriteria {
                             firstResult(i * maxRes)
