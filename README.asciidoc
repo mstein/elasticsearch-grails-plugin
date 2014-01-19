@@ -14,7 +14,7 @@ Edit your project's +BuildConfig.groovy+ file, by adding the plugin's dependency
 ----
 grails.project.dependency.resolution = {
     plugins {
-        compile ':elasticsearch-gorm:0.0.2'
+        compile ':elasticsearch-gorm:0.0.2.2'
     }
 }
 ----
@@ -42,7 +42,7 @@ Hibernate::
 == License
 
 ----
-Copyright 2013 the original author or authors.
+Copyright 2014 the original author or authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

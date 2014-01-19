@@ -1,4 +1,6 @@
 h4. History
+* January 19, 2014
+** 0.0.2.2 Bugfix release
 * November 24, 2013
 ** 0.0.2.1 Bugfix release
 * November 12, 2013
@@ -21,7 +23,7 @@ Get the full and updated list of contributors on the [github|https://github.com/
 h4. License
 
 {quote}
-    Copyright 2002-2013 the original author or authors.
+    Copyright 20013-2014 the original author or authors.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
