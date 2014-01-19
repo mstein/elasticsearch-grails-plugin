@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import grails.util.Environment
 
+import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
@@ -34,7 +34,7 @@ class ElasticsearchGormGrailsPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    def version = '0.0.2.1'
+    def version = '0.0.2.x-SNAPSHOT'
     def grailsVersion = '2.1.0 > *'
 
     def loadAfter = ['services']
