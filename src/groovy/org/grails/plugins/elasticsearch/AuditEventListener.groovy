@@ -29,7 +29,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 class AuditEventListener extends AbstractPersistenceEventListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(this)
+    private static final Logger logger = LoggerFactory.getLogger(this)
 
     ElasticSearchContextHolder elasticSearchContextHolder
 
@@ -123,21 +123,33 @@ class AuditEventListener extends AbstractPersistenceEventListener {
     }
 
     void onPostInsert(PostInsertEvent event) {
-        def entity = event.entityAccess.entity
+        def entity = getEventEntity(event)
+        if (!entity) {
+            logger.warn('Received a PostInsertEvent with no entity')
+            return
+        }
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToIndex(entity)
         }
     }
 
     void onPostUpdate(PostUpdateEvent event) {
-        def entity = event.entityAccess.entity
+        def entity = getEventEntity(event)
+        if (!entity) {
+            logger.warn('Received a PostUpdateEvent with no entity')
+            return
+        }
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToIndex(entity)
         }
     }
 
     void onPostDelete(PostDeleteEvent event) {
-        def entity = event.entityAccess.entity
+        def entity = getEventEntity(event)
+        if (!entity) {
+            logger.warn('Received a PostDeleteEvent with no entity')
+            return
+        }
         if (elasticSearchContextHolder.isRootClass(entity.class)) {
             pushToDelete(entity)
         }
@@ -157,5 +169,13 @@ class AuditEventListener extends AbstractPersistenceEventListener {
 
     void clearDeletedObjects() {
         deletedObjects.remove()
+    }
+
+    private def getEventEntity(AbstractPersistenceEvent event) {
+        if (event.entityAccess) {
+            return event.entityAccess.entity
+        }
+
+        event.entityObject
     }
 }
