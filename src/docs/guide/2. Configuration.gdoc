@@ -62,6 +62,9 @@ Default to @false@.
 * @elasticSearch.bulkIndexOnStartup@
 A boolean determining if the application should launch a bulk index operation upon startup. Default to @true@.
 
+* @elasticSearch.index.name@
+A string indicating which ElasticSearch index should be used.  If not present, will default to the package name of the domain in question.
+
 * @elasticSearch.index.compound_format@
 Should the compound file format be used (boolean setting).
 Set to @false@ by default (really applicable for file system based index storage).
