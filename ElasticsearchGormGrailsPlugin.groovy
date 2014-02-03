@@ -17,6 +17,7 @@
 
 import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.plugins.GrailsPluginManager
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
@@ -26,6 +27,8 @@ import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import org.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
+import org.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -101,9 +104,18 @@ class ElasticsearchGormGrailsPlugin {
         customEditorRegistrar(CustomEditorRegistar) {
             grailsApplication = ref('grailsApplication')
         }
+
+        def pluginManager = application.parentContext.getBean(GrailsPluginManager.BEAN_NAME)
+        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('hibernate')) {
+            hibernateProxyUnWrapper(HibernateProxyUnWrapper)
+        }
+
+        domainClassUnWrapperChain(DomainClassUnWrapperChain)
+
         jsonDomainFactory(JSONDomainFactory) {
             elasticSearchContextHolder = ref('elasticSearchContextHolder')
             grailsApplication = ref('grailsApplication')
+            domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
         }
         if (!esConfig.disableAutoIndex) {
             if (!esConfig.datastoreImpl) {

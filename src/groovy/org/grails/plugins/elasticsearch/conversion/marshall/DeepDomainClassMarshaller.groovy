@@ -51,7 +51,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
     }
 
     private GrailsDomainClass getDomainClass(instance) {
-        def instanceClass = instance.class
+        def instanceClass = domainClassUnWrapperChain.unwrap(instance).class
         grailsApplication.domainClasses.find { it.clazz == instanceClass }
     }
 }

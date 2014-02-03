@@ -16,14 +16,15 @@
 
 package org.grails.plugins.elasticsearch.conversion
 
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
-
-import java.beans.PropertyEditor
-
 import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.grails.plugins.elasticsearch.conversion.marshall.*
+import org.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
+
+import java.beans.PropertyEditor
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
 
 /**
  * Marshall objects as JSON.
@@ -32,6 +33,7 @@ class JSONDomainFactory {
 
     def elasticSearchContextHolder
     def grailsApplication
+    DomainClassUnWrapperChain domainClassUnWrapperChain
 
     /**
      * The default marshallers, not defined by user
@@ -111,12 +113,14 @@ class JSONDomainFactory {
         marshaller.marshallingContext = marshallingContext
         marshaller.elasticSearchContextHolder = elasticSearchContextHolder
         marshaller.grailsApplication = grailsApplication
+        marshaller.domainClassUnWrapperChain = domainClassUnWrapperChain
         marshaller.maxDepth = maxDepth
         marshaller.marshall(object)
     }
 
     private GrailsDomainClass getDomainClass(instance) {
-        grailsApplication.domainClasses.find { it.clazz == instance.class }
+        def instanceClass = domainClassUnWrapperChain.unwrap(instance).class
+        grailsApplication.domainClasses.find { it.clazz == instanceClass }
     }
 
     /**
