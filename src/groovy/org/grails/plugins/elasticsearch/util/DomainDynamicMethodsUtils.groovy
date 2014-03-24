@@ -19,7 +19,6 @@ import org.apache.commons.logging.LogFactory
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.exception.IndexException
-import org.grails.plugins.elasticsearch.mapping.SearchableDomainClassMapper
 
 class DomainDynamicMethodsUtils {
 
@@ -39,7 +38,8 @@ class DomainDynamicMethodsUtils {
         def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
         for (GrailsDomainClass domain in grailsApplication.domainClasses) {
-            if (!domain.getPropertyValue(SearchableDomainClassMapper.SEARCHABLE_PROPERTY_NAME)) {
+            String searchablePropertyName = grailsApplication.config.elasticSearch.searchableProperty.name
+            if (!domain.getPropertyValue(searchablePropertyName)) {
                 continue
             }
 
@@ -85,15 +85,15 @@ class DomainDynamicMethodsUtils {
 
             // Inject the index method
             // static index() with no arguments index every instances of the domainClass
-            domain.metaClass.static.index << {->
-                elasticSearchService.index(class:domainCopy.clazz)
+            domain.metaClass.static.index << { ->
+                elasticSearchService.index(class: domainCopy.clazz)
             }
             // static index( domainInstances ) index every instances specified as arguments
             domain.metaClass.static.index << { Collection<GroovyObject> instances ->
                 def invalidTypes = instances.any { inst ->
                     inst.class != domainCopy.clazz
                 }
-                if(!invalidTypes) {
+                if (!invalidTypes) {
                     elasticSearchService.index(instances)
                 } else {
                     throw new IndexException("[${domainCopy.propertyName}] index() method can only be applied its own type. Please use the elasticSearchService if you want to index mixed values.")
@@ -101,7 +101,7 @@ class DomainDynamicMethodsUtils {
             }
             // static index( domainInstances ) index every instances specified as arguments (ellipsis styled)
             domain.metaClass.static.index << { GroovyObject... instances ->
-                delegate.metaClass.invokeStaticMethod (domainCopy.clazz, 'index', instances as Collection<GroovyObject>)
+                delegate.metaClass.invokeStaticMethod(domainCopy.clazz, 'index', instances as Collection<GroovyObject>)
             }
             // index() method on domain instance
             domain.metaClass.index << {
@@ -110,15 +110,15 @@ class DomainDynamicMethodsUtils {
 
             // Inject the unindex method
             // static unindex() with no arguments unindex every instances of the domainClass
-            domain.metaClass.static.unindex << {->
-                elasticSearchService.unindex(class:domainCopy.clazz)
+            domain.metaClass.static.unindex << { ->
+                elasticSearchService.unindex(class: domainCopy.clazz)
             }
             // static unindex( domainInstances ) unindex every instances specified as arguments
             domain.metaClass.static.unindex << { Collection<GroovyObject> instances ->
                 def invalidTypes = instances.any { inst ->
                     inst.class != domainCopy.clazz
                 }
-                if(!invalidTypes) {
+                if (!invalidTypes) {
                     elasticSearchService.unindex(instances)
                 } else {
                     throw new IndexException("[${domainCopy.propertyName}] unindex() method can only be applied on its own type. Please use the elasticSearchService if you want to unindex mixed values.")
@@ -126,7 +126,7 @@ class DomainDynamicMethodsUtils {
             }
             // static unindex( domainInstances ) unindex every instances specified as arguments (ellipsis styled)
             domain.metaClass.static.unindex << { GroovyObject... instances ->
-                delegate.metaClass.invokeStaticMethod (domainCopy.clazz, 'unindex', instances as Collection<GroovyObject>)
+                delegate.metaClass.invokeStaticMethod(domainCopy.clazz, 'unindex', instances as Collection<GroovyObject>)
             }
             // unindex() method on domain instance
             domain.metaClass.unindex << {

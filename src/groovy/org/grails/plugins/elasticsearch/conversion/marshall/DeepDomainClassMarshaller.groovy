@@ -24,7 +24,9 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
             // Domain marshalling
             if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
-                if (propertyValue.class.searchable) {   // todo fixme - will throw exception when no searchable field.
+                String searchablePropertyName = elasticSearchContextHolder.config.searchableProperty.name
+                if (propertyValue.class."$searchablePropertyName") {
+                    // todo fixme - will throw exception when no searchable field.
                     marshallingContext.lastParentPropertyName = prop.name
                     marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
                 } else {

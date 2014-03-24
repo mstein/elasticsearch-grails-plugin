@@ -55,6 +55,11 @@ elasticSearch {
      * Should component-mapped properties be unmarshalled. The default is true.
      */
     unmarshallComponents = true
+
+    /**
+     * The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
+     */
+    searchableProperty.name = 'searchable'
 }
 
 environments {

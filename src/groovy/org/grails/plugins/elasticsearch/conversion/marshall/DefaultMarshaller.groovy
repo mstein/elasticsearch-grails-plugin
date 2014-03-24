@@ -1,13 +1,15 @@
 package org.grails.plugins.elasticsearch.conversion.marshall
 
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 
 class DefaultMarshaller implements Marshaller {
 
     DefaultMarshallingContext marshallingContext
-    def elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
     def maxDepth
-    def grailsApplication
+    GrailsApplication grailsApplication
     DomainClassUnWrapperChain domainClassUnWrapperChain
 
     /**

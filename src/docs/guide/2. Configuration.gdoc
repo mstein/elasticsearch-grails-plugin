@@ -97,6 +97,9 @@ The location of the data files of each index / shard allocated on the node.
 * @elasticSearch.path.plugins@
 The location of plugin files such as native scripts. Each plugin will be contained in a subdirectory.
 
+* @elasticSearch.searchableProperty.name@
+The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
+
 h4. Default configuration script
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).
 
@@ -145,6 +148,12 @@ elasticSearch {
    *  at once. If this setting is not specified, 500 will be use by default.
    */
   maxBulkRequest = 500
+
+
+  /**
+   * The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
+   */
+  searchableProperty.name = 'searchable'
 }
 
 environments {

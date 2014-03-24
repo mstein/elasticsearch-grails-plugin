@@ -1,8 +1,8 @@
 log4j = {
     error 'org.codehaus.groovy.grails',
-          'org.springframework',
-          'org.hibernate',
-          'net.sf.ehcache.hibernate'
+            'org.springframework',
+            'org.hibernate',
+            'net.sf.ehcache.hibernate'
     debug 'org.grails.plugins.elasticsearch'
 }
 
@@ -26,6 +26,8 @@ elasticSearch {
         compound_format = true
     }
     unmarshallComponents = true
+
+    searchableProperty.name = 'searchable'
 }
 
 environments {
