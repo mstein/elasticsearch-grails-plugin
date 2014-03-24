@@ -22,7 +22,7 @@ import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
-import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistar
+import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
@@ -101,7 +101,7 @@ class ElasticsearchGormGrailsPlugin {
             elasticSearchClient = ref('elasticSearchClient')
             grailsApplication = ref('grailsApplication')
         }
-        customEditorRegistrar(CustomEditorRegistar) {
+        customEditorRegistrar(CustomEditorRegistrar) {
             grailsApplication = ref('grailsApplication')
         }
 
