@@ -160,10 +160,6 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         return scm
     }
 
-    private String getSearchablePropertyName() {
-        esConfig.searchableProperty.name
-    }
-
     private Set<String> getInheritedProperties(GrailsDomainClass domainClass) {
         // check which properties belong to this domain class ONLY
         Set<String> inheritedProperties = []
@@ -268,5 +264,15 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
             return new HashSet<String>(arg)
         }
         throw new IllegalArgumentException("Unknown argument: $arg")
+    }
+
+    private String getSearchablePropertyName() {
+        def searchablePropertyName = esConfig.searchableProperty.name
+
+        //Maintain backwards compatibility. Searchable property name may not be defined
+        if (!searchablePropertyName) {
+            return 'searchable'
+        }
+        searchablePropertyName
     }
 }
