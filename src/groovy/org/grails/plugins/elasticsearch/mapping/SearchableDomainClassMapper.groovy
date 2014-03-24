@@ -23,11 +23,6 @@ import java.lang.reflect.Modifier
 
 class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
-     * Options applied to searchable class itself
-     */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = Arrays.asList("all", "root", "only", "except")
-
-    /**
      * Class mapping properties
      */
     private Boolean all = true
@@ -108,7 +103,6 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
                 if (superDomainClass.hasProperty(searchablePropertyName) &&
                         superDomainClass.getPropertyValue(searchablePropertyName).equals(Boolean.FALSE)) {
-
                     // hierarchy explicitly terminated. Do not browse any more properties.
                     break
                 }
@@ -148,7 +142,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         }
 
         // Populate default settings.
-        // Clean out any per-property specs not allowed by 'only','except' rules.
+        // Clean out any per-property specs not allowed by 'only', 'except' rules.
 
         customMappedProperties.keySet().retainAll(mappableProperties)
         mappableProperties.remove(grailsDomainClass.getIdentifier().getName())
