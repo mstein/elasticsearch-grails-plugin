@@ -92,7 +92,7 @@ class IndexRequestQueue implements InitializingBean {
     void addIndexRequest(instance, Serializable id) {
         synchronized (this) {
             IndexEntityKey key = id == null ? indexEntityKeyFromInstance(instance) :
-                new IndexEntityKey(id.toString(), instance.getClass())
+                    new IndexEntityKey(id.toString(), instance.getClass())
             indexRequests.put(key, instance)
         }
     }
@@ -165,7 +165,7 @@ class IndexRequestQueue implements InitializingBean {
                         .setId(key.id) // TODO : Composite key ?
                         .setSource(json)
                 if (parentMapping) {
-                    index = index.setParent(value."${parentMapping.propertyName}".id)
+                    index = index.setParent(value."${parentMapping.propertyName}".id?.toString())
                 }
 
                 bulkRequestBuilder.add(index)
