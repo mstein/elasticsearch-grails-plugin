@@ -1,0 +1,20 @@
+You can customize the mapping for each domain properties using the closure mapping.
+The syntax is simple:
+{code}static searchable = {
+    propertyName option1:value, option2:value, ...
+}{code}
+
+h4. Available options
+
+{table}
+*Option name* | Values | *Description*
+boost | Number | A decimal boost value. With a positive value, promotes search results for hits in this property; with a negative value, demotes search results that hit this property.
+[component|guide:searchableComponent] | @true@, @false@ | To use only on domain (or collection of domains), make the property a searchable component.
+converter | A @Class@ | A @Class@ to use as a converter during the marshalling/unmarshalling process for that peculiar property. That class must extends the @PropertyEditorSupport@ java class.
+excludeFromAll | @true@, @false@ | determines if the property is to append in the @"_all"@ field. Default to @true@.
+index | @"no"@, @"not_analyzed"@, @"analyzed"@. | How or if the property is made into searchable element. One of @"no"@, @"not_analyzed"@ or @"analyzed"@.
+[reference|guide:searchableReference] | @true@, @false@ | To use only on domain (or collection of domains), make the property a searchable reference.
+[parent|guide:parentChild] | @true@, @false@ | A boolean value to be used in conjunction with the @reference@ or @component@ property . Set to @true@ if the referenced field should be mapped as the parent of this document. Default set to @false@.
+multi_field | @true@, @false@ | A boolean value. Maps the value of the field twice; Once with it being analyzed, and once with it being not_analyzed under untouched. Default set to @false@.
+[geoPoint|guide:geoPoint] | @true@, @false@ | Maps the field to a geo_point. Default: @false@
+{table}

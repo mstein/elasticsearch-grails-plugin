@@ -1,0 +1,11 @@
+To sort the search results, either a field name or a SortBuilder must be passed.
+
+h4. Returned sort values
+
+The sort values are not part of the search results themselves but are part of @result.sort@.
+@sort@ contains all search values calculated by the ElasticSearch server as a list mapped to the id of the respective domain objects
+
+h4. Example
+{code:groovy}
+assert [1:[23, 42], 2: [24, 40]] == result.sort
+{code}

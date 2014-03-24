@@ -4,7 +4,7 @@ h2. Purpose
 
 Index specific domain instances to ElasticSearch.
 Internally, the plugin uses the Bulk API of ElasticSearch to perform the index requests.
-{note}Only domains that are [root-mapped|guide:3.2 Class mapping] have this method injected.{note}
+{note}Only domains that are [root-mapped|guide:classMapping] have this method injected.{note}
 
 h2. Examples
 

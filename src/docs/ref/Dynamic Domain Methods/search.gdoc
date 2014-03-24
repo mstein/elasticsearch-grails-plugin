@@ -4,7 +4,7 @@ h2. Purpose
 
 Search through an index for the specified search query.
 The returned result only contains hits for the correponding domain.
-{note}Only domains that are [root-mapped|guide:3.2 Class mapping] have this method injected.{note}
+{note}Only domains that are [root-mapped|guide:classMapping] have this method injected.{note}
 
 h2. Examples
 
@@ -41,7 +41,7 @@ h4. Parameters
 * @params@ - A list of additional parameters to customize the searching process
 ** @from@ and @size@ - From (hit) and the size (number of hits) to return.
 ** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
-** @highlighter@ - A @Closure@ containing the [highlighting|guide:5.3 Highlighting] settings.
+** @highlighter@ - A @Closure@ containing the [highlighting|guide:highlighting] settings.
 
 h4. Returned value
 

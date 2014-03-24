@@ -1,0 +1,25 @@
+A geographic location can be mapped to a geo_point. The field for the longitude has to be named @lon@ and the field for the latitude has to be named @lat@
+
+h4. Example
+
+{code}
+class GeoPoint {
+
+    Double lat
+    Double lon
+
+    static searchable = {
+        root false
+    }
+}
+
+class Building {
+
+    String name
+    GeoPoint location
+
+    static searchable = {
+        location geoPoint: true, component: true
+    }
+}
+{code}

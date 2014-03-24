@@ -1,0 +1,42 @@
+A store with many departments
+{code:groovy}
+class Store {
+
+    String name
+    String description = "A description of a store"
+    String owner = "Shopowner"
+
+    static searchable = true
+
+    static constraints = {
+        name blank: false
+        description nullable: true
+        owner nullable: false
+    }
+}
+
+class Department {
+
+    String name
+    Long numberOfProducts
+    Store store
+
+    static constraints = {
+        numberOfProducts nullable: true
+    }
+
+    static searchable = {
+        store parent: true, component:true
+    }
+}
+{code}
+
+Search for all departments which are childs of a store with the owner "Shopowner"
+
+{code:groovy}
+def result = elasticSearchService.search(
+    QueryBuilders.hasParentQuery("store", QueryBuilders.matchQuery("owner", "Shopowner")),
+    null as Closure,
+    [indices: Department, types: Department]
+)
+{code}

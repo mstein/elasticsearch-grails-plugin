@@ -2,7 +2,7 @@ The search method support highlighting: automatic wrapping of the matching terms
 HTML/XML/Whatever tags.
 You can activate this with a @Closure@ containing the highlight settings in the search method @highlight@ parameter.
 The format of the @Closure@ for defining the highlight settings is the same as the
-[ElasticSearch REST API|http://www.elasticsearch.org/guide/reference/api/search/highlighting.html].
+[ElasticSearch REST API|http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-highlighting.html].
 
 *Example*
 {code:groovy}
@@ -21,7 +21,7 @@ h3. Highlight results
 If a search result is found, the @search@ method will add a @highlight@ entry in the map result.
 That entry contains a @List@ with every highlighted fragments/fields found for each hit.
 
-{code}
+{code:groovy}
 def results = Tweet.search("${params.query}", [highlight: { field 'message' }])
 def highlighted = results.highlight
 
@@ -39,7 +39,7 @@ To determine which fields are to be processed by ElasticSearch, use the @field@ 
 You can call the @field@ setting as many time as you want to add any field.
 
 *Signature*
-{code}
+{code:groovy}
     field <fieldName>[, <fragmentSize>[, <numberOfFragment>]]
 {code}
 
@@ -65,7 +65,7 @@ h3. Highlighting tags
 By default, ElasticSearch will use emphasis tag "@<em>...</em>@" to wrap the matching text.
 You can customize the tags with the @preTags@ and @postTags@ settings.
 
-{code}
+{code:groovy}
 def highlightSettings = {
     field 'message'
     preTags '<myAweSomeTag>'

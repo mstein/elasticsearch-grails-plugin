@@ -1,12 +1,12 @@
 The plugin provides 2 ways to send search requests.
 * You can use the @elasticSearchService@ and its public @search@ method for cross-domain searching, meaning that ElasticSearch
 may analyze multiple indices and return hits of different types (=different domains).
-{code}
+{code:groovy}
 def res = elasticSearchService.search("${params.query}")
 // 'res' search results may contains multiple types of results
 {code}
 * You can use the injected dynamic method in the domain for domain-specific searching.
-{code}
+{code:groovy}
 def res = Tweet.search("${params.query}")
 // 'res' search results contains only Tweet instances
 {code}
@@ -17,7 +17,7 @@ These search methods return a @Map@ containing 3 entries:
 * a @scores@ entry, containing the hits scores
 
 *Example*
-{code}
+{code:groovy}
 def res = Tweet.search("${params.query}")
 println "Found ${res.total} result(s)"
 res.searchResults.each {
@@ -39,7 +39,7 @@ If you're willing to retrieve only the number of hits for a peculiar query, you 
 method. It will only return an @Integer@ representing the total hits matching your query.
 
 *Example*
-{code}
+{code:groovy}
 def res = Tweet.countHits("${params.query}")
 println "Found ${res} result(s)"
 

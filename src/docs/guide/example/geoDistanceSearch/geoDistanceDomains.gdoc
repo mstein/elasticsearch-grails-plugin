@@ -1,0 +1,27 @@
+
+{code:groovy}
+class GeoPoint {
+
+    Double lat
+    Double lon
+
+    static searchable = {
+        root false
+    }
+}
+{code}
+GeoPoint represents the geo coordinates for a building. The field names @lat@ and @lon@ are mandatory.
+
+{code:groovy}
+class Building {
+
+    String name
+    GeoPoint location
+
+    static searchable = {
+        location geoPoint: true, component: true
+    }
+}
+{code}
+
+The location of the building is mapped to an ElasticSearch [geo_point|http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-geo-point-type.html].

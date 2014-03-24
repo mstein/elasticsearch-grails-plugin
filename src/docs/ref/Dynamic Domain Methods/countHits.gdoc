@@ -3,7 +3,7 @@ h1. countHits
 h2. Purpose
 
 Returns the number of hits for a specified search query.
-{note}Only domains that are [root-mapped|guide:3.2 Class mapping] have this method injected.{note}
+{note}Only domains that are [root-mapped|guide:classMapping] have this method injected.{note}
 
 h2. Examples
 

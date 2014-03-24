@@ -1,0 +1,28 @@
+To map a parent/child relationship, the child element must either contain the parent element as a component or reference it as a referenced document.
+This component must be mapped as a parent in the child element.
+
+h4. Example
+
+{code}
+class ParentElement {
+…
+}
+
+class EmbeddingChild {
+    ParentElement parentElement
+
+    static searchable = {
+        parentElement parent: true, component: true
+    }
+}
+{code}
+
+class ReferencingChild {
+    ParentElement parentElement
+
+    static searchable = {
+        parentElement parent: true, reference: true
+    }
+}
+{code}
+
