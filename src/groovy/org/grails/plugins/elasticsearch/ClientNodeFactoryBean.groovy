@@ -108,6 +108,12 @@ class ClientNodeFactoryBean implements FactoryBean {
                         nb.settings().put("index.queryparser.types.${type}".toString(), clz)
                     }
                 }
+
+                def pluginsDirectory = elasticSearchContextHolder.config.path.plugins
+                if(pluginsDirectory){
+                    nb.settings().put('path.plugins', pluginsDirectory as String)
+                }
+
                 nb.local(true)
                 break
 
