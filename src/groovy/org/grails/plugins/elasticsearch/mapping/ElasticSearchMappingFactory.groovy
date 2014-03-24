@@ -27,17 +27,18 @@ import org.springframework.util.ClassUtils
 class ElasticSearchMappingFactory {
 
     private static final Set<String> SUPPORTED_FORMAT =
-        ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
+            ['string', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date']
 
     private static Class JODA_TIME_BASE
 
     static Map<String, String> javaPrimitivesToElastic =
-        [int: 'integer', long: 'long', short: 'short', double: 'double', float: 'float', byte: 'byte']
+            [int: 'integer', long: 'long', short: 'short', double: 'double', float: 'float', byte: 'byte']
 
     static {
         try {
             JODA_TIME_BASE = Class.forName('org.joda.time.ReadableInstant')
-        } catch (ClassNotFoundException e) {}
+        } catch (ClassNotFoundException e) {
+        }
     }
 
     static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
@@ -68,7 +69,9 @@ class ElasticSearchMappingFactory {
             Map<String, Object> propOptions = [:]
             // Add the custom mapping (searchable static property in domain model)
             propOptions.putAll(scpm.getAttributes())
-            if (!(SUPPORTED_FORMAT.contains(propType))) {
+            if (scpm.isGeoPoint()) {
+                propType = 'geo_point'
+            } else if (!(SUPPORTED_FORMAT.contains(propType))) {
                 // Handle embedded persistent collections, ie List<String> listOfThings
                 def referencedPropertyType = grailsProperty.getReferencedPropertyType()
                 if (grailsProperty.isBasicCollectionType()) {
@@ -111,7 +114,7 @@ class ElasticSearchMappingFactory {
                     propType = 'object'
                     //noinspection unchecked
                     propOptions.putAll((Map<String, Object>)
-                    (getElasticMapping(scpm.getComponentPropertyMapping()).values().iterator().next()))
+                            (getElasticMapping(scpm.getComponentPropertyMapping()).values().iterator().next()))
                 }
 
                 // Once it is an object, we need to add id & class mappings, otherwise
@@ -134,11 +137,7 @@ class ElasticSearchMappingFactory {
             // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
             if ((propType != 'object') && scm.isAll()) {
                 // does it make sense to include objects into _all?
-                if (scpm.shouldExcludeFromAll()) {
-                    propOptions.include_in_all = false
-                } else {
-                    propOptions.include_in_all = true
-                }
+                propOptions.include_in_all = !scpm.shouldExcludeFromAll()
             }
             // todo only enable this through configuration...
             if ((propType == 'string') && scpm.isAnalyzed()) {

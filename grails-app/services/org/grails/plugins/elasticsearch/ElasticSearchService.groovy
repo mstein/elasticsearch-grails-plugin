@@ -15,23 +15,25 @@
  */
 package org.grails.plugins.elasticsearch
 
-import static org.elasticsearch.index.query.QueryBuilders.queryString
-import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
-
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 import org.elasticsearch.action.count.CountRequest
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.action.search.SearchType
 import org.elasticsearch.client.Client
+import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.index.query.QueryStringQueryBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
+import org.elasticsearch.search.sort.SortBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import static org.elasticsearch.index.query.QueryBuilders.queryString
+import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
 
 class ElasticSearchService implements GrailsApplicationAware {
     static final Logger LOG = LoggerFactory.getLogger(this)
@@ -54,8 +56,8 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param closure Query closure
      * @return search results
      */
-    def search(Map params, Closure query) {
-        SearchRequest request = buildSearchRequest(query, params)
+    def search(Map params, Closure query, Closure filter = null) {
+        SearchRequest request = buildSearchRequest(query, filter, params)
         search(request, params)
     }
 
@@ -66,8 +68,21 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param params Search parameters
      * @return search results
      */
-    def search(Closure query, Map params = [:]) {
+    def search(Closure query, Closure filter = null, Map params = [:]) {
+        search(params, query, filter)
+    }
+
+    def search(Closure query, Map params) {
         search(params, query)
+    }
+
+    def search(QueryBuilder query, Closure filter = null, Map params = [:]) {
+        search(params, query, filter)
+    }
+
+    def search(Map params, QueryBuilder query, Closure filter = null) {
+        SearchRequest request = buildSearchRequest(query, filter, params)
+        search(request, params)
     }
 
     /**
@@ -78,7 +93,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @return A Map containing the search results
      */
     def search(String query, Map params = [:]) {
-        SearchRequest request = buildSearchRequest(query, params)
+        SearchRequest request = buildSearchRequest(query, null, params)
         search(request, params)
     }
 
@@ -227,7 +242,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                     LOG.debug("Deleting all instances of ${scm.domainClass}")
                 }
 
-                // The index is splitted to avoid out of memory exception
+                // The index is split to avoid out of memory exception
                 def count = scm.domainClass.clazz.count() ?: 0
                 int nbRun = Math.ceil(count / maxRes)
 
@@ -310,29 +325,26 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param query The search query, whether a String or a Closure
      * @return The SearchRequest instance
      */
-    private SearchRequest buildSearchRequest(query, Map params) {
-        SearchRequest request = new SearchRequest()
-        request.searchType SearchType.DFS_QUERY_THEN_FETCH
-
+    private SearchRequest buildSearchRequest(query, Closure filter, Map params) {
         SearchSourceBuilder source = new SearchSourceBuilder()
 
         source.from(params.from ? params.from as int : 0)
-        source.size(params.size ? params.size as int : 60)
-        source.explain(params.explain ?: true)
-        if (params.sort) {
+                .size(params.size ? params.size as int : 60)
+                .explain(params.explain ?: true)
+
+        if (params.sort instanceof SortBuilder) {
+            source.sort(params.sort as SortBuilder)
+        } else if (params.sort) {
             source.sort(params.sort, SortOrder.valueOf(params.order?.toUpperCase() ?: "ASC"))
         }
 
         // Handle the query, can either be a closure or a string
-        if (query instanceof Closure) {
-            source.query(new GXContentBuilder().buildAsBytes(query))
-        } else {
-            Operator defaultOperator = params['default_operator'] ?: Operator.AND
-            QueryStringQueryBuilder builder = queryString(query).defaultOperator(defaultOperator)
-            if (params.analyzer) {
-                builder.analyzer(params.analyzer)
-            }
-            source.query(builder)
+        if (query) {
+            setQueryInSource(source, query, params)
+        }
+
+        if (filter) {
+            source.filter(new GXContentBuilder().buildAsBytes(filter))
         }
 
         // Handle highlighting
@@ -345,9 +357,31 @@ class ElasticSearchService implements GrailsApplicationAware {
             highlightBuilder.call()
             source.highlight highlighter
         }
+
+        source.explain(false)
+
+        SearchRequest request = new SearchRequest()
+        request.searchType SearchType.DFS_QUERY_THEN_FETCH
         request.source source
 
-        request
+        return request
+    }
+
+    SearchSourceBuilder setQueryInSource(SearchSourceBuilder source, String query, Map params = [:]) {
+        Operator defaultOperator = params['default_operator'] ?: Operator.AND
+        QueryStringQueryBuilder builder = queryString(query).defaultOperator(defaultOperator)
+        if (params.analyzer) {
+            builder.analyzer(params.analyzer)
+        }
+        source.query(builder)
+    }
+
+    SearchSourceBuilder setQueryInSource(SearchSourceBuilder source, Closure query, Map params = [:]) {
+        source.query(new GXContentBuilder().buildAsBytes(query))
+    }
+
+    SearchSourceBuilder setQueryInSource(SearchSourceBuilder source, QueryBuilder query, Map params = [:]) {
+        source.query(query)
     }
 
     /**
@@ -392,6 +426,14 @@ class ElasticSearchService implements GrailsApplicationAware {
                     scoreResults[(hit.id)] = hit.score
                 }
                 result.scores = scoreResults
+            }
+
+            if (params.sort) {
+                def sortValues = [:]
+                searchHits.each { SearchHit hit ->
+                    sortValues[hit.id] = hit.sortValues
+                }
+                result.sort = sortValues
             }
 
             result

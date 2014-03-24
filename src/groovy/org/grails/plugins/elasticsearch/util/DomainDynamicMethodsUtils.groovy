@@ -38,7 +38,7 @@ class DomainDynamicMethodsUtils {
         def elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
         for (GrailsDomainClass domain in grailsApplication.domainClasses) {
-            String searchablePropertyName = grailsApplication.config.elasticSearch.searchableProperty.name
+            String searchablePropertyName = getSearchablePropertyName(grailsApplication)
             if (!domain.getPropertyValue(searchablePropertyName)) {
                 continue
             }
@@ -133,5 +133,15 @@ class DomainDynamicMethodsUtils {
                 elasticSearchService.unindex(delegate)
             }
         }
+    }
+
+    private static String getSearchablePropertyName(grailsApplication) {
+        String searchablePropertyName = grailsApplication.config.elasticSearch.searchableProperty.name
+
+        //Maintain backwards compatibility. Searchable property name may not be defined
+        if (!searchablePropertyName) {
+            return 'searchable'
+        }
+        searchablePropertyName
     }
 }

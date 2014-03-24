@@ -39,8 +39,8 @@ class JSONDomainFactory {
      * The default marshallers, not defined by user
      */
     static DEFAULT_MARSHALLERS = [
-        (Map): MapMarshaller,
-        (Collection): CollectionMarshaller
+            (Map)       : MapMarshaller,
+            (Collection): CollectionMarshaller
     ]
 
     /**
@@ -94,7 +94,10 @@ class JSONDomainFactory {
         if (!marshaller) {
             // TODO : support user custom marshaller/converter (& marshaller registration)
             // Check for domain classes
-            if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
+            def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+            if (propertyMapping?.isGeoPoint()) {
+                marshaller = new GeoPointMarshaller()
+            } else if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
                 /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
              SearchableClassPropertyMapping propMap = elasticSearchContextHolder.getMappingContext(domainClassName).getPropertyMapping(marshallingContext.lastParentPropertyName)*/
                 marshaller = new DeepDomainClassMarshaller()

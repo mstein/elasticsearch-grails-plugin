@@ -10,7 +10,7 @@ elasticSearch {
     /**
      * Date formats used by the unmarshaller of the JSON responses
      */
-    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.S'Z'"]
+    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
 
     /**
      * Hosts for remote ElasticSearch instances.
@@ -47,6 +47,7 @@ environments {
             client.mode = 'local'
             client.transport.sniff = true
             index.store.type = 'memory'
+            datastoreImpl = 'hibernateDatastore'
         }
     }
 
@@ -57,3 +58,5 @@ environments {
 
 grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. Nekoval'
 grails.doc.license = 'Apache License 2.0'
+grails.views.default.codec = 'none' // none, html, base64
+grails.views.gsp.encoding = 'UTF-8'
