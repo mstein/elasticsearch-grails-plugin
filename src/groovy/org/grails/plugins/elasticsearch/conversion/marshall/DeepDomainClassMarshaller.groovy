@@ -24,7 +24,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
 
             // Domain marshalling
             if (DomainClassArtefactHandler.isDomainClass(propertyClass)) {
-                String searchablePropertyName = elasticSearchContextHolder.config.searchableProperty.name
+                String searchablePropertyName = getSearchablePropertyName()
                 if (propertyValue.class."$searchablePropertyName") {
                     // todo fixme - will throw exception when no searchable field.
                     marshallingContext.lastParentPropertyName = prop.name
@@ -45,7 +45,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
                 marshallResult += [(prop.name): marshalledValue]
             }
         }
-        return marshallResult
+        marshallResult
     }
 
     protected nullValue() {
@@ -55,5 +55,15 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
     private GrailsDomainClass getDomainClass(instance) {
         def instanceClass = domainClassUnWrapperChain.unwrap(instance).class
         grailsApplication.domainClasses.find { it.clazz == instanceClass }
+    }
+
+    private String getSearchablePropertyName() {
+        def searchablePropertyName = elasticSearchContextHolder.config.searchableProperty.name
+
+        //Maintain backwards compatibility. Searchable property name may not be defined
+        if (!searchablePropertyName) {
+            return 'searchable'
+        }
+        searchablePropertyName
     }
 }
