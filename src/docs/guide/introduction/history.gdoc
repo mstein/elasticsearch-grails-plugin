@@ -1,4 +1,11 @@
 h4. History
+
+* March 24, 2014
+** 0.0.2.4
+*** GeoPoint mapping
+*** Injected service now supports filters (e.g. geo_reference) and sort builders (e.g. for geo_distance sorting)
+*** Marshalled date values are now with correct time zone
+*** Removed dependency on Java 7
 * February 4, 2014
 ** 0.0.2.3 Bugfix release
 * January 19, 2014
@@ -12,7 +19,10 @@ h4. History
 
 h4. Authors and Contributors
 
-Noam Y. Tenne
+Noam Y. Tenne,
+Stefan Rother-Stübs (Dating Cafe),
+Sven Kiesewetter (Dating Cafe),
+Michael Schwartz (Dating Cafe)
 
 h4. Authors and Contributors of the original plugin
 
@@ -25,7 +35,7 @@ Get the full and updated list of contributors on the [github|https://github.com/
 h4. License
 
 {quote}
-    Copyright 20013-2014 the original author or authors.
+    Copyright 2013-2014 the original author or authors.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
