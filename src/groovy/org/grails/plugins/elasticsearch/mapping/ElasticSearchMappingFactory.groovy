@@ -92,7 +92,8 @@ class ElasticSearchMappingFactory {
                 } else if (scpm.getConverter() != null) {
                     // Use 'string' type for properties with custom converter.
                     // Arrays are automatically resolved by ElasticSearch, so no worries.
-                    propType = scpm.getConverter()
+                    def requestedConverter = scpm.getConverter()
+                    propType = (SUPPORTED_FORMAT.contains(requestedConverter)) ? requestedConverter : 'string'
                     // Handle primitive types, see https://github.com/mstein/elasticsearch-grails-plugin/issues/61
                 } else if (referencedPropertyType.isPrimitive()) {
                     if (javaPrimitivesToElastic.containsKey(referencedPropertyType.toString())) {
