@@ -15,7 +15,6 @@ class EmbeddingChild {
         parentElement parent: true, component: true
     }
 }
-{code}
 
 class ReferencingChild {
     ParentElement parentElement
