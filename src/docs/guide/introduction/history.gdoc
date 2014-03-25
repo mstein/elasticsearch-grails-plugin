@@ -6,6 +6,8 @@ h4. History
 *** Injected service now supports filters (e.g. geo_reference) and sort builders (e.g. for geo_distance sorting)
 *** Marshalled date values are now with correct time zone
 *** Removed dependency on Java 7
+*** Fix support of BigDecimal
+*** Searchable mapping property name and Elasticsearch plugin path are now configurable.
 * February 4, 2014
 ** 0.0.2.3 Bugfix release
 * January 19, 2014
