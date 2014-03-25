@@ -14,7 +14,7 @@ Edit your project's +BuildConfig.groovy+ file, by adding the plugin's dependency
 ----
 grails.project.dependency.resolution = {
     plugins {
-        compile ':elasticsearch-gorm:0.0.2.3'
+        compile ':elasticsearch-gorm:0.0.2.4'
     }
 }
 ----
