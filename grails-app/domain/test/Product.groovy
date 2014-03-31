@@ -1,10 +1,13 @@
 package test
 
+import org.codehaus.groovy.grails.web.json.JSONObject
+
 class Product {
     String name
     String description = "A description of a product"
     Float price = 1.00
     Date date
+    JSONObject json
 
     static searchable = true
 
@@ -13,9 +16,11 @@ class Product {
         description nullable: true
         price nullable: true
         date nullable: true
+        json nullable: true
     }
 
     static mapping = {
         autoImport(false)
+        json type: JsonUserType
     }
 }

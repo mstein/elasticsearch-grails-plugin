@@ -1,6 +1,7 @@
 package org.grails.plugins.elasticsearch
 
 import grails.plugin.spock.IntegrationSpec
+import org.codehaus.groovy.grails.web.json.JSONObject
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder
 import org.elasticsearch.client.AdminClient
 import org.elasticsearch.client.ClusterAdminClient
@@ -76,6 +77,15 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     void 'Indexing the same object multiple times updates the corresponding ES entry'() {
         given:
         def product = new Product(name: 'myTestProduct')
+        product.json = new JSONObject(
+                """
+{
+    "test": {
+        "details": "blah"
+    }
+}
+"""
+        )
         product.save(failOnError: true)
 
         when:

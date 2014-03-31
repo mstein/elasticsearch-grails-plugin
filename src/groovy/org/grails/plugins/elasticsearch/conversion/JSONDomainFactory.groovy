@@ -94,13 +94,16 @@ class JSONDomainFactory {
         if (!marshaller) {
             // TODO : support user custom marshaller/converter (& marshaller registration)
             // Check for domain classes
-            def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
-            if (propertyMapping?.isGeoPoint()) {
-                marshaller = new GeoPointMarshaller()
-            } else if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
+            if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
                 /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
              SearchableClassPropertyMapping propMap = elasticSearchContextHolder.getMappingContext(domainClassName).getPropertyMapping(marshallingContext.lastParentPropertyName)*/
-                marshaller = new DeepDomainClassMarshaller()
+                 def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+
+                 if (propertyMapping?.isGeoPoint()) {
+                     marshaller = new GeoPointMarshaller()
+                 } else {
+                     marshaller = new DeepDomainClassMarshaller()
+                 }
             } else {
                 // Check for inherited marshaller matching
                 def inheritedMarshaller = DEFAULT_MARSHALLERS.find { key, value -> key.isAssignableFrom(objectClass) }
