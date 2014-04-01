@@ -37,7 +37,7 @@ class ElasticsearchGormGrailsPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    def version = '0.0.2.4'
+    def version = '0.0.2.x-SNAPSHOT'
     def grailsVersion = '2.1.0 > *'
 
     def loadAfter = ['services']
@@ -60,15 +60,15 @@ class ElasticsearchGormGrailsPlugin {
             [name: 'Noam Y. Tenne', email: 'noam@10ne.org']
     ]
 
-    def issueManagement = [system: 'github', url: 'https://github.com/noamt/elasticsearch-gorm-plugin/issues']
+    def issueManagement = [system: 'github', url: 'https://github.com/noamt/elasticsearch-grails-plugin/issues']
 
-    def scm = [url: 'https://github.com/noamt/elasticsearch-gorm-plugin']
+    def scm = [url: 'https://github.com/noamt/elasticsearch-grails-plugin']
 
     def author = 'Noam Y. Tenne'
     def authorEmail = 'noam@10ne.org'
-    def title = 'ElasticSearch GORM Plugin'
-    def description = """An alternative Elasticsearch plugin for Grails. Based on, but unlike the original, this implementation aims to be DB agnostic."""
-    def documentation = 'http://noamt.github.io/elasticsearch-gorm-plugin'
+    def title = 'ElasticSearch Grails Plugin'
+    def description = """The revived Elasticsearch plugin for Grails."""
+    def documentation = 'http://noamt.github.io/elasticsearch-grails-plugin'
 
     def doWithSpring = {
         def esConfig = getConfiguration(application)
