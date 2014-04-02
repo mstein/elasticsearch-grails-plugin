@@ -1,4 +1,4 @@
-== Elasticsearch GORM plugin
+== Elasticsearch Grails plugin
 
 An Elasticsearch plugin for Grails; This project is a fork based on the great work done by the guys at https://github.com/mstein/elasticsearch-grails-plugin.
 
