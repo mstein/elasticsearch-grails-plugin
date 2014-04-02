@@ -1,5 +1,9 @@
 h4. History
 
+* April 2, 2014
+** 0.0.2.5
+*** Start releasing the plugin as 'elasticsearch' instead of 'elasticsearch-gorm'
+*** Fix NPE when marshalling JSONObject fields
 * March 24, 2014
 ** 0.0.2.4
 *** GeoPoint mapping
