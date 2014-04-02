@@ -77,15 +77,6 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     void 'Indexing the same object multiple times updates the corresponding ES entry'() {
         given:
         def product = new Product(name: 'myTestProduct')
-        product.json = new JSONObject(
-                """
-{
-    "test": {
-        "details": "blah"
-    }
-}
-"""
-        )
         product.save(failOnError: true)
 
         when:
@@ -110,6 +101,31 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         List<Product> searchResults = result.searchResults
         searchResults[0].name == product.name
 
+    }
+
+    void 'a json object value should be marshalled and de-marshalled correctly'() {
+        given:
+        def product = new Product(name: 'product with json value')
+        product.json = new JSONObject("""
+{
+    "test": {
+        "details": "blah"
+    }
+}
+"""
+        )
+        product.save(failOnError: true)
+
+        elasticSearchService.index(product)
+        elasticSearchAdminService.refresh()
+
+        when:
+        def result = elasticSearchService.search(product.name, [indices: Product, types: Product])
+
+        then:
+        result.total == 1
+        List<Product> searchResults = result.searchResults
+        searchResults[0].name == product.name
     }
 
     void 'a date value should be marshalled and de-marshalled correctly'() {

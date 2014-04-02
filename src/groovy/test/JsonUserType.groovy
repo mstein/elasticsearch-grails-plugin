@@ -10,7 +10,7 @@ import java.sql.ResultSet
 import java.sql.Types
 
 class JsonUserType implements UserType {
-    int [] sqlTypes() {
+    int[] sqlTypes() {
         [Types.LONGVARCHAR] as int[]
     }
 

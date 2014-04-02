@@ -49,7 +49,8 @@ class ElasticsearchGormGrailsPlugin {
             'grails-app/domain/test/**',
             'grails-app/utils/test/**',
             'test/**',
-            'src/docs/**'
+            'src/docs/**',
+            'src/groovy/test/**',
     ]
 
     def license = 'APACHE'
