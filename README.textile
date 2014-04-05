@@ -1,9 +1,52 @@
+h1. Deprecation Notice
+
+The ElasticSearch Grails plugin has a new maintainer!
+
+Please browse to Noam Y. Tenne fork for new updates for the plugin source code: 
+https://github.com/noamt/elasticsearch-grails-plugin
+
+Among the main new features of this version is the ability to use any gorm-datastore with the plugin, 
+so you are no longer bound to the hibernate plugin.
+
+While Noam's fork was previously published on the grails central repository under the name **elasticsearch-gorm**, 
+it will now be published under the original plugin name **elasticsearch**, thus replacing the original version. 
+
+If you were using the **0.17.x** version of the original plugin, or one of the **0.20.x** snapshots, 
+you should consider upgrading to the latest version.
+
+This repository will no longer be updated but will stay online for a while for archive purpose.
+
+Thanks to all the contributors and users of the original plugin!
+
+h1. Grails plugin Archive
+
+Please note that the versioning scheme has changed with the new plugin. 
+The plugin version number will no longer reflect the version of the ElasticSearch library it uses.
+
+If for some reasons (compatibility with legacy projects for example) you need keep the previous version of the grails plugin, 
+here is a list of the published versions of the original plugin that should still be available on the grails central plugins repository:
+
+* 0.90.3.0-SNAPSHOT
+* 0.20.6.2-SNAPSHOT
+* 0.20.6.1-SNAPSHOT
+* 0.18.7.1-SNAPSHOT
+* 0.17.8.1
+* 0.15.2.1
+* 0.15.1.1
+* 0.13.0-b
+* 0.13.0-a
+
+Use one of these versions in your @BuildConfig.groovy@ to pull the original plugin.
+
+---
+
+Original Readme Below
+
+---
+
 h1. ElasticSearch Grails plugin
 
 This plugin is providing an integration to Grails of the open source search engine "ElasticSearch":http://www.elasticsearch.org
-
-**Project tracker:** "http://doc4web.com/icescrum/p/ELASTIC#project":http://doc4web.com/icescrum/p/ELASTIC#project
-Submit your suggestion / bug report / follow the progression on the project tracker.
 
 **Grails plugin page:** "http://grails.org/plugin/elasticsearch":http://grails.org/plugin/elasticsearch
 
