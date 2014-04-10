@@ -1,16 +1,16 @@
 package org.grails.plugins.elasticsearch.util
 
-import org.codehaus.groovy.grails.commons.ApplicationHolder
+import grails.util.Holders
 
 class ElasticSearchUtils {
 
     static indexDomain(entity){
-        def elasticSearchService = ApplicationHolder.application.mainContext.getBean('elasticSearchService')
+        def elasticSearchService = Holders.grailsApplication.mainContext.getBean('elasticSearchService')
         elasticSearchService.indexDomain(entity)
     }
 
     static deleteDomain(entity){
-        def elasticSearchService = ApplicationHolder.application.mainContext.getBean('elasticSearchService')
+        def elasticSearchService = Holders.grailsApplication.mainContext.getBean('elasticSearchService')
         elasticSearchService.deleteDomain(entity)
     }
 }
