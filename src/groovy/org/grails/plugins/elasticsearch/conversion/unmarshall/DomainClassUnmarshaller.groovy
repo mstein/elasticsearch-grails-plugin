@@ -56,6 +56,7 @@ class DomainClassUnmarshaller {
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type)
             if (scm == null) {
                 LOG.warn("Unknown SearchHit: ${hit.id()}#${hit.type()}")
+		results << hit.source
                 continue
             }
 
