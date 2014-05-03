@@ -16,9 +16,11 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
+import grails.util.Holders
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
+import org.codehaus.groovy.grails.plugins.GrailsPluginManager
 import org.springframework.util.ClassUtils
 
 /**
@@ -129,6 +131,16 @@ class ElasticSearchMappingFactory {
                     GrailsDomainClass referencedDomainClass = grailsProperty.getReferencedDomainClass()
                     GrailsDomainClassProperty idProperty = referencedDomainClass.getPropertyByName('id')
                     String idType = idProperty.getTypePropertyName()
+
+                    // convert MongoDB ObjectId to String
+                    if (idType.equals('objectId')) {
+                        def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
+
+                        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
+                            idType = 'string'
+                        }
+                    }
+
                     props.id = defaultDescriptor(idType, 'not_analyzed', true)
                     props.class = defaultDescriptor('string', 'no', true)
                     props.ref = defaultDescriptor('string', 'no', true)
