@@ -21,7 +21,6 @@ import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.bulk.BulkRequestBuilder
 import org.elasticsearch.action.bulk.BulkResponse
 import org.elasticsearch.client.Client
-import org.elasticsearch.common.util.concurrent.jsr166y.ConcurrentLinkedDeque
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
@@ -32,6 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.util.Assert
 
+import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
