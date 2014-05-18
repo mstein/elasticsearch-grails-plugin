@@ -1,6 +1,6 @@
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
-import grails.plugin.spock.IntegrationSpec
+import grails.test.spock.IntegrationSpec
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.elasticsearch.common.bytes.BytesArray
 import org.elasticsearch.common.text.StringAndBytesText
@@ -25,8 +25,9 @@ class DomainClassUnmarshallerIntegrationSpec extends IntegrationSpec {
         def unmarshaller = new DomainClassUnmarshaller(elasticSearchContextHolder: elasticSearchContextHolder, grailsApplication: grailsApplication)
 
         given: 'a search hit with a geo_point'
-        InternalSearchHit[] hits = [new InternalSearchHit(1, '1', new StringAndBytesText('building'),
-                new BytesArray('{"location":{"class":"test.GeoPoint","id":"2", "lat":53.0,"lon":10.0},"name":"WatchTower"}'), [:])]
+        InternalSearchHit hit = new InternalSearchHit(1, '1', new StringAndBytesText('building'), [:])
+                .sourceRef(new BytesArray('{"location":{"class":"test.GeoPoint","id":"2", "lat":53.0,"lon":10.0},"name":"WatchTower"}'))
+        InternalSearchHit[] hits = [hit]
         def maxScore = 0.1534264087677002f
         def totalHits = 1
         def searchHits = new InternalSearchHits(hits, totalHits, maxScore)

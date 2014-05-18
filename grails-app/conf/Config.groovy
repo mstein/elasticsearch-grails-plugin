@@ -60,3 +60,4 @@ grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. 
 grails.doc.license = 'Apache License 2.0'
 grails.views.default.codec = 'none' // none, html, base64
 grails.views.gsp.encoding = 'UTF-8'
+grails.databinding.dateFormats= ["yyyy-MM-dd'T'HH:mm:ss.SSSZ"]

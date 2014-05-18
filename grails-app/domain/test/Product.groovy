@@ -1,6 +1,6 @@
 package test
 
-import org.json.simple.JSONObject
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 class Product {
     String name

@@ -17,11 +17,12 @@
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
 import org.codehaus.groovy.grails.commons.*
-import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
+import org.codehaus.groovy.grails.web.binding.DatabindingApi
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
 import org.elasticsearch.client.Client
+import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.SearchHits
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
@@ -44,7 +45,6 @@ class DomainClassUnmarshaller {
 
     private TypeConverter typeConverter = new SimpleTypeConverter()
     private ElasticSearchContextHolder elasticSearchContextHolder
-    private BindDynamicMethod bind = new BindDynamicMethod()
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
 
@@ -79,8 +79,7 @@ class DomainClassUnmarshaller {
                     unmarshallingContext.resetContext()
                 }
             }
-            // todo manage read-only transient properties...
-            bind.invoke(instance, 'bind', [instance, rebuiltProperties] as Object[])
+            new DatabindingApi().setProperties(instance, rebuiltProperties)
 
             results.add(instance)
         }
@@ -225,6 +224,8 @@ class DomainClassUnmarshaller {
                 }
 
                 parseResult = null
+            } else if (scpm.grailsProperty.type == Date && null != propertyValue) {
+                parseResult = XContentBuilder.defaultDatePrinter.parseDateTime(propertyValue).toDate()
             }
         }
 
@@ -261,7 +262,7 @@ class DomainClassUnmarshaller {
             if (entry.key != 'class' && entry.key != 'id') {
                 unmarshallingContext.unmarshallingStack.push(entry.key)
                 Object propertyValue = unmarshallProperty(domainClass, entry.key, entry.value, unmarshallingContext)
-                bind.invoke(instance, 'bind', [instance, Collections.singletonMap(entry.key, propertyValue)] as Object[])
+                new DatabindingApi().setProperties(instance, Collections.singletonMap(entry.key, propertyValue))
                 unmarshallingContext.unmarshallingStack.pop()
             }
         }

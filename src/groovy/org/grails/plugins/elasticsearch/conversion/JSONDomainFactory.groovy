@@ -86,7 +86,11 @@ class JSONDomainFactory {
                     def refClass = propertyMapping.getBestGuessReferenceType()
                     marshaller = new SearchableReferenceMarshaller(refClass: refClass)
                 } else if (propertyMapping?.component) {
-                    marshaller = new DeepDomainClassMarshaller()
+                    if (propertyMapping?.isGeoPoint()) {
+                        marshaller = new GeoPointMarshaller()
+                    } else {
+                        marshaller = new DeepDomainClassMarshaller()
+                    }
                 }
             }
         }

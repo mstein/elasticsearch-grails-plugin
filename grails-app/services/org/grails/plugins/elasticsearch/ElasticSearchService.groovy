@@ -344,7 +344,7 @@ class ElasticSearchService implements GrailsApplicationAware {
         }
 
         if (filter) {
-            source.filter(new GXContentBuilder().buildAsBytes(filter))
+            source.postFilter(new GXContentBuilder().buildAsBytes(filter))
         }
 
         // Handle highlighting
