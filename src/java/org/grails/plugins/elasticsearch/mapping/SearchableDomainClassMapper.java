@@ -28,11 +28,18 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Options applied to searchable class itself
      */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except"));
+    public static final Set<String> CLASS_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList("all", "root", "only", "except", "indexId"));
     /**
      * Searchable property name
      */
     public static final String SEARCHABLE_PROPERTY_NAME = "searchable";
+
+    /**
+     * Mapping properties used with 'indexId' to allow for a custom stored key
+     */
+    public static final String INDEX_ID_PROPERTIES_NAME = "properties";
+    public static final String INDEX_ID_SEPARATOR_NAME = "separator";
+    public static final Set<String> INDEX_ID_MAPPING_OPTIONS = new HashSet<String>(Arrays.asList(INDEX_ID_PROPERTIES_NAME, INDEX_ID_SEPARATOR_NAME));
 
     /**
      * Class mapping properties
@@ -46,6 +53,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     private GrailsApplication grailsApplication;
     private Object only;
     private Object except;
+    private Object indexId;
 
     private ConfigObject esConfig;
 
@@ -78,8 +86,17 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         this.except = except;
     }
 
+    public void setIndexId(Object indexId) {
+        this.indexId = indexId;
+    }
+
     public void root(Boolean rootFlag) {
         this.root = rootFlag;
+    }
+
+
+    public void indexId(Object indexId) {
+        this.indexId = indexId;
     }
 
     /**
@@ -169,7 +186,54 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, customMappedProperties.values());
         scm.setRoot(root);
+
+        // Override the default properties to use as _id in the index
+        if (indexId != null) {
+            Map<String, ?> indexIdMap = buildIndexIdMapping();
+            scm.setIdentityProperties((List<String>)indexIdMap.get(INDEX_ID_PROPERTIES_NAME));
+            if (indexIdMap.containsKey(INDEX_ID_SEPARATOR_NAME)) {
+                scm.setIdentitySeparator(indexIdMap.get(INDEX_ID_SEPARATOR_NAME).toString());
+            }
+        }
+
         return scm;
+    }
+
+    /**
+     * Examines the indexId property, and converts it into a Map keyed by the values in INDEX_ID_MAPPING_OPTIONS
+     * @return A Map with the custom indexId definition
+     */
+    private Map<String, Object> buildIndexIdMapping() {
+        if ((indexId != null) && !root) {
+            throw new IllegalArgumentException("'indexId' was used on non-root '" + grailsDomainClass.getPropertyName() + "#searchable': indexId may only apply to root searchable classes");
+        }
+
+        Object args = indexId;
+
+        Map indexIdMapping = null;
+        if (args instanceof String) {
+            indexIdMapping = Collections.singletonMap(INDEX_ID_PROPERTIES_NAME, Collections.singletonList(args));
+        }
+        else if (args instanceof Collection) {
+            indexIdMapping = Collections.singletonMap(INDEX_ID_PROPERTIES_NAME, new ArrayList<String>((Collection) args));
+        }
+        else if (args instanceof Map) {
+            indexIdMapping = new HashMap();
+            for (Object key : ((Map)args).keySet()) {
+                if (!INDEX_ID_MAPPING_OPTIONS.contains(key.toString())) {
+                    throw new IllegalArgumentException("'" + key + "' is not a valid attribute for 'indexId'");
+                }
+                indexIdMapping.put(key.toString(), ((Map)args).get(key));
+            }
+            if (!indexIdMapping.containsKey(INDEX_ID_PROPERTIES_NAME)) {
+                throw new IllegalArgumentException("'indexId' must contain a '" + INDEX_ID_PROPERTIES_NAME + "' attribute");
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Unsupported 'indexId' argument: " + args);
+        }
+
+        return indexIdMapping;
     }
 
     private Set<String> getInheritedProperties(GrailsDomainClass domainClass) {
@@ -213,6 +277,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         // Support old searchable-plugin syntax ([only: ['category', 'title']] or [except: 'createdAt'])
         only = map.containsKey("only") ? map.get("only") : null;
         except = map.containsKey("except") ? map.get("except") : null;
+        indexId = map.containsKey("indexId") ? map.get("indexId") : null;
         buildMappingFromOnlyExcept(domainClass, inheritedProperties);
     }
 
