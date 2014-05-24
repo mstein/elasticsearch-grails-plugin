@@ -25,6 +25,7 @@ import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
 import org.elasticsearch.transport.RemoteTransportException;
+import org.elasticsearch.transport.TransportSerializationException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder;
 
 import java.util.*;
@@ -103,6 +104,9 @@ public class SearchableClassMappingConfigurator {
                         LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.");
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage());
+                    }
+                    catch(TransportSerializationException tse){
+                    	LOG.debug(tse.getMessage());
                     }
                 }
 
