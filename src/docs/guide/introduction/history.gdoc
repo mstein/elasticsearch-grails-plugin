@@ -1,5 +1,11 @@
 h4. History
 
+* May 25, 2014
+** 0.0.3.0
+*** Upgrade to Grails dependency 2.2.x
+*** Upgrade to Grails runtime 2.3.x
+*** Upgrade to ElasticSearch 1.x
+*** Apply ElasticSearch 1.x compatibility fixes
 * May 15, 2014
 ** 0.0.2.6
 *** Use 'grails.util.Holders' instead of ApplicationHolder
