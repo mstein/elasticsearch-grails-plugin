@@ -131,7 +131,7 @@ class ElasticsearchGrailsPlugin {
 
     def doWithDynamicMethods = { ctx ->
         // Define the custom ElasticSearch mapping for searchable domain classes
-        DomainDynamicMethodsUtils.injectDynamicMethods(application.domainClasses, application, ctx)
+        DomainDynamicMethodsUtils.injectDynamicMethods(application, ctx)
     }
     // Get a configuration instance
     private getConfiguration(GrailsApplication application) {
