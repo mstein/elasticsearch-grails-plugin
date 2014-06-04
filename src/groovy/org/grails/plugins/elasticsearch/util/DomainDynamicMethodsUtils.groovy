@@ -18,6 +18,9 @@ package org.grails.plugins.elasticsearch.util
 import org.apache.commons.logging.LogFactory
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import org.grails.plugins.elasticsearch.mapping.SearchableDomainClassMapper
+import org.apache.commons.logging.LogFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
 
 class DomainDynamicMethodsUtils {
@@ -48,6 +51,30 @@ class DomainDynamicMethodsUtils {
             if (!elasticSearchContextHolder.getMappingContext(domainCopy)?.root) {
                 continue
             }
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainCopy)
+                    def indexAndType = [indices: scm.indexName, types: domainCopy.clazz]
+
+                    // Inject the search method
+                    domain.metaClass.'static'.search << { String q, Map params = [:] ->
+                        elasticSearchService.search(q, params + indexAndType)
+                    }
+                    domain.metaClass.'static'.search << { Map params = [:], Closure q ->
+                        elasticSearchService.search(params + indexAndType, q)
+                    }
+                    domain.metaClass.'static'.search << { Closure q, Map params = [:] ->
+                        elasticSearchService.search(params + indexAndType, q)
+                    }
+
+                    // Inject the countHits method
+                    domain.metaClass.'static'.countHits << { String q, Map params = [:] ->
+                        elasticSearchService.countHits(q, params + indexAndType)
+                    }
+                    domain.metaClass.'static'.countHits << { Map params = [:], Closure q ->
+                        elasticSearchService.countHits(params + indexAndType, q)
+                    }
+                    domain.metaClass.'static'.countHits << { Closure q, Map params = [:] ->
+                        elasticSearchService.countHits(params + indexAndType, q)
+                    }
 
             // Inject the search method
             domain.metaClass.static.search << { String q, Map params = [:] ->
@@ -132,7 +159,6 @@ class DomainDynamicMethodsUtils {
             domain.metaClass.unindex << {
                 elasticSearchService.unindex(delegate)
             }
-        }
     }
 
     private static String getSearchablePropertyName(grailsApplication) {
