@@ -106,8 +106,7 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
         }
 
-        def pluginManager = application.parentContext.getBean(GrailsPluginManager.BEAN_NAME)
-        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('hibernate')) {
+        if (manager?.hasGrailsPlugin('hibernate')) {
             hibernateProxyUnWrapper(HibernateProxyUnWrapper)
         }
 
