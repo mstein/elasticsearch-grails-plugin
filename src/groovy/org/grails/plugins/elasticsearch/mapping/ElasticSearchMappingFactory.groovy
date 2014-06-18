@@ -132,13 +132,8 @@ class ElasticSearchMappingFactory {
                     GrailsDomainClassProperty idProperty = referencedDomainClass.getPropertyByName('id')
                     String idType = idProperty.getTypePropertyName()
 
-                    // convert MongoDB ObjectId to String
-                    if (idType.equals('objectId')) {
-                        def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
-
-                        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
-                            idType = 'string'
-                        }
+                    if (idTypeIsMongoObjectId(idType)) {
+                        idType = treatValueAsAString(idType)
                     }
 
                     props.id = defaultDescriptor(idType, 'not_analyzed', true)
@@ -175,6 +170,19 @@ class ElasticSearchMappingFactory {
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
         elasticTypeMappingProperties
+    }
+
+    private static boolean idTypeIsMongoObjectId(String idType) {
+        idType.equals('objectId')
+    }
+
+    private static String treatValueAsAString(String idType) {
+        def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
+
+        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
+            return 'string'
+        }
+        idType
     }
 
     private static boolean isDateType(Class type) {
