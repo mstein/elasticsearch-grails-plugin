@@ -1,11 +1,18 @@
 h4. History
 
+* June 9, 2014
+** 0.0.3.1
+*** Upgrade to ElasticSearch 1.2.x
+*** Add special treatment for MongoDB ObjectId data types
+*** Return raw result objects when now class mapping is found
+*** Fix integration-test NPE
 * May 25, 2014
 ** 0.0.3.0
 *** Upgrade to Grails dependency 2.2.x
 *** Upgrade to Grails runtime 2.3.x
 *** Upgrade to ElasticSearch 1.x
 *** Apply ElasticSearch 1.x compatibility fixes
+*** Enable customization of index name types when mapping classes
 * May 15, 2014
 ** 0.0.2.6
 *** Use 'grails.util.Holders' instead of ApplicationHolder
