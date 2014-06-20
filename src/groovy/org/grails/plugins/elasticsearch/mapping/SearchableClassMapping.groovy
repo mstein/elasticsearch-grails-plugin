@@ -29,7 +29,7 @@ class SearchableClassMapping {
     private GrailsDomainClass domainClass
     /** Searchable root? */
     private boolean root = true
-    private boolean all = true
+    protected all = true
 
     SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass
@@ -51,6 +51,11 @@ class SearchableClassMapping {
 
     void setRoot(Boolean root) {
         this.root = root != null && root
+    }
+
+    void setAll(all) {
+        if (all != null)
+            this.all = all
     }
 
     Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
@@ -91,6 +96,12 @@ class SearchableClassMapping {
     }
 
     boolean isAll() {
-        return all
+        if (all instanceof Boolean) {
+            return all
+        }
+        else if (all instanceof Map) {
+            return all.enabled instanceof Boolean ? all.enabled : true
+        }
+        return true
     }
 }

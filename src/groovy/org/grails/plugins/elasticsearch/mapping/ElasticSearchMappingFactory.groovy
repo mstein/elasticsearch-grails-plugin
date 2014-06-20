@@ -46,6 +46,12 @@ class ElasticSearchMappingFactory {
     static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
         Map mappingFields = [properties: getMappingProperties(scm)]
 
+        if (scm.@all instanceof Map) {
+            mappingFields.'_all' = scm.@all
+        }
+        if (!scm.isAll())
+            mappingFields.'_all' = Collections.singletonMap('enabled', false)
+
         SearchableClassPropertyMapping parentProperty = scm.propertiesMapping.find { it.parent }
         if (parentProperty) {
             mappingFields.'_parent' = [type: GrailsNameUtils.getPropertyName(parentProperty.grailsProperty.type)]
@@ -58,10 +64,6 @@ class ElasticSearchMappingFactory {
 
     private static Map<String, Object> getMappingProperties(SearchableClassMapping scm) {
         Map<String, Object> elasticTypeMappingProperties = [:]
-
-        if (!scm.isAll()) {
-            elasticTypeMappingProperties.'_all' = Collections.singletonMap('enabled', false)
-        }
 
         // Map each domain properties in supported format, or object for complex type
         scm.getPropertiesMapping().each { SearchableClassPropertyMapping scpm ->

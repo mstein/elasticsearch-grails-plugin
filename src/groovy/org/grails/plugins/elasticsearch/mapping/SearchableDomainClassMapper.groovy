@@ -25,7 +25,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Class mapping properties
      */
-    private Boolean all = true
+    private all = true
     private Boolean root = true
 
     private Set<String> mappableProperties = []
@@ -50,7 +50,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         this.grailsApplication = grailsApplication
     }
 
-    void setAll(Boolean all) {
+    void setAll(all) {
         this.all = all
     }
 
@@ -157,6 +157,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, customMappedProperties.values())
         scm.setRoot(root)
+        scm.setAll(all)
         return scm
     }
 
