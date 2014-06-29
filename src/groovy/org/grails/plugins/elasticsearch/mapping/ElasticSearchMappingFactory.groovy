@@ -16,9 +16,11 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
+import grails.util.Holders
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
+import org.codehaus.groovy.grails.plugins.GrailsPluginManager
 import org.springframework.util.ClassUtils
 
 /**
@@ -129,6 +131,11 @@ class ElasticSearchMappingFactory {
                     GrailsDomainClass referencedDomainClass = grailsProperty.getReferencedDomainClass()
                     GrailsDomainClassProperty idProperty = referencedDomainClass.getPropertyByName('id')
                     String idType = idProperty.getTypePropertyName()
+
+                    if (idTypeIsMongoObjectId(idType)) {
+                        idType = treatValueAsAString(idType)
+                    }
+
                     props.id = defaultDescriptor(idType, 'not_analyzed', true)
                     props.class = defaultDescriptor('string', 'no', true)
                     props.ref = defaultDescriptor('string', 'no', true)
@@ -163,6 +170,19 @@ class ElasticSearchMappingFactory {
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
         elasticTypeMappingProperties
+    }
+
+    private static boolean idTypeIsMongoObjectId(String idType) {
+        idType.equals('objectId')
+    }
+
+    private static String treatValueAsAString(String idType) {
+        def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
+
+        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
+            return 'string'
+        }
+        idType
     }
 
     private static boolean isDateType(Class type) {

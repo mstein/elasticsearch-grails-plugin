@@ -55,8 +55,8 @@ class DomainClassUnmarshaller {
             String type = hit.type()
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type)
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: ${hit.id()}#${hit.type()}")
-		results << hit.source
+                LOG.warn("Unknown SearchHit: ${hit.id()}#${hit.type()}: adding to result set as a raw object")
+		        results << hit.source
                 continue
             }
 
@@ -82,7 +82,7 @@ class DomainClassUnmarshaller {
             }
             new DatabindingApi().setProperties(instance, rebuiltProperties)
 
-            results.add(instance)
+            results << instance
         }
         results
     }

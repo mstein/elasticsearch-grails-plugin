@@ -40,15 +40,18 @@ grails.project.dependency.resolution = {
                 "org.grails:grails-datastore-core:$datastoreVersion",
                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
-        runtime 'org.elasticsearch:elasticsearch:1.1.1'
+        runtime 'org.elasticsearch:elasticsearch:1.2.1'
         runtime('org.elasticsearch:elasticsearch-lang-groovy:2.0.0')  {
             excludes 'junit'
             excludes 'elasticsearch'
             excludes 'groovy-all'
             excludes 'log4j'
         }
-        runtime 'com.spatial4j:spatial4j:0.3'
-        test 'com.googlecode.json-simple:json-simple:1.1'
+        runtime 'com.spatial4j:spatial4j:0.4.1'
+
+        compile 'com.vividsolutions:jts:1.13'
+
+        test 'com.googlecode.json-simple:json-simple:1.1.1'
     }
 
     plugins {
