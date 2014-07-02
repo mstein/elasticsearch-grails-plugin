@@ -332,10 +332,21 @@ class ElasticSearchService implements GrailsApplicationAware {
                 .size(params.size ? params.size as int : 60)
                 .explain(params.explain ?: true)
 
-        if (params.sort instanceof SortBuilder) {
-            source.sort(params.sort as SortBuilder)
-        } else if (params.sort) {
-            source.sort(params.sort, SortOrder.valueOf(params.order?.toUpperCase() ?: "ASC"))
+        if (params.sort) {
+            def sorters
+            if (params.sort instanceof Collection) {
+                sorters = params.sort
+            } else {
+                sorters = [params.sort]
+            }
+
+            sorters.each {
+                if (it instanceof SortBuilder) {
+                    source.sort(it as SortBuilder)
+                } else {
+                    source.sort(it, SortOrder.valueOf(params.order?.toUpperCase() ?: "ASC"))
+                }
+            }
         }
 
         // Handle the query, can either be a closure or a string

@@ -10,6 +10,7 @@ import org.elasticsearch.cluster.metadata.IndexMetaData
 import org.elasticsearch.cluster.metadata.MappingMetaData
 import org.elasticsearch.common.unit.DistanceUnit
 import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
 import test.*
@@ -39,9 +40,9 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         product04.save(failOnError: true)
 
         [
-                [lat: 48.13, lon: 11.60, name: '81667'],
-                [lat: 48.19, lon: 11.65, name: '85774'],
-                [lat: 47.98, lon: 10.18, name: '87700']
+            [lat: 48.13, lon: 11.60, name: '81667'],
+            [lat: 48.19, lon: 11.65, name: '85774'],
+            [lat: 47.98, lon: 10.18, name: '87700']
         ].each {
             def geoPoint = new GeoPoint(lat: it.lat, lon: it.lon).save(failOnError: true)
             new Building(name: "postalCode${it.name}", location: geoPoint).save(failOnError: true)
@@ -132,8 +133,8 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         Date date = new Date()
         given:
         def product = new Product(
-                name: 'product with date value',
-                date: date
+            name: 'product with date value',
+            date: date
         ).save(failOnError: true)
 
         elasticSearchService.index(product)
@@ -152,13 +153,13 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     void 'a geo point location is marshalled and de-marshalled correctly'() {
         given:
         def location = new GeoPoint(
-                lat: 53.00,
-                lon: 10.00
+            lat: 53.00,
+            lon: 10.00
         ).save(failOnError: true)
 
         def building = new Building(
-                name: 'WatchTower',
-                location: location
+            name: 'WatchTower',
+            location: location
         ).save(failOnError: true)
 
         elasticSearchService.index(building)
@@ -181,12 +182,12 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         given:
         def location = new GeoPoint(
-                lat: 53.00,
-                lon: 10.00
+            lat: 53.00,
+            lon: 10.00
         ).save(failOnError: true)
 
         def building = new Building(
-                location: location
+            location: location
         ).save(failOnError: true)
 
         elasticSearchService.index(building)
@@ -210,13 +211,13 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     void 'search with geo distance filter'() {
         given: 'a building with a geo point location'
         GeoPoint geoPoint = new GeoPoint(
-                lat: 50.1,
-                lon: 13.3
+            lat: 50.1,
+            lon: 13.3
         ).save(failOnError: true)
 
         def building = new Building(
-                name: 'Test Product',
-                location: geoPoint
+            name: 'Test Product',
+            location: geoPoint
         ).save(failOnError: true)
 
         elasticSearchService.index(building)
@@ -230,8 +231,8 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         Closure filter = {
             'geo_distance'(
-                    'distance': '50km',
-                    'location': location
+                'distance': '50km',
+                'location': location
             )
         }
 
@@ -349,9 +350,9 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         when:
         def result = elasticSearchService.search(
-                QueryBuilders.hasParentQuery('store', QueryBuilders.matchQuery('owner', 'Horst')),
-                null as Closure,
-                [indices: Department, types: Department]
+            QueryBuilders.hasParentQuery('store', QueryBuilders.matchQuery('owner', 'Horst')),
+            null as Closure,
+            [indices: Department, types: Department]
         )
 
         then:
@@ -378,6 +379,47 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         result.total == 10
         result.searchResults.size() == 2
         result.searchResults*.name == ['Produkt3', 'Produkt4']
+    }
+
+    void 'Multiple sorting through search results'() {
+        given: 'a bunch of products'
+        def product
+        2.times { int i ->
+            2.times { int k ->
+                product = new Product(name: "Yogurt$i", price: k).save(failOnError: true, flush: true)
+                elasticSearchService.index(product)
+            }
+        }
+        elasticSearchAdminService.refresh()
+
+        when: 'a search is performed'
+        def sort1 = new FieldSortBuilder('name').order(SortOrder.ASC)
+        def sort2 = new FieldSortBuilder('price').order(SortOrder.DESC)
+        def params = [indices: Product, types: Product, sort: [sort1, sort2]]
+        def query = {
+            wildcard(name: 'yogurt*')
+        }
+        def result = elasticSearchService.search(query, params)
+
+        then: 'the correct result-part is returned'
+        result.searchResults.size() == 4
+        result.searchResults*.name == ['Yogurt0', 'Yogurt0', 'Yogurt1', 'Yogurt1']
+        result.searchResults*.price == [1, 0, 1, 0]
+
+        when: 'another search is performed'
+        sort1 = new FieldSortBuilder('name').order(SortOrder.DESC)
+        sort2 = new FieldSortBuilder('price').order(SortOrder.ASC)
+        params = [indices: Product, types: Product, sort: [sort1, sort2]]
+        query = {
+            wildcard(name: 'yogurt*')
+        }
+        result = elasticSearchService.search(query, params)
+
+        then: 'the correct result-part is returned'
+        result.total == 4
+        result.searchResults.size() == 4
+        result.searchResults*.name == ['Yogurt1', 'Yogurt1', 'Yogurt0', 'Yogurt0']
+        result.searchResults*.price == [0, 1, 0, 1]
     }
 
     void 'A search with Uppercase Characters should return appropriate results'() {
@@ -431,8 +473,8 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         Closure filter = {
             geo_distance(
-                    'distance': distance,
-                    'location': location
+                'distance': distance,
+                'location': location
             )
         }
         def result = elasticSearchService.search(params, query, filter)
@@ -461,9 +503,9 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         when: 'a geo distance search ist sorted by distance'
 
         def sortBuilder = SortBuilders.geoDistanceSort('location').
-                point(48.141, 11.57).
-                unit(DistanceUnit.KILOMETERS).
-                order(SortOrder.ASC)
+            point(48.141, 11.57).
+            unit(DistanceUnit.KILOMETERS).
+            order(SortOrder.ASC)
 
         Map params = [indices: Building, types: Building, sort: sortBuilder]
         Closure query = null
@@ -471,8 +513,8 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         Closure filter = {
             geo_distance(
-                    'distance': '5km',
-                    'location': location
+                'distance': '5km',
+                'location': location
             )
         }
         def result = elasticSearchService.search(params, query, filter)
