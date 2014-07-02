@@ -107,7 +107,7 @@ class ElasticsearchGrailsPlugin {
         }
 
         if (manager?.hasGrailsPlugin('hibernate') || manager?.hasGrailsPlugin('hibernate4')) {
-          hibernateProxyUnWrapper(HibernateProxyUnWrapper)
+            hibernateProxyUnWrapper(HibernateProxyUnWrapper)
         }
 
         domainClassUnWrapperChain(DomainClassUnWrapperChain)
