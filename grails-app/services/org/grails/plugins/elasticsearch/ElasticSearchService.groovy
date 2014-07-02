@@ -36,6 +36,7 @@ import static org.elasticsearch.index.query.QueryBuilders.queryString
 import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
 
 class ElasticSearchService implements GrailsApplicationAware {
+
     static final Logger LOG = LoggerFactory.getLogger(this)
 
     private static final int INDEX_REQUEST = 0
