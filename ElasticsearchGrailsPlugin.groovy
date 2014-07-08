@@ -106,7 +106,7 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
         }
 
-        if (manager?.hasGrailsPlugin('hibernate')) {
+        if (manager?.hasGrailsPlugin('hibernate') || manager?.hasGrailsPlugin('hibernate4')) {
             hibernateProxyUnWrapper(HibernateProxyUnWrapper)
         }
 

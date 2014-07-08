@@ -10,6 +10,7 @@ import org.elasticsearch.cluster.metadata.IndexMetaData
 import org.elasticsearch.cluster.metadata.MappingMetaData
 import org.elasticsearch.common.unit.DistanceUnit
 import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
 import test.*
@@ -378,6 +379,47 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         result.total == 10
         result.searchResults.size() == 2
         result.searchResults*.name == ['Produkt3', 'Produkt4']
+    }
+
+    void 'Multiple sorting through search results'() {
+        given: 'a bunch of products'
+        def product
+        2.times { int i ->
+            2.times { int k ->
+                product = new Product(name: "Yogurt$i", price: k).save(failOnError: true, flush: true)
+                elasticSearchService.index(product)
+            }
+        }
+        elasticSearchAdminService.refresh()
+
+        when: 'a search is performed'
+        def sort1 = new FieldSortBuilder('name').order(SortOrder.ASC)
+        def sort2 = new FieldSortBuilder('price').order(SortOrder.DESC)
+        def params = [indices: Product, types: Product, sort: [sort1, sort2]]
+        def query = {
+            wildcard(name: 'yogurt*')
+        }
+        def result = elasticSearchService.search(query, params)
+
+        then: 'the correct result-part is returned'
+        result.searchResults.size() == 4
+        result.searchResults*.name == ['Yogurt0', 'Yogurt0', 'Yogurt1', 'Yogurt1']
+        result.searchResults*.price == [1, 0, 1, 0]
+
+        when: 'another search is performed'
+        sort1 = new FieldSortBuilder('name').order(SortOrder.DESC)
+        sort2 = new FieldSortBuilder('price').order(SortOrder.ASC)
+        params = [indices: Product, types: Product, sort: [sort1, sort2]]
+        query = {
+            wildcard(name: 'yogurt*')
+        }
+        result = elasticSearchService.search(query, params)
+
+        then: 'the correct result-part is returned'
+        result.total == 4
+        result.searchResults.size() == 4
+        result.searchResults*.name == ['Yogurt1', 'Yogurt1', 'Yogurt0', 'Yogurt0']
+        result.searchResults*.price == [0, 1, 0, 1]
     }
 
     void 'A search with Uppercase Characters should return appropriate results'() {
