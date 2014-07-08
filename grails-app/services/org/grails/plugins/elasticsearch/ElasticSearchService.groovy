@@ -36,7 +36,6 @@ import static org.elasticsearch.index.query.QueryBuilders.queryString
 import static org.elasticsearch.index.query.QueryStringQueryBuilder.Operator
 
 class ElasticSearchService implements GrailsApplicationAware {
-
     static final Logger LOG = LoggerFactory.getLogger(this)
 
     private static final int INDEX_REQUEST = 0
@@ -334,12 +333,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                 .explain(params.explain ?: true)
 
         if (params.sort) {
-            def sorters
-            if (params.sort instanceof Collection) {
-                sorters = params.sort
-            } else {
-                sorters = [params.sort]
-            }
+            def sorters = (params.sort instanceof Collection) ? params.sort : [params.sort]
 
             sorters.each {
                 if (it instanceof SortBuilder) {
