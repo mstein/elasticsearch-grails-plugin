@@ -33,15 +33,15 @@ grails.project.dependency.resolution = {
             transitive = false
         }
 
-        def datastoreVersion = '3.0.6.RELEASE'
+        def datastoreVersion = '3.1.1.RELEASE'
 
         provided("org.grails:grails-datastore-gorm-plugin-support:$datastoreVersion",
                 "org.grails:grails-datastore-gorm:$datastoreVersion",
                 "org.grails:grails-datastore-core:$datastoreVersion",
                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
-        runtime 'org.elasticsearch:elasticsearch:1.2.1'
-        runtime('org.elasticsearch:elasticsearch-lang-groovy:2.0.0')  {
+        runtime 'org.elasticsearch:elasticsearch:1.2.2'
+        runtime('org.elasticsearch:elasticsearch-lang-groovy:2.2.0')  {
             excludes 'junit'
             excludes 'elasticsearch'
             excludes 'groovy-all'
@@ -55,11 +55,11 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        build ':release:3.0.1', ':rest-client-builder:2.0.1', {
+        build ':release:3.0.1', ':rest-client-builder:2.0.3', {
             export = false
         }
 
-        test(':hibernate:3.6.10.13', ':tomcat:7.0.52.1') {
+        test(':hibernate:3.6.10.16', ':tomcat:7.0.54') {
             export = false
         }
     }
