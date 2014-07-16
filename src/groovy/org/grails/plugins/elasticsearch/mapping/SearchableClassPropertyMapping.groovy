@@ -25,7 +25,8 @@ class SearchableClassPropertyMapping {
 
     private static final Set<String> SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index', 'analyzer']
     private static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
-            ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent', 'geoPoint', 'alias']
+            ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent', 'geoPoint',
+             'alias']
 
     /** Grails attributes of this property */
     private GrailsDomainClassProperty grailsProperty
@@ -192,14 +193,14 @@ class SearchableClassPropertyMapping {
      */
     boolean isGeoPoint() {
         Object geoPoint = specialMappingAttributes.get('geoPoint')
-        return (geoPoint != null && ((Boolean) geoPoint))
+        (geoPoint != null && ((Boolean) geoPoint))
     }
 
 	boolean isAlias(){
-		return getAlias() != null;
+        getAlias();
 	}
 	
 	String getAlias(){
-		return specialMappingAttributes.get('alias') 
+		specialMappingAttributes.get('alias')
 	}
 }

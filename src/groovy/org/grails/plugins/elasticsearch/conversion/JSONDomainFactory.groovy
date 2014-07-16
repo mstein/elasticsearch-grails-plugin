@@ -151,7 +151,7 @@ class JSONDomainFactory {
             json.field(scpm.propertyName, res)
 			//add the alias
 			if(scpm.getAlias()){
-				json.field(scpm.getAlias(),res)
+				json.field(scpm.getAlias(), res)
 			}
         }
         marshallingContext.pop()
