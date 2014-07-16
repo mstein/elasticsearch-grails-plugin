@@ -261,7 +261,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                         indexRequestQueue.executeRequests()
                         session.clear()
 
-                        log.info("Request iteration $i out of $nbRun finished")
+                        log.info("Request iteration ${i+1} out of $nbRun finished")
                     }
                 }
 

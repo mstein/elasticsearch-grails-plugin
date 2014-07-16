@@ -15,7 +15,6 @@
  */
 package org.grails.plugins.elasticsearch.index
 
-import org.codehaus.groovy.grails.support.PersistenceContextInterceptor
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.bulk.BulkRequestBuilder
@@ -28,7 +27,6 @@ import org.grails.plugins.elasticsearch.exception.IndexException
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.InitializingBean
 import org.springframework.util.Assert
 
 import java.util.concurrent.ConcurrentLinkedDeque
@@ -44,14 +42,13 @@ import java.util.concurrent.atomic.AtomicInteger
  * NOTE: if cluster state is RED, everything will probably fail and keep retrying forever.
  * NOTE: This is shared class, so need to be thread-safe.
  */
-class IndexRequestQueue implements InitializingBean {
+class IndexRequestQueue {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private JSONDomainFactory jsonDomainFactory
     private ElasticSearchContextHolder elasticSearchContextHolder
     private Client elasticSearchClient
-    private PersistenceContextInterceptor persistenceInterceptor
 
     /**
      * A map containing the pending index requests.
@@ -75,14 +72,6 @@ class IndexRequestQueue implements InitializingBean {
 
     void setElasticSearchClient(Client elasticSearchClient) {
         this.elasticSearchClient = elasticSearchClient
-    }
-
-    void setPersistenceInterceptor(PersistenceContextInterceptor persistenceInterceptor) {
-        this.persistenceInterceptor = persistenceInterceptor
-    }
-
-    void afterPropertiesSet() {
-        persistenceInterceptor.setReadOnly()
     }
 
     void addIndexRequest(instance) {
@@ -155,7 +144,6 @@ class IndexRequestQueue implements InitializingBean {
 
             def parentMapping = scm.propertiesMapping.find { it.parent }
 
-            persistenceInterceptor.init()
             try {
                 XContentBuilder json = toJSON(value)
 
@@ -178,7 +166,7 @@ class IndexRequestQueue implements InitializingBean {
             } catch (Exception e) {
                 LOG.error("Error Indexing $key.clazz (index: $scm.indexName , type: $scm.elasticTypeName) of id $key.id", e)
             } finally {
-                persistenceInterceptor.destroy()
+
             }
         }
 
