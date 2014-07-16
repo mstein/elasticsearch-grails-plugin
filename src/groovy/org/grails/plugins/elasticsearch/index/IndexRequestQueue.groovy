@@ -165,8 +165,6 @@ class IndexRequestQueue {
                 }
             } catch (Exception e) {
                 LOG.error("Error Indexing $key.clazz (index: $scm.indexName , type: $scm.elasticTypeName) of id $key.id", e)
-            } finally {
-
             }
         }
 

@@ -1,6 +1,14 @@
 grails.project.work.dir = 'target'
 grails.project.docs.output.dir = 'docs' // for the gh-pages branch
 
+grails.project.dependency.distribution = {
+    remoteRepository(id: 'snapshots-repo', url: 'http://noams.artifactoryonline.com/noams/grails-elasticsearch-plugin-snapshots/') {
+        authentication username: System.getProperty('DEPLOYER_USERNAME'), password: System.getProperty('DEPLOYER_PASSWORD')
+    }
+    remoteRepository(id: 'rc-repo', url: 'http://noams.artifactoryonline.com/noams/grails-elasticsearch-plugin-rc/') {
+        authentication username: System.getProperty('DEPLOYER_USERNAME'), password: System.getProperty('DEPLOYER_PASSWORD')
+    }
+}
 grails.project.dependency.resolver = 'maven' // or ivy
 grails.project.dependency.resolution = {
 
