@@ -11,6 +11,7 @@ mapping:
     title: Properties mapping
     parentChild: Parent-Child
     geoPoint: GeoPoint
+    alias: Alias
   searchableComponentReference:
     title: Searchable Component-Reference
     searchableReference: Searchable Reference

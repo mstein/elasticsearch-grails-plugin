@@ -1,0 +1,16 @@
+A field can be aliased.  This is useful in situations where another service may expect certain tags.
+For example, [Kibana|http://www.elasticsearch.org/overview/kibana/] uses an @\@timestamp@ field to filter
+report records by date.
+
+h4. Example
+
+{code}
+class Session {
+
+    Date loginTime
+
+    static searchable = {
+        loginTime alias:'@timestamp'
+    }
+}
+{code}

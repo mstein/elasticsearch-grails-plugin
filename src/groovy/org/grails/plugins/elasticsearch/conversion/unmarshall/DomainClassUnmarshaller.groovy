@@ -70,7 +70,17 @@ class DomainClassUnmarshaller {
                 try {
                     def key = entry.key
                     unmarshallingContext.unmarshallingStack.push(key)
-
+					
+					//TODO ignore aliased fields
+					//Find the aliased fields and ignore them...
+					Collection<SearchableClassPropertyMapping> mappings = elasticSearchContextHolder.getMappingContext(scm.domainClass).getPropertiesMapping();
+					Set<String> aliasedFields = new HashSet<String>();
+					for(SearchableClassPropertyMapping scpm : mappings){
+						def alias = scpm.getAlias();
+						if(alias != null && key.equals(alias)){
+							continue;
+						}
+					}
                     def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
                     rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
