@@ -149,9 +149,8 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
 		then:
 		result.total == 1
-		result.searchResults['@timestamp'].equals(building.date);
 		List<Building> searchResults = result.searchResults
-		searchResults[0].name == product.name
+		searchResults[0].name == building.name
 	}
 
     void 'a date value should be marshalled and de-marshalled correctly'() {
@@ -183,7 +182,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         ).save(failOnError: true)
 
         def building = new Building(
-                name: 'WatchTower',
+                name: 'EvileagueHQ',
                 location: location
         ).save(failOnError: true)
 
@@ -191,7 +190,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         elasticSearchAdminService.refresh()
 
         when:
-        def result = elasticSearchService.search('WatchTower', [indices: Building, types: Building])
+        def result = elasticSearchService.search('EvileagueHQ', [indices: Building, types: Building])
 
         then:
         elasticSearchHelper.elasticSearchClient.admin().indices()
