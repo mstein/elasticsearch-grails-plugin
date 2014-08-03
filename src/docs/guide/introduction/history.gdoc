@@ -1,5 +1,10 @@
 h4. History
 
+* August 3, 2014
+** 0.0.3.2
+*** Add the ability to mark fields with aliases
+*** Support ES client HTTP configuration parameters
+*** Improve Hibernate 4 support
 * June 9, 2014
 ** 0.0.3.1
 *** Upgrade to ElasticSearch 1.2.x
