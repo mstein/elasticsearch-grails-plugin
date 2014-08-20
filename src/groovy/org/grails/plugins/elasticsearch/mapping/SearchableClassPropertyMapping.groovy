@@ -67,6 +67,10 @@ class SearchableClassPropertyMapping {
         specialMappingAttributes.component != null
     }
 
+    boolean isInnerComponent() {
+        specialMappingAttributes.component == 'inner'
+    }
+
     Object getConverter() {
         specialMappingAttributes.converter
     }

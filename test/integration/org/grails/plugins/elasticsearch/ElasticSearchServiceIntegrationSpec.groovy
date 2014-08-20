@@ -13,6 +13,7 @@ import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
+import spock.lang.IgnoreRest
 import test.*
 
 class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
@@ -547,5 +548,24 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         List<Building> searchResults = result.searchResults
 
         result.sort.(searchResults[0].id) == [2.5382648464733575]
+    }
+
+    @IgnoreRest
+    void 'Component as an inner object'() {
+        given:
+        def mal = new Person(name: 'Malcolm Reynolds').save(flush: true)
+        def spaceship = new Spaceship(name: 'Serenity', captain: mal).save(flush: true)
+        elasticSearchService.index(spaceship)
+        elasticSearchAdminService.refresh()
+
+        when:
+        def search = elasticSearchService.search('serenity', [indices: Spaceship, types: Spaceship])
+
+        then:
+        search.total == 1
+
+        def result = search.searchResults.first()
+        result.name == 'Serenity'
+        result.captain.name == 'Malcolm Reynolds'
     }
 }
