@@ -1,5 +1,8 @@
 h4. History
 
+* August 28, 2014
+** 0.0.3.3
+*** Configure a component field to act as an inner object instead of a nested object.
 * August 3, 2014
 ** 0.0.3.2
 *** Add the ability to mark fields with aliases
