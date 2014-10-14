@@ -46,86 +46,12 @@ class SearchableClassMappingConfigurator {
     /**
      * Init method.
      */
-    void configureAndInstallMappings() {
-        Collection<SearchableClassMapping> mappings = buildMappings()
+    public void configureAndInstallMappings() {
+        Collection<SearchableClassMapping> mappings = mappings()
         installMappings(mappings)
     }
 
-    /**
-     * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
-     * @param mappings searchable class mappings to be install.
-     */
-    void installMappings(Collection<SearchableClassMapping> mappings) {
-        Set<String> installedIndices = []
-        Map<String, Object> settings = new HashMap<String, Object>()
-//        settings.put("number_of_shards", 5)        // must have 5 shards to be Green.
-//        settings.put("number_of_replicas", 2)
-        settings.put("number_of_replicas", 0)
-        // Look for default index settings.
-        Map esConfig = grailsApplication.config.getProperty("elasticSearch")
-        if (esConfig != null) {
-            Map<String, Object> indexDefaults = esConfig.get("index")
-            LOG.debug("Retrieved index settings")
-            if (indexDefaults != null) {
-                for (Map.Entry<String, Object> entry : indexDefaults.entrySet()) {
-                    settings.put("index." + entry.getKey(), entry.getValue())
-                }
-            }
-        }
-        LOG.debug("Installing mappings...")
-        for (SearchableClassMapping scm : mappings) {
-            if (scm.isRoot()) {
-                Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm)
-
-                // todo wait for success, maybe retry.
-                // If the index does not exist, create it
-                if (!installedIndices.contains(scm.getIndexName())) {
-                    LOG.debug("Index " + scm.getIndexName() + " does not exists, initiating creation...")
-                    try {
-                        // Could be blocked on index level, thus wait.
-                        try {
-                            LOG.debug("Waiting at least yellow status on " + scm.getIndexName() + " ...")
-                            elasticSearchClient.admin().cluster().prepareHealth(scm.getIndexName())
-                                    .setWaitForYellowStatus()
-                                    .execute().actionGet()
-                        } catch (Exception e) {
-                            // ignore any exceptions due to non-existing index.
-                            LOG.debug("Index health", e)
-                        }
-                        elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
-                                .setSettings(settings)
-                                .execute().actionGet()
-                        installedIndices.add(scm.getIndexName())
-                        LOG.debug(elasticMapping.toString())
-
-                        // If the index already exists, ignore the exception
-                    } catch (IndexAlreadyExistsException iaee) {
-                        LOG.debug("Index " + scm.getIndexName() + " already exists, skip index creation.")
-                    } catch (RemoteTransportException rte) {
-                        LOG.debug(rte.getMessage())
-                    }
-                }
-
-                // Install mapping
-                // todo when conflict is detected, delete old mapping (this will delete all indexes as well, so should warn user)
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping)
-                }
-                elasticSearchClient.admin().indices().putMapping(
-                        new PutMappingRequest(scm.getIndexName())
-                                .type(scm.getElasticTypeName())
-                                .source(elasticMapping)
-                ).actionGet()
-            }
-
-        }
-
-        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
-                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
-        LOG.debug("Cluster status: " + response.getStatus())
-    }
-
-    private Collection<SearchableClassMapping> buildMappings() {
+    public Collection<SearchableClassMapping> mappings() {
         List<SearchableClassMapping> mappings = []
         for (GrailsClass clazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
             GrailsDomainClass domainClass = (GrailsDomainClass) clazz
@@ -153,6 +79,80 @@ class SearchableClassMappingConfigurator {
         }
 
         return mappings
+    }
+
+    /**
+     * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
+     * @param mappings searchable class mappings to be install.
+     */
+    public void installMappings(Collection<SearchableClassMapping> mappings) {
+        Set<String> installedIndices = []
+        Map<String, Object> settings = new HashMap<String, Object>()
+//        settings.put("number_of_shards", 5)        // must have 5 shards to be Green.
+//        settings.put("number_of_replicas", 2)
+        settings.put("number_of_replicas", 0)
+        // Look for default index settings.
+        Map esConfig = grailsApplication.config.getProperty("elasticSearch")
+        if (esConfig != null) {
+            Map<String, Object> indexDefaults = esConfig.get("index")
+            LOG.debug("Retrieved index settings")
+            if (indexDefaults != null) {
+                for (Map.Entry<String, Object> entry : indexDefaults.entrySet()) {
+                    settings.put("index." + entry.getKey(), entry.getValue())
+                }
+            }
+        }
+        LOG.debug("Installing mappings...")
+        for (SearchableClassMapping scm : mappings) {
+            if (scm.isRoot()) {
+                Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm)
+
+                // todo wait for success, maybe retry.
+                // If the index does not exist, create it
+                if (!installedIndices.contains(scm.getIndexName())) {
+                    LOG.debug("Index ${scm.indexName} does not exists, initiating creation...")
+                    try {
+                        // Could be blocked on index level, thus wait.
+                        try {
+                            LOG.debug("Waiting at least yellow status on ${scm.indexName}")
+                            elasticSearchClient.admin().cluster().prepareHealth(scm.getIndexName())
+                                    .setWaitForYellowStatus()
+                                    .execute().actionGet()
+                        } catch (Exception e) {
+                            // ignore any exceptions due to non-existing index.
+                            LOG.debug('Index health', e)
+                        }
+                        elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
+                                .setSettings(settings)
+                                .execute().actionGet()
+                        installedIndices.add(scm.getIndexName())
+                        LOG.debug(elasticMapping.toString())
+
+                        // If the index already exists, ignore the exception
+                    } catch (IndexAlreadyExistsException iaee) {
+                        LOG.debug("Index ${scm.indexName} already exists, skip index creation.")
+                    } catch (RemoteTransportException rte) {
+                        LOG.debug(rte.getMessage())
+                    }
+                }
+
+                // Install mapping
+                // todo when conflict is detected, delete old mapping (this will delete all indexes as well, so should warn user)
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping)
+                }
+                elasticSearchClient.admin().indices().putMapping(
+                        new PutMappingRequest(scm.getIndexName())
+                                .type(scm.getElasticTypeName())
+                                .source(elasticMapping)
+                ).actionGet()
+            }
+
+        }
+
+        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
+                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
+        LOG.debug("Cluster status: ${response.status}")
     }
 
     void setElasticSearchContext(ElasticSearchContextHolder elasticSearchContext) {
