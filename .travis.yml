@@ -3,3 +3,4 @@ script: ./grailsw refresh-dependencies
      && ./grailsw clean
      && ./grailsw compile
      && ./grailsw test-app
+     && ./grailsw maven-deploy --repository=snapshots-repo -DDEPLOYER_USERNAME=$DEPLOYER_USERNAME -DDEPLOYER_PASSWORD=$DEPLOYER_PASSWORD
