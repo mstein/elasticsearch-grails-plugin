@@ -5,6 +5,5 @@ The plugin focus on exposing Grails domain classes for the moment. It highly tak
 reference for its syntax and behavior.
 
 Note that the plugin is still under development, so you may not be able to use all the features of ElasticSearch yet.
-As for now, you should only use this plugin for testing purpose since you may lack some functionality in a production environment.
 
 In addition to this document, you may want to read the official ElasticSearch documentation [here|http://www.elasticsearch.org/guide/].
