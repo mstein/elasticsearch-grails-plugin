@@ -20,6 +20,7 @@ import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 import org.elasticsearch.action.count.CountRequest
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.action.search.SearchType
+import org.elasticsearch.action.support.QuerySourceBuilder
 import org.elasticsearch.client.Client
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.index.query.QueryStringQueryBuilder
@@ -244,14 +245,25 @@ class ElasticSearchService implements GrailsApplicationAware {
 
                 // The index is split to avoid out of memory exception
                 def count = scm.domainClass.clazz.count() ?: 0
+                LOG.debug("Found $count instances of ${scm.domainClass}")
+
                 int nbRun = Math.ceil(count / maxRes)
+
+                LOG.debug("Maximum entries allowed in each bulk request is $maxRes, so indexing is split to $nbRun iterations")
 
                 scm.domainClass.clazz.withNewSession { session ->
                     for (int i = 0; i < nbRun; i++) {
-                        scm.domainClass.clazz.withCriteria {
-                            firstResult(i * maxRes)
+                        def resultToStartFrom = i * maxRes
+
+                        LOG.debug("Bulk index iteration ${i+1}: fetching $maxRes results starting from ${resultToStartFrom}")
+
+                        def results = scm.domainClass.clazz.withCriteria {
+                            firstResult(resultToStartFrom)
                             maxResults(maxRes)
-                        }.each {
+                        }
+
+                        LOG.debug("Bulk index iteration ${i+1}: found ${results.size()} results")
+                        results.each {
                             if (operationType == INDEX_REQUEST) {
                                 indexRequestQueue.addIndexRequest(it)
                             } else if (operationType == DELETE_REQUEST) {
@@ -305,14 +317,14 @@ class ElasticSearchService implements GrailsApplicationAware {
 
         // Handle the query, can either be a closure or a string
         if (query instanceof Closure) {
-            request.query(new GXContentBuilder().buildAsBytes(query), false)
+            request.source(new GXContentBuilder().buildAsBytes(query))
         } else {
             Operator defaultOperator = params['default_operator'] ?: Operator.AND
             QueryStringQueryBuilder builder = queryString(query).defaultOperator(defaultOperator)
             if (params.analyzer) {
                 builder.analyzer(params.analyzer)
             }
-            request.query(builder)
+            request.source(new QuerySourceBuilder().setQuery(builder))
         }
 
         request
