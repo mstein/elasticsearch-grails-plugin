@@ -266,8 +266,10 @@ class ElasticSearchService implements GrailsApplicationAware {
                         results.each {
                             if (operationType == INDEX_REQUEST) {
                                 indexRequestQueue.addIndexRequest(it)
+                                LOG.debug("Adding the document ${it.id} to the index request queue")
                             } else if (operationType == DELETE_REQUEST) {
                                 indexRequestQueue.addDeleteRequest(it)
+                                LOG.debug("Adding the document ${it.id} to the delete request queue")
                             }
                         }
                         indexRequestQueue.executeRequests()

@@ -1,8 +1,13 @@
 package org.grails.plugins.elasticsearch
 
 import grails.test.spock.IntegrationSpec
+import grails.util.GrailsNameUtils
+import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.codehaus.groovy.grails.web.json.JSONObject
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder
+import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.client.AdminClient
 import org.elasticsearch.client.ClusterAdminClient
 import org.elasticsearch.cluster.ClusterState
@@ -13,7 +18,6 @@ import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
-import spock.lang.IgnoreRest
 import test.*
 
 class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
@@ -21,6 +25,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     ElasticSearchService elasticSearchService
     ElasticSearchAdminService elasticSearchAdminService
     ElasticSearchHelper elasticSearchHelper
+    GrailsApplication grailsApplication
 
     /*
      * This test class doesn't delete any ElasticSearch indices, because that would also delete the mapping.
@@ -550,7 +555,6 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         result.sort.(searchResults[0].id) == [2.5382648464733575]
     }
 
-    @IgnoreRest
     void 'Component as an inner object'() {
         given:
         def mal = new Person(name: 'Malcolm Reynolds').save(flush: true)
@@ -567,5 +571,50 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         def result = search.searchResults.first()
         result.name == 'Serenity'
         result.captain.name == 'Malcolm Reynolds'
+    }
+
+    void 'bulk test'() {
+        given:
+        (1..1858).each {
+            def person = new Person(name: 'Person-' + it).save(flush: true)
+            def spaceShip = new Spaceship(name: 'Ship-' + it, captain: person).save(flush: true)
+            println "Created ${it} domains"
+        }
+
+        when:
+        elasticSearchService.index(Spaceship)
+        elasticSearchAdminService.refresh(Spaceship)
+
+        then:
+        findFailures().size() == 0
+        elasticSearchService.countHits('Ship\\-') == 18858
+    }
+
+    private def findFailures() {
+        def domainClass = new DefaultGrailsDomainClass(Spaceship)
+        def failures=[]
+        def allObjects = Spaceship.list()
+        allObjects.each {
+            elasticSearchHelper.withElasticSearch { client ->
+                GetRequest getRequest = new GetRequest(getIndexName(domainClass), getTypeName(domainClass), it.id.toString());
+                def result = client.get(getRequest).actionGet()
+                if (!result.isExists()) {
+                    failures << it
+                }
+            }
+        }
+        failures
+    }
+
+    private String getIndexName(GrailsDomainClass domainClass) {
+        String name = grailsApplication.config.elasticSearch.index.name ?: domainClass.packageName
+        if (name == null || name.length() == 0) {
+            name = domainClass.getPropertyName()
+        }
+        return name.toLowerCase()
+    }
+
+    private String getTypeName(GrailsDomainClass domainClass) {
+        GrailsNameUtils.getPropertyName(domainClass.clazz)
     }
 }
