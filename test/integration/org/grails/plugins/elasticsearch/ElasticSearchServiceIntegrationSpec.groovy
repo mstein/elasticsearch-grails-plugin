@@ -587,7 +587,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         then:
         findFailures().size() == 0
-        elasticSearchService.countHits('Ship\\-') == 18858
+        elasticSearchService.countHits('Ship\\-') == 1858
     }
 
     private def findFailures() {
