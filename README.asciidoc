@@ -16,7 +16,7 @@ Edit your project's +BuildConfig.groovy+ file, by adding the plugin's dependency
 ----
 grails.project.dependency.resolution = {
     plugins {
-        runtime ':elasticsearch:0.0.3.4'
+        runtime ':elasticsearch:0.0.3.5'
     }
 }
 ----
