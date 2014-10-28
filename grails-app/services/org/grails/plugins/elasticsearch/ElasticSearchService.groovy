@@ -260,6 +260,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                         def results = scm.domainClass.clazz.withCriteria {
                             firstResult(resultToStartFrom)
                             maxResults(maxRes)
+                            order('id', 'asc')
                         }
 
                         LOG.debug("Bulk index iteration ${i+1}: found ${results.size()} results")
