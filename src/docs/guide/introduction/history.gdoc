@@ -1,5 +1,8 @@
 h4. History
 
+* November 06, 2014
+** 0.0.3.6
+*** Upgrade to ElasticSearch 1.4.0
 * October 28, 2014
 ** 0.0.3.5
 *** Fix the bulk index query iteration.
