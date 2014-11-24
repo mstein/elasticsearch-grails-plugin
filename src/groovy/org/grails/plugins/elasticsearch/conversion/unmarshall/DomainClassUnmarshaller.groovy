@@ -43,13 +43,13 @@ class DomainClassUnmarshaller {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    private TypeConverter typeConverter = new SimpleTypeConverter()
     private ElasticSearchContextHolder elasticSearchContextHolder
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
 
     Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
+        TypeConverter typeConverter = new SimpleTypeConverter()
         List results = []
         for (SearchHit hit : hits) {
             String type = hit.type()
@@ -250,6 +250,7 @@ class DomainClassUnmarshaller {
         // todo add first-level caching and cycle ref checking
         String indexName = elasticSearchContextHolder.getMappingContext(domainClass).indexName
         String name = elasticSearchContextHolder.getMappingContext(domainClass).elasticTypeName
+        TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id
         GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
@@ -265,6 +266,7 @@ class DomainClassUnmarshaller {
 
     private unmarshallDomain(GrailsDomainClass domainClass, providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.identifier
+        TypeConverter typeConverter = new SimpleTypeConverter()
         Object id = typeConverter.convertIfNecessary(providedId, identifier.type)
         GroovyObject instance = (GroovyObject) domainClass.newInstance()
         instance.setProperty(identifier.name, id)
