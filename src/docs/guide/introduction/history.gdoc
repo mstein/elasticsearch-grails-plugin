@@ -1,5 +1,8 @@
 h4. History
 
+* December 01, 2014
+** 0.0.3.7
+*** Create separate SimpleTypeConverter per-thread
 * November 06, 2014
 ** 0.0.3.6
 *** Upgrade to ElasticSearch 1.4.0
