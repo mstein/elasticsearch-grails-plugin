@@ -177,10 +177,13 @@ class ElasticSearchMappingFactory {
     }
 
     private static String treatValueAsAString(String idType) {
-        def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
-
-        if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
-            return 'string'
+        if (Holders.grailsApplication.config.elasticSearch.datastoreImpl =~ /mongo/) {
+            idType = 'string'
+        } else {
+            def pluginManager = Holders.applicationContext.getBean(GrailsPluginManager.BEAN_NAME)
+            if (((GrailsPluginManager) pluginManager).hasGrailsPlugin('mongodb')) {
+                idType = 'string'
+            }
         }
         idType
     }
