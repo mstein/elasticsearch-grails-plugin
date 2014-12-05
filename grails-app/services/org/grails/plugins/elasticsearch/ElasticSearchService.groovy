@@ -345,7 +345,7 @@ class ElasticSearchService implements GrailsApplicationAware {
 
         source.from(params.from ? params.from as int : 0)
                 .size(params.size ? params.size as int : 60)
-                .explain(params.explain ?: true)
+                .explain(params.explain ?: true).minScore(params.min_score ?: 0)
 
         if (params.sort) {
             def sorters = (params.sort instanceof Collection) ? params.sort : [params.sort]
