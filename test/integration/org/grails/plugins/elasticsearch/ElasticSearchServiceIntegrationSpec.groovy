@@ -55,13 +55,6 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         }
     }
 
-    def cleanupSpec() {
-        def dataFolder = new File('data')
-        if (dataFolder.isDirectory()) {
-            dataFolder.delete()
-        }
-    }
-
     void 'Index and un-index a domain object'() {
         given:
         def product = new Product(name: 'myTestProduct')
