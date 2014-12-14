@@ -1,5 +1,10 @@
 h4. History
 
+* December 14, 2014
+** 0.0.3.8
+*** Upgrade to ElasticSearch 1.4.1
+*** Support the min_score query parameter.
+*** Try to detect the MongoDB without using the plugin manager.
 * December 01, 2014
 ** 0.0.3.7
 *** Create separate SimpleTypeConverter per-thread
