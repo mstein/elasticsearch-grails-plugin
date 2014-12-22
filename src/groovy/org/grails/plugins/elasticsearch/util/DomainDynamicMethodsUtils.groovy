@@ -71,17 +71,11 @@ class DomainDynamicMethodsUtils {
             domain.metaClass.'static'.search << { Map params, Closure q, Closure f ->
                 elasticSearchService.search(params + indexAndType, q, f)
             }
-            domain.metaClass.'static'.search << { Map params, QueryBuilder q, Closure f ->
+            domain.metaClass.'static'.search << { Map params, QueryBuilder q, Closure f = null->
                 elasticSearchService.search(params + indexAndType, q, f)
             }
-            domain.metaClass.'static'.search << { QueryBuilder q, Closure f, Map params = [:] ->
+            domain.metaClass.'static'.search << { QueryBuilder q, Closure f = null, Map params = [:] ->
                 elasticSearchService.search(q, f, params + indexAndType)
-            }
-            domain.metaClass.'static'.search << { QueryBuilder q, Map params = [:] ->
-                elasticSearchService.search(q, params + indexAndType)
-            }
-            domain.metaClass.'static'.search << { Map params = [:], QueryBuilder q ->
-                elasticSearchService.search(params + indexAndType, q)
             }
 
             // Inject the countHits method
