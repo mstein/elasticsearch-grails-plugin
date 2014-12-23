@@ -23,6 +23,7 @@ import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.grails.plugins.elasticsearch.mapping.SearchableDomainClassMapper
 import org.apache.commons.logging.LogFactory
 import org.grails.plugins.elasticsearch.exception.IndexException
+import org.elasticsearch.index.query.QueryBuilder
 
 class DomainDynamicMethodsUtils {
 
@@ -69,6 +70,12 @@ class DomainDynamicMethodsUtils {
             }
             domain.metaClass.'static'.search << { Map params, Closure q, Closure f ->
                 elasticSearchService.search(params + indexAndType, q, f)
+            }
+            domain.metaClass.'static'.search << { Map params, QueryBuilder q, Closure f = null->
+                elasticSearchService.search(params + indexAndType, q, f)
+            }
+            domain.metaClass.'static'.search << { QueryBuilder q, Closure f = null, Map params = [:] ->
+                elasticSearchService.search(q, f, params + indexAndType)
             }
 
             // Inject the countHits method

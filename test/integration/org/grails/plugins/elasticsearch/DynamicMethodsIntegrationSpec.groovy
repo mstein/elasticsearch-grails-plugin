@@ -4,6 +4,9 @@ import grails.test.spock.IntegrationSpec
 import spock.lang.Shared
 import test.Photo
 
+import org.elasticsearch.index.query.QueryBuilder
+import org.elasticsearch.index.query.QueryBuilders
+
 class DynamicMethodsIntegrationSpec extends IntegrationSpec {
 
     def elasticSearchAdminService
@@ -50,6 +53,39 @@ class DynamicMethodsIntegrationSpec extends IntegrationSpec {
         def results = Photo.search({
             match(name:"Captain")
         }, {
+            term(url:"http://www.nicenicejpg.com/100")
+        })
+
+        then:
+        results.total == 1
+        results.searchResults[0].name == "Captain Kirk"
+    }
+
+    def "can search using a QueryBuilder and Dynamic Methods"() {
+        given:
+        elasticSearchAdminService.refresh()
+        expect:
+        elasticSearchService.search('captain', [indices: Photo, types: Photo]).total == 5
+
+        when:
+        QueryBuilder query = QueryBuilders.termQuery("url", "http://www.nicenicejpg.com/100")
+        def results = Photo.search(query)
+
+        then:
+        results.total == 1
+        results.searchResults[0].name == "Captain Kirk"
+    }
+
+    def "can search using a QueryBuilder, a filter and Dynamic Methods"() {
+        given:
+        elasticSearchAdminService.refresh()
+        expect:
+        elasticSearchService.search('captain', [indices: Photo, types: Photo]).total == 5
+
+         when:
+        QueryBuilder query = QueryBuilders.matchQuery("name", "Captain")
+        def results = Photo.search(query,
+        {
             term(url:"http://www.nicenicejpg.com/100")
         })
 
