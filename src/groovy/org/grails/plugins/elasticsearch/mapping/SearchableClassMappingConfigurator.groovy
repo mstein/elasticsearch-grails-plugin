@@ -24,6 +24,8 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
 import org.elasticsearch.client.Client
+import org.elasticsearch.client.Requests
+import org.elasticsearch.index.mapper.MergeMappingException
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
@@ -137,15 +139,23 @@ class SearchableClassMappingConfigurator {
                 }
 
                 // Install mapping
-                // todo when conflict is detected, delete old mapping (this will delete all indexes as well, so should warn user)
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping)
                 }
-                elasticSearchClient.admin().indices().putMapping(
-                        new PutMappingRequest(scm.getIndexName())
-                                .type(scm.getElasticTypeName())
-                                .source(elasticMapping)
-                ).actionGet()
+                try {
+					elasticSearchClient.admin().indices().putMapping(
+						new PutMappingRequest(scm.getIndexName())
+							.type(scm.getElasticTypeName())
+							.source(elasticMapping)
+							).actionGet()
+				} catch (MergeMappingException e) {
+					// when merge conflicts are detected, delete old mapping and restart installation
+					// todo add config option to disable deletion
+					LOG.debug("[" + scm.getElasticTypeName() + "] => " + "caught MergeMappingException. Deleting index...")
+					elasticSearchClient.admin().indices().delete(Requests.deleteIndexRequest("_all")).actionGet()
+					installMappings(mappings)
+					return
+				}
             }
 
         }
