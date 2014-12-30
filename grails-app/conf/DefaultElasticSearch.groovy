@@ -60,6 +60,11 @@ elasticSearch {
      * The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
      */
     searchableProperty.name = 'searchable'
+
+    /**
+    * Should the plugin delete the index when a MergeMappingException is caught. The default is false.
+    */
+    deleteOnMergeMappingException = false
 }
 
 environments {

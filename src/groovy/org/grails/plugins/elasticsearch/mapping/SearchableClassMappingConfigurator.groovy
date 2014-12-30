@@ -87,7 +87,7 @@ class SearchableClassMappingConfigurator {
      * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
      * @param mappings searchable class mappings to be install.
      */
-    public void installMappings(Collection<SearchableClassMapping> mappings) {
+    public void installMappings(Collection<SearchableClassMapping> mappings) throws MergeMappingException{
         Set<String> installedIndices = []
         Map<String, Object> settings = new HashMap<String, Object>()
 //        settings.put("number_of_shards", 5)        // must have 5 shards to be Green.
@@ -148,13 +148,17 @@ class SearchableClassMappingConfigurator {
 							.type(scm.getElasticTypeName())
 							.source(elasticMapping)
 							).actionGet()
-				} catch (MergeMappingException e) {
+				} catch (MergeMappingException mme) {
 					// when merge conflicts are detected, delete old mapping and restart installation
-					// todo add config option to disable deletion
-					LOG.debug("[" + scm.getElasticTypeName() + "] => " + "caught MergeMappingException. Deleting index...")
-					elasticSearchClient.admin().indices().delete(Requests.deleteIndexRequest("_all")).actionGet()
-					installMappings(mappings)
-					return
+					LOG.debug("[" + scm.getElasticTypeName() + "] => " + "caught MergeMappingException.")
+					if (grailsApplication.config.elasticSearch?.deleteOnMergeMappingException) {
+						elasticSearchClient.admin().indices().delete(Requests.deleteIndexRequest("_all")).actionGet()
+						installMappings(mappings)
+						return
+					}
+					else{
+						throw mme
+					}
 				}
             }
 
