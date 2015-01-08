@@ -109,6 +109,7 @@ class SearchableClassMappingConfigurator {
         }
 
         LOG.debug("Installing mappings...")
+        MappingMigrationStrategy migrationStrategy = esConfig?.migration?.strategy ? MappingMigrationStrategy.valueOf(esConfig.migration.strategy) : none
         def conflictingMappings = []
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
@@ -118,7 +119,7 @@ class SearchableClassMappingConfigurator {
                 // If the index was not created, create it
                 if (!installedIndices.contains(scm.indexName)) {
                     try {
-                        safeCreateIndex(scm.indexName)
+                        safeCreateIndex(migrationStrategy, scm.indexName)
                         installedIndices.add(scm.indexName)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
@@ -139,7 +140,6 @@ class SearchableClassMappingConfigurator {
         }
 
         if(conflictingMappings) {
-            MappingMigrationStrategy migrationStrategy = esConfig?.migration?.strategy ? MappingMigrationStrategy.valueOf(esConfig.migration.strategy) : none
             boolean reindex = esConfig?.migration?.reindex
             LOG.info("Applying migrations ...")
             switch(migrationStrategy) {
@@ -147,9 +147,20 @@ class SearchableClassMappingConfigurator {
                     conflictingMappings.each {
                         es.deleteMapping it.scm.indexName, it.scm.elasticTypeName
                         es.createMapping it.scm.indexName, it.scm.elasticTypeName, it.elasticMapping
+                        //TODO mark as recreated!
                     }
                     break;
                 case alias:
+                    def migratedIndices = []
+                    conflictingMappings.each {
+                        if (!migratedIndices.contains(it.scm.indexName)) {
+                            int nextVersion = es.getNextVersion(it.scm.indexName)
+                            es.createIndex it.scm.indexName, nextVersion
+                            es.pointAliasTo it.scm.indexName, it.scm.indexName, nextVersion
+                            migratedIndices << it.scm.indexName
+                            //TODO mark as recreated!
+                        }
+                    }
                     break;
                 case none:
                     LOG.error("Could not install mappings : ${conflictingMappings} and no migration strategy selected.")
@@ -169,7 +180,8 @@ class SearchableClassMappingConfigurator {
      * @returns true if it created a new index, false if it already existed
      * @throws RemoteTransportException if some other error occured
      */
-    private boolean safeCreateIndex(String indexName, def settings = []) throws RemoteTransportException {
+    //TODO Use settings!
+    private boolean safeCreateIndex(MappingMigrationStrategy strategy, String indexName) throws RemoteTransportException {
         LOG.debug("Index ${indexName} does not exists, initiating creation...")
         // Could be blocked on index level, thus wait.
         try {
@@ -182,7 +194,12 @@ class SearchableClassMappingConfigurator {
             LOG.debug('Index health', e)
         }
         if(!es.indexExists(indexName)) {
-            es.createIndex indexName
+            if (strategy == alias) {
+                es.createIndex(indexName, 0)
+                es.pointAliasTo(indexName, indexName, 0)
+            } else {
+                es.createIndex indexName
+            }
         }
     }
 

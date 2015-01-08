@@ -80,7 +80,14 @@ class ElasticSearchShortcuts {
         elasticSearchClient.admin().indices().prepareAliasesExist(alias).execute().actionGet().exists
     }
 
-    private String versionIndex(String index, Integer version = null) {
+    String versionIndex(String index, Integer version = null) {
         version == null ? index : index + "_v${version}"
+    }
+
+    int getNextVersion(String index) {
+        Set indices = elasticSearchClient.admin().indices().prepareStats().execute().actionGet().indices.keySet()
+        indices.count {
+            it =~ /^${index}_v\d+$/
+        }
     }
 }
