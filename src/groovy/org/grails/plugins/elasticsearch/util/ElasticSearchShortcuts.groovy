@@ -1,5 +1,6 @@
 package org.grails.plugins.elasticsearch.util
 
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest
 import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingRequest
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
@@ -49,8 +50,30 @@ class ElasticSearchShortcuts {
         elasticSearchClient.admin().indices().prepareCreate(index).execute().actionGet()
     }
 
-    boolean indexExists(String index) {
+    boolean indexExists(String index, Integer version = null) {
+        index = versionIndex(index, version)
         elasticSearchClient.admin().indices().prepareExists(index).execute().actionGet().exists
+    }
+
+    String indexPointedBy(alias) {
+        def index = elasticSearchClient.admin().indices().getAliases(new GetAliasesRequest().aliases([alias] as String[])).actionGet().getAliases()?.find { it.value.element.alias() == alias }?.key
+        if(!index) {
+            LOG.debug("Alias ${alias} does not exist")
+        }
+        return index
+    }
+
+    void pointAliasTo(String alias, String index, Integer version = null) {
+        index = versionIndex(index, version)
+        LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
+        def oldIndex = indexPointedBy(alias)
+        //Create atomic operation
+        def aliasRequest = elasticSearchClient.admin().indices().prepareAliases().addAlias(index,alias)
+        if (oldIndex) {
+            LOG.debug "Index used to point to ${oldIndex}, removing ..."
+            aliasRequest.removeAlias(oldIndex,alias)
+        }
+        aliasRequest.execute().actionGet()
     }
 
     boolean aliasExists(String alias) {

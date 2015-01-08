@@ -171,21 +171,18 @@ class SearchableClassMappingConfigurator {
      */
     private boolean safeCreateIndex(String indexName, def settings = []) throws RemoteTransportException {
         LOG.debug("Index ${indexName} does not exists, initiating creation...")
+        // Could be blocked on index level, thus wait.
         try {
-            // Could be blocked on index level, thus wait.
-            try {
-                LOG.debug("Waiting at least yellow status on ${indexName}")
-                elasticSearchClient.admin().cluster().prepareHealth(indexName)
-                        .setWaitForYellowStatus()
-                        .execute().actionGet()
-            } catch (Exception e) {
-                // ignore any exceptions due to non-existing index.
-                LOG.debug('Index health', e)
-            }
+            LOG.debug("Waiting at least yellow status on ${indexName}")
+            elasticSearchClient.admin().cluster().prepareHealth(indexName)
+                    .setWaitForYellowStatus()
+                    .execute().actionGet()
+        } catch (Exception e) {
+            // ignore any exceptions due to non-existing index.
+            LOG.debug('Index health', e)
+        }
+        if(!es.indexExists(indexName)) {
             es.createIndex indexName
-            // If the index already exists, notify
-        } catch (IndexAlreadyExistsException iaee) {
-            LOG.debug("Index ${indexName} already exists, skip index creation.")
         }
     }
 
