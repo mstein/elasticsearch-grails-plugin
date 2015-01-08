@@ -216,10 +216,66 @@ class MappingMigrationSpec extends IntegrationSpec {
         es.indexExists catalogMapping.indexName
         es.aliasExists catalogMapping.indexName
         es.indexExists catalogMapping.indexName, 11
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
 
         and: "Only one version is created and not a version per conflict"
         es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 11)
         !es.indexExists(catalogMapping.indexName, 12)
+
+        and: "Others mappings are created as well"
+        es.mappingExists(productMapping.indexName, productMapping.elasticTypeName)
+    }
+
+    void "With 'alias' strategy if index exists, decide whether to replace with alias based on config"() {
+        given: "Two different mapping conflicts on the same index"
+        assert catalogMapping != productMapping
+        assert catalogMapping.indexName == productMapping.indexName
+        createConflictingCatalogMapping()
+        createConflictingProductMapping()
+
+        and: "Existing content"
+        new Catalog(company:"ACME", issue: 1).save(flush:true,failOnError: true)
+        new Catalog(company:"ACME", issue: 2).save(flush:true,failOnError: true)
+        elasticSearchService.index()
+        elasticSearchAdminService.refresh()
+
+        expect:
+        es.indexExists catalogMapping.indexName
+        !es.aliasExists(catalogMapping.indexName)
+        Catalog.count() == 2
+        Catalog.search("ACME").total == 2
+
+        when:
+        grailsApplication.config.elasticSearch.migration = [strategy: "alias", "aliasReplacesIndex" : false]
+        searchableClassMappingConfigurator.installMappings([catalogMapping, productMapping])
+
+        then: "an exception is thrown, due to the existing index"
+        thrown MappingException
+
+        and: "no content or mappings are affect"
+        Catalog.count() == 2
+        Catalog.search("ACME").total == 2
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
+        es.mappingExists(productMapping.indexName, catalogMapping.elasticTypeName)
+
+        when:
+        grailsApplication.config.elasticSearch.migration = [strategy: "alias", "aliasReplacesIndex" : true]
+        searchableClassMappingConfigurator.installMappings([catalogMapping])
+
+        then: "Alias replaces the index"
+        es.indexExists(catalogMapping.indexName)
+        es.aliasExists(catalogMapping.indexName)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 0)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
+
+        and: "Content is lost, as the index is regenerated"
+        Catalog.count() == 2
+        Catalog.search("ACME").total == 0
+
+        and: "All mappings are recreated"
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
+        es.mappingExists(productMapping.indexName, catalogMapping.elasticTypeName)
+
     }
 
     def _catalogMapping = null

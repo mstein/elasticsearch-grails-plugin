@@ -111,9 +111,15 @@ class SearchableClassMappingConfigurator {
         LOG.debug("Installing mappings...")
         MappingMigrationStrategy migrationStrategy = esConfig?.migration?.strategy ? MappingMigrationStrategy.valueOf(esConfig.migration.strategy) : none
         def conflictingMappings = []
+        Map elasticMappings = [:]
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
-                Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm)
+                elasticMappings << [scm: ElasticSearchMappingFactory.getElasticMapping(scm)]
+            }
+        }
+        for (SearchableClassMapping scm : mappings) {
+            if (scm.isRoot()) {
+                Map elasticMapping = elasticMappings[scm]
 
                 // todo wait for success, maybe retry.
                 // If the index was not created, create it
@@ -140,25 +146,42 @@ class SearchableClassMappingConfigurator {
         }
 
         if(conflictingMappings) {
-            boolean reindex = esConfig?.migration?.reindex
             LOG.info("Applying migrations ...")
             switch(migrationStrategy) {
                 case delete:
                     conflictingMappings.each {
                         es.deleteMapping it.scm.indexName, it.scm.elasticTypeName
                         es.createMapping it.scm.indexName, it.scm.elasticTypeName, it.elasticMapping
-                        //TODO mark as recreated!
+                        //TODO mark as recreated for indexing on Bootstrap!
                     }
                     break;
                 case alias:
                     def migratedIndices = []
                     conflictingMappings.each {
                         if (!migratedIndices.contains(it.scm.indexName)) {
-                            int nextVersion = es.getNextVersion(it.scm.indexName)
-                            es.createIndex it.scm.indexName, nextVersion
-                            es.pointAliasTo it.scm.indexName, it.scm.indexName, nextVersion
-                            migratedIndices << it.scm.indexName
-                            //TODO mark as recreated!
+                            boolean isAlias = es.aliasExists(it.scm.indexName)
+                            if(isAlias || esConfig.migration.aliasReplacesIndex ) {
+                                int nextVersion = 0
+                                if (isAlias) {
+                                    nextVersion = es.getNextVersion(it.scm.indexName)
+                                } else {
+                                    es.deleteIndex(it.scm.indexName)
+                                }
+                                es.createIndex it.scm.indexName, nextVersion
+                                es.pointAliasTo it.scm.indexName, it.scm.indexName, nextVersion
+                                migratedIndices << it.scm.indexName
+                                //TODO mark as recreated for indexing on Bootstrap!
+                            } else {
+                                throw new MappingException("Could not create alias ${it.scm.indexName} due to error installing mapping ${it.scm.elasticTypeName}, index with the same name already exists.", it.exception)
+                            }
+                        }
+                    }
+                    //Recreate the mappings for all the indexes that were changed
+                    migratedIndices.each { migratedIndex ->
+                        elasticMappings.each { scm, elasticMapping ->
+                            if (scm.indexName == migratedIndex) {
+                                es.createMapping(migratedIndex, scm.elasticTypeName, elasticMapping)
+                            }
                         }
                     }
                     break;
