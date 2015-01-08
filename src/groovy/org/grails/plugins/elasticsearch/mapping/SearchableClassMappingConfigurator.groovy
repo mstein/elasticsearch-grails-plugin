@@ -22,13 +22,17 @@ import org.codehaus.groovy.grails.commons.GrailsClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
 import org.elasticsearch.client.Client
+import org.elasticsearch.index.mapper.MergeMappingException
 import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.exception.MappingException
+import org.grails.plugins.elasticsearch.util.ElasticSearchShortcuts
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import static org.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.*
 
 /**
  * Build searchable mappings, configure ElasticSearch indexes,
@@ -41,6 +45,7 @@ class SearchableClassMappingConfigurator {
     private ElasticSearchContextHolder elasticSearchContext
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
+    private ElasticSearchShortcuts es
     private ConfigObject config
 
     /**
@@ -102,57 +107,86 @@ class SearchableClassMappingConfigurator {
                 }
             }
         }
+
         LOG.debug("Installing mappings...")
+        def conflictingMappings = []
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
                 Map elasticMapping = ElasticSearchMappingFactory.getElasticMapping(scm)
 
                 // todo wait for success, maybe retry.
-                // If the index does not exist, create it
-                if (!installedIndices.contains(scm.getIndexName())) {
-                    LOG.debug("Index ${scm.indexName} does not exists, initiating creation...")
+                // If the index was not created, create it
+                if (!installedIndices.contains(scm.indexName)) {
                     try {
-                        // Could be blocked on index level, thus wait.
-                        try {
-                            LOG.debug("Waiting at least yellow status on ${scm.indexName}")
-                            elasticSearchClient.admin().cluster().prepareHealth(scm.getIndexName())
-                                    .setWaitForYellowStatus()
-                                    .execute().actionGet()
-                        } catch (Exception e) {
-                            // ignore any exceptions due to non-existing index.
-                            LOG.debug('Index health', e)
-                        }
-                        elasticSearchClient.admin().indices().prepareCreate(scm.getIndexName())
-                                .setSettings(settings)
-                                .execute().actionGet()
-                        installedIndices.add(scm.getIndexName())
-                        LOG.debug(elasticMapping.toString())
-
-                        // If the index already exists, ignore the exception
-                    } catch (IndexAlreadyExistsException iaee) {
-                        LOG.debug("Index ${scm.indexName} already exists, skip index creation.")
+                        safeCreateIndex(scm.indexName)
+                        installedIndices.add(scm.indexName)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
                     }
                 }
 
                 // Install mapping
-                // todo when conflict is detected, delete old mapping (this will delete all indexes as well, so should warn user)
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("[" + scm.getElasticTypeName() + "] => " + elasticMapping)
+                    LOG.debug("Installing mapping [" + scm.elasticTypeName + "] => " + elasticMapping)
                 }
-                elasticSearchClient.admin().indices().putMapping(
-                        new PutMappingRequest(scm.getIndexName())
-                                .type(scm.getElasticTypeName())
-                                .source(elasticMapping)
-                ).actionGet()
+                try {
+                    es.createMapping scm.indexName, scm.elasticTypeName, elasticMapping
+                } catch (MergeMappingException e) {
+                    LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                    conflictingMappings << [scm: scm, exception: e, elasticMapping: elasticMapping]
+                }
             }
+        }
 
+        if(conflictingMappings) {
+            MappingMigrationStrategy migrationStrategy = esConfig?.migration?.strategy ? MappingMigrationStrategy.valueOf(esConfig.migration.strategy) : none
+            boolean reindex = esConfig?.migration?.reindex
+            LOG.info("Applying migrations ...")
+            switch(migrationStrategy) {
+                case delete:
+                    conflictingMappings.each {
+                        es.deleteMapping it.scm.indexName, it.scm.elasticTypeName
+                        es.createMapping it.scm.indexName, it.scm.elasticTypeName, it.elasticMapping
+                    }
+                    break;
+                case alias:
+                    break;
+                case none:
+                    LOG.error("Could not install mappings : ${conflictingMappings} and no migration strategy selected.")
+                    throw new MappingException()
+            }
         }
 
         ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
                 new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
         LOG.debug("Cluster status: ${response.status}")
+    }
+
+
+    /**
+     * Creates the Elasticsearch index once unblocked
+     * @param indexName
+     * @returns true if it created a new index, false if it already existed
+     * @throws RemoteTransportException if some other error occured
+     */
+    private boolean safeCreateIndex(String indexName, def settings = []) throws RemoteTransportException {
+        LOG.debug("Index ${indexName} does not exists, initiating creation...")
+        try {
+            // Could be blocked on index level, thus wait.
+            try {
+                LOG.debug("Waiting at least yellow status on ${indexName}")
+                elasticSearchClient.admin().cluster().prepareHealth(indexName)
+                        .setWaitForYellowStatus()
+                        .execute().actionGet()
+            } catch (Exception e) {
+                // ignore any exceptions due to non-existing index.
+                LOG.debug('Index health', e)
+            }
+            es.createIndex indexName
+            // If the index already exists, notify
+        } catch (IndexAlreadyExistsException iaee) {
+            LOG.debug("Index ${indexName} already exists, skip index creation.")
+        }
     }
 
     void setElasticSearchContext(ElasticSearchContextHolder elasticSearchContext) {
@@ -165,6 +199,10 @@ class SearchableClassMappingConfigurator {
 
     void setElasticSearchClient(Client elasticSearchClient) {
         this.elasticSearchClient = elasticSearchClient
+    }
+
+    void setEs(ElasticSearchShortcuts es) {
+        this.es = es
     }
 
     void setConfig(ConfigObject config) {
