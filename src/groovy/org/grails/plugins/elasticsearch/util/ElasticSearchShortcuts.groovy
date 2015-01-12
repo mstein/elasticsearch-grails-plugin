@@ -1,6 +1,7 @@
 package org.grails.plugins.elasticsearch.util
 
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest
 import org.elasticsearch.action.admin.indices.mapping.delete.DeleteMappingRequest
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
@@ -44,10 +45,14 @@ class ElasticSearchShortcuts {
         elasticSearchClient.admin().indices().prepareDelete(index).execute().actionGet()
     }
 
-    void createIndex(String index, Integer version = null) {
+    void createIndex(String index, Integer version = null, Map settings=null) {
         index = versionIndex(index, version)
         LOG.debug "Creating index ${index} ..."
-        elasticSearchClient.admin().indices().prepareCreate(index).execute().actionGet()
+        CreateIndexRequestBuilder builder = elasticSearchClient.admin().indices().prepareCreate(index)
+        if(settings) {
+            builder.setSettings(settings)
+        }
+        builder.execute().actionGet()
     }
 
     boolean indexExists(String index, Integer version = null) {

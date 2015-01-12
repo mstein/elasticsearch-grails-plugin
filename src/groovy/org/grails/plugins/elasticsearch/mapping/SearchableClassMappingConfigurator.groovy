@@ -24,7 +24,6 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.index.mapper.MergeMappingException
-import org.elasticsearch.indices.IndexAlreadyExistsException
 import org.elasticsearch.transport.RemoteTransportException
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.exception.MappingException
@@ -125,7 +124,7 @@ class SearchableClassMappingConfigurator {
                 // If the index was not created, create it
                 if (!installedIndices.contains(scm.indexName)) {
                     try {
-                        safeCreateIndex(migrationStrategy, scm.indexName)
+                        safeCreateIndex(migrationStrategy, scm.indexName, settings)
                         installedIndices.add(scm.indexName)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
@@ -167,7 +166,7 @@ class SearchableClassMappingConfigurator {
                                 } else {
                                     es.deleteIndex(it.scm.indexName)
                                 }
-                                es.createIndex it.scm.indexName, nextVersion
+                                es.createIndex it.scm.indexName, nextVersion, settings
                                 es.pointAliasTo it.scm.indexName, it.scm.indexName, nextVersion
                                 migratedIndices << it.scm.indexName
                                 //TODO mark as recreated for indexing on Bootstrap!
@@ -203,8 +202,7 @@ class SearchableClassMappingConfigurator {
      * @returns true if it created a new index, false if it already existed
      * @throws RemoteTransportException if some other error occured
      */
-    //TODO Use settings!
-    private boolean safeCreateIndex(MappingMigrationStrategy strategy, String indexName) throws RemoteTransportException {
+    private boolean safeCreateIndex(MappingMigrationStrategy strategy, String indexName, Map settings) throws RemoteTransportException {
         LOG.debug("Index ${indexName} does not exists, initiating creation...")
         // Could be blocked on index level, thus wait.
         try {
@@ -218,10 +216,10 @@ class SearchableClassMappingConfigurator {
         }
         if(!es.indexExists(indexName)) {
             if (strategy == alias) {
-                es.createIndex(indexName, 0)
-                es.pointAliasTo(indexName, indexName, 0)
+                es.createIndex indexName, 0, settings
+                es.pointAliasTo indexName, indexName, 0
             } else {
-                es.createIndex indexName
+                es.createIndex indexName, settings
             }
         }
     }
