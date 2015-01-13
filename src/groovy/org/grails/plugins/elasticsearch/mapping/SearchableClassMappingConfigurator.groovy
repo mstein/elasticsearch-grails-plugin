@@ -113,19 +113,23 @@ class SearchableClassMappingConfigurator {
         Map elasticMappings = [:]
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
-                elasticMappings << [scm: ElasticSearchMappingFactory.getElasticMapping(scm)]
+                elasticMappings << [(scm) : ElasticSearchMappingFactory.getElasticMapping(scm)]
             }
         }
+        LOG.debug "elasticMappings are ${elasticMappings.keySet()}"
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
+
+                assert scm.indexingIndex == scm.queryingIndex
+
                 Map elasticMapping = elasticMappings[scm]
 
                 // todo wait for success, maybe retry.
                 // If the index was not created, create it
-                if (!installedIndices.contains(scm.indexName)) {
+                if (!installedIndices.contains(scm.queryingIndex)) {
                     try {
-                        safeCreateIndex(migrationStrategy, scm.indexName, settings)
-                        installedIndices.add(scm.indexName)
+                        safeCreateIndex(migrationStrategy, scm.queryingIndex, settings)
+                        installedIndices.add(scm.queryingIndex)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
                     }
@@ -136,9 +140,9 @@ class SearchableClassMappingConfigurator {
                     LOG.debug("Installing mapping [" + scm.elasticTypeName + "] => " + elasticMapping)
                 }
                 try {
-                    es.createMapping scm.indexName, scm.elasticTypeName, elasticMapping
+                    es.createMapping scm.queryingIndex, scm.elasticTypeName, elasticMapping
                 } catch (MergeMappingException e) {
-                    LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                    LOG.warn("Could not install mapping ${scm.queryingIndex}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                     conflictingMappings << [scm: scm, exception: e, elasticMapping: elasticMapping]
                 }
             }
@@ -149,37 +153,48 @@ class SearchableClassMappingConfigurator {
             switch(migrationStrategy) {
                 case delete:
                     conflictingMappings.each {
-                        es.deleteMapping it.scm.indexName, it.scm.elasticTypeName
-                        es.createMapping it.scm.indexName, it.scm.elasticTypeName, it.elasticMapping
-                        //TODO mark as recreated for indexing on Bootstrap!
+                        SearchableClassMapping scm = it.scm
+                        es.deleteMapping scm.queryingIndex, scm.elasticTypeName
+                        es.createMapping scm.queryingIndex, scm.elasticTypeName, it.elasticMapping
+                        elasticSearchContext.deleted << scm.domainClass.clazz
                     }
                     break;
                 case alias:
                     def migratedIndices = []
                     conflictingMappings.each {
-                        if (!migratedIndices.contains(it.scm.indexName)) {
-                            boolean isAlias = es.aliasExists(it.scm.indexName)
+                        SearchableClassMapping scm = it.scm
+                        if (!migratedIndices.contains(scm.queryingIndex)) {
+                            boolean isAlias = es.aliasExists(scm.queryingIndex)
                             if(isAlias || esConfig.migration.aliasReplacesIndex ) {
                                 int nextVersion = 0
                                 if (isAlias) {
-                                    nextVersion = es.getNextVersion(it.scm.indexName)
+                                    nextVersion = es.getNextVersion(scm.queryingIndex)
                                 } else {
-                                    es.deleteIndex(it.scm.indexName)
+                                    es.deleteIndex(scm.queryingIndex)
                                 }
-                                es.createIndex it.scm.indexName, nextVersion, settings
-                                es.pointAliasTo it.scm.indexName, it.scm.indexName, nextVersion
-                                migratedIndices << it.scm.indexName
-                                //TODO mark as recreated for indexing on Bootstrap!
+                                es.createIndex scm.queryingIndex, nextVersion, settings
+                                es.waitForIndex scm.queryingIndex, nextVersion //Ensure it exists so later on mappings are created on the right version
+
+                                if(!esConfig.bulkIndexOnStartup) { //Otherwise, it will be done post content creation
+                                    es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
+                                }
+                                migratedIndices << scm.queryingIndex
                             } else {
-                                throw new MappingException("Could not create alias ${it.scm.indexName} due to error installing mapping ${it.scm.elasticTypeName}, index with the same name already exists.", it.exception)
+                                throw new MappingException("Could not create alias ${scm.queryingIndex} to solve error installing mapping ${scm.elasticTypeName}, index with the same name already exists.", it.exception)
                             }
                         }
                     }
                     //Recreate the mappings for all the indexes that were changed
-                    migratedIndices.each { migratedIndex ->
-                        elasticMappings.each { scm, elasticMapping ->
-                            if (scm.indexName == migratedIndex) {
-                                es.createMapping(migratedIndex, scm.elasticTypeName, elasticMapping)
+                    elasticMappings.each { SearchableClassMapping scm, elasticMapping ->
+                        if (migratedIndices.contains(scm.queryingIndex)) {
+                            elasticSearchContext.deleted << scm.domainClass.clazz //Mark it for potential content index on Bootstrap
+                            if (scm.isRoot()) {
+                                int newVersion = es.getLatestVersion(scm.queryingIndex)
+                                String indexName = es.versionIndex(scm.queryingIndex, newVersion)
+                                es.createMapping(indexName, scm.elasticTypeName, elasticMapping)
+                                if(esConfig.bulkIndexOnStartup) { //Content needs to be indexed on the new index
+                                    scm.indexingIndex = indexName
+                                }
                             }
                         }
                     }
@@ -203,18 +218,10 @@ class SearchableClassMappingConfigurator {
      * @throws RemoteTransportException if some other error occured
      */
     private boolean safeCreateIndex(MappingMigrationStrategy strategy, String indexName, Map settings) throws RemoteTransportException {
-        LOG.debug("Index ${indexName} does not exists, initiating creation...")
         // Could be blocked on index level, thus wait.
-        try {
-            LOG.debug("Waiting at least yellow status on ${indexName}")
-            elasticSearchClient.admin().cluster().prepareHealth(indexName)
-                    .setWaitForYellowStatus()
-                    .execute().actionGet()
-        } catch (Exception e) {
-            // ignore any exceptions due to non-existing index.
-            LOG.debug('Index health', e)
-        }
+        es.waitForIndex(indexName)
         if(!es.indexExists(indexName)) {
+            LOG.debug("Index ${indexName} does not exists, initiating creation...")
             if (strategy == alias) {
                 es.createIndex indexName, 0, settings
                 es.pointAliasTo indexName, indexName, 0

@@ -19,6 +19,7 @@ import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
+import org.grails.plugins.elasticsearch.ElasticSearchBooStrapHelper
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar
@@ -120,6 +121,14 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
             domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
         }
+
+        elasticSearchBooStrapHelper(ElasticSearchBooStrapHelper) {
+            grailsApplication = ref('grailsApplication')
+            elasticSearchService = ref('elasticSearchService')
+            elasticSearchContextHolder = ref('elasticSearchContextHolder')
+            es = ref('elasticSearchShortcuts')
+        }
+
         if (!esConfig.disableAutoIndex) {
             if (!esConfig.datastoreImpl) {
                 throw new Exception('No datastore implementation specified')

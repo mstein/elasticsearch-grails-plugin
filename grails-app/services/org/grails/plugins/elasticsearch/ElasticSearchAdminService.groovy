@@ -3,6 +3,7 @@ package org.grails.plugins.elasticsearch
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.client.Requests
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -63,9 +64,9 @@ class ElasticSearchAdminService {
 
         // Retrieve indices to refresh
         searchableClasses.each {
-            def scm = elasticSearchContextHolder.getMappingContextByType(it)
+            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it)
             if (scm) {
-                toRefresh << scm.indexName
+                toRefresh << scm.queryingIndex
             }
         }
 
@@ -107,9 +108,9 @@ class ElasticSearchAdminService {
 
         // Retrieve indices to delete
         searchableClasses.each {
-            def scm = elasticSearchContextHolder.getMappingContextByType(it)
+            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it)
             if (scm) {
-                toDelete << scm.indexName
+                toDelete << scm.queryingIndex
             }
         }
         // We do not trigger the deleteIndex with an empty list as it would delete ALL indices.

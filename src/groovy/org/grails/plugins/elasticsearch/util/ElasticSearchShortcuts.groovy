@@ -17,6 +17,9 @@ class ElasticSearchShortcuts {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
+    private static final MAX_RETRIES = 10
+    private static final SLEEP_INTERVAL = 100
+
     Client elasticSearchClient
 
     void deleteMapping(String index, String type) {
@@ -45,8 +48,7 @@ class ElasticSearchShortcuts {
         elasticSearchClient.admin().indices().prepareDelete(index).execute().actionGet()
     }
 
-    void createIndex(String index, Integer version = null, Map settings=null) {
-        index = versionIndex(index, version)
+    void createIndex(String index, Map settings=null) {
         LOG.debug "Creating index ${index} ..."
         CreateIndexRequestBuilder builder = elasticSearchClient.admin().indices().prepareCreate(index)
         if(settings) {
@@ -55,12 +57,25 @@ class ElasticSearchShortcuts {
         builder.execute().actionGet()
     }
 
+    void createIndex(String index, Integer version, Map settings=null) {
+        index = versionIndex(index, version)
+        createIndex(index, settings)
+    }
+
     boolean indexExists(String index, Integer version = null) {
         index = versionIndex(index, version)
         elasticSearchClient.admin().indices().prepareExists(index).execute().actionGet().exists
     }
 
-    String indexPointedBy(alias) {
+    void waitForIndex(String index, int version) {
+        int retries = MAX_RETRIES
+        while(getLatestVersion(index) < version && retries--) {
+            LOG.debug("Index ${versionIndex(index, version)} not found, sleeping for ${SLEEP_INTERVAL}...")
+            Thread.sleep(SLEEP_INTERVAL)
+        }
+    }
+
+    String indexPointedBy(String alias) {
         def index = elasticSearchClient.admin().indices().getAliases(new GetAliasesRequest().aliases([alias] as String[])).actionGet().getAliases()?.find { it.value.element.alias() == alias }?.key
         if(!index) {
             LOG.debug("Alias ${alias} does not exist")
@@ -71,13 +86,14 @@ class ElasticSearchShortcuts {
     void pointAliasTo(String alias, String index, Integer version = null) {
         index = versionIndex(index, version)
         LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
-        def oldIndex = indexPointedBy(alias)
+        String oldIndex = indexPointedBy(alias)
         //Create atomic operation
-        def aliasRequest = elasticSearchClient.admin().indices().prepareAliases().addAlias(index,alias)
-        if (oldIndex) {
+        def aliasRequest = elasticSearchClient.admin().indices().prepareAliases()
+        if (oldIndex && oldIndex != index) {
             LOG.debug "Index used to point to ${oldIndex}, removing ..."
             aliasRequest.removeAlias(oldIndex,alias)
         }
+        aliasRequest.   addAlias(index,alias)
         aliasRequest.execute().actionGet()
     }
 
@@ -93,6 +109,22 @@ class ElasticSearchShortcuts {
         Set indices = elasticSearchClient.admin().indices().prepareStats().execute().actionGet().indices.keySet()
         indices.count {
             it =~ /^${index}_v\d+$/
+        }
+    }
+
+    int getLatestVersion(String index) {
+        getNextVersion(index) - 1
+    }
+
+    def waitForIndex(index) {
+        try {
+            LOG.debug("Waiting at least yellow status on ${index}")
+            elasticSearchClient.admin().cluster().prepareHealth(index)
+                    .setWaitForYellowStatus()
+                    .execute().actionGet()
+        } catch (Exception e) {
+            // ignore any exceptions due to non-existing index.
+            LOG.debug('Index health', e)
         }
     }
 }

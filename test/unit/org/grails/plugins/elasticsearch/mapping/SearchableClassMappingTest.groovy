@@ -12,11 +12,18 @@ import test.upperCase.UpperCase
 public class SearchableClassMappingTest {
 
     @Test
-    public void testGetIndexName() throws Exception {
+    public void testGetQueryingIndexName() throws Exception {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(Photo.class)
         dc.grailsApplication = grailsApplication
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
-        assert 'test' == mapping.getIndexName()
+        assert 'test' == mapping.getQueryingIndex()
+    }
+    @Test
+    public void testGetIndexingIndexName() throws Exception {
+        GrailsDomainClass dc = new DefaultGrailsDomainClass(Photo.class)
+        dc.grailsApplication = grailsApplication
+        SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
+        assert 'test' == mapping.getIndexingIndex()
     }
 
     @Test
@@ -25,7 +32,8 @@ public class SearchableClassMappingTest {
         dc.grailsApplication = grailsApplication
         config.elasticSearch.index.name = 'index-name'
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
-        assert 'index-name' == mapping.getIndexName()
+        assert 'index-name' == mapping.getQueryingIndex()
+        assert 'index-name' == mapping.getIndexingIndex()
     }
 
     @Test
@@ -33,8 +41,19 @@ public class SearchableClassMappingTest {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(UpperCase.class)
         dc.grailsApplication = grailsApplication
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
-        String indexName = mapping.getIndexName()
-        assert 'test.uppercase' == indexName
+        assert 'test.uppercase' == mapping.getQueryingIndex()
+        assert 'test.uppercase' == mapping.getIndexingIndex()
+    }
+
+    @Test
+    public void testIndexingAndQueryingIndicesCanBeSetIndependently() throws Exception {
+        GrailsDomainClass dc = new DefaultGrailsDomainClass(UpperCase.class)
+        dc.grailsApplication = grailsApplication
+        SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
+        mapping.setIndexingIndex("test.index_v1")
+        mapping.setQueryingIndex("test.index")
+        assert 'test.index_v1' == mapping.getIndexingIndex()
+        assert 'test.index' == mapping.getQueryingIndex()
     }
 
     @After

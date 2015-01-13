@@ -248,7 +248,7 @@ class DomainClassUnmarshaller {
     private unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
-        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).indexName
+        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).queryingIndex
         String name = elasticSearchContextHolder.getMappingContext(domainClass).elasticTypeName
         TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]

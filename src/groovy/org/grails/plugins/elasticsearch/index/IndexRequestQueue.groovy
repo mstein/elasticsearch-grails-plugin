@@ -148,7 +148,7 @@ class IndexRequestQueue {
                 XContentBuilder json = toJSON(value)
 
                 def index = elasticSearchClient.prepareIndex()
-                        .setIndex(scm.indexName)
+                        .setIndex(scm.indexingIndex)
                         .setType(scm.elasticTypeName)
                         .setId(key.id) // TODO : Composite key ?
                         .setSource(json)
@@ -159,12 +159,12 @@ class IndexRequestQueue {
                 bulkRequestBuilder.add(index)
                 if (LOG.isDebugEnabled()) {
                     try {
-                        LOG.debug("Indexing $key.clazz (index: $scm.indexName , type: $scm.elasticTypeName) of id $key.id and source ${json.string()}")
+                        LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id and source ${json.string()}")
                     } catch (IOException e) {
                     }
                 }
             } catch (Exception e) {
-                LOG.error("Error Indexing $key.clazz (index: $scm.indexName , type: $scm.elasticTypeName) of id $key.id", e)
+                LOG.error("Error Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id", e)
             }
         }
 
@@ -172,11 +172,11 @@ class IndexRequestQueue {
         toDelete.each {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Deleting object from index $scm.indexName and type $scm.elasticTypeName and ID $it.id")
+                LOG.debug("Deleting object from index $scm.indexingIndex and type $scm.elasticTypeName and ID $it.id")
             }
             bulkRequestBuilder.add(
                     elasticSearchClient.prepareDelete()
-                            .setIndex(scm.indexName)
+                            .setIndex(scm.indexingIndex)
                             .setType(scm.elasticTypeName)
                             .setId(it.id)
             )

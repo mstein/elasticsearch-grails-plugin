@@ -1,12 +1,8 @@
 class ElasticsearchBootStrap {
 
-    def elasticSearchService
-    def grailsApplication
+    def elasticSearchBooStrapHelper
 
     def init = { servletContext ->
-        if (grailsApplication.config.elasticSearch?.bulkIndexOnStartup) {
-            log.debug "Performing bulk indexing."
-            elasticSearchService.index()
-        }
+        elasticSearchBooStrapHelper.bulkIndexOnStartup()
     }
 }

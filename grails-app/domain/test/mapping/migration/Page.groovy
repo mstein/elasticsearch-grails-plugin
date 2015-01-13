@@ -6,7 +6,7 @@ class Page {
 
     List products
 
-    static hasMany = [products:Product]
+    static hasMany = [products:Item]
 
     static constraints = {
     }
