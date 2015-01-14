@@ -23,6 +23,31 @@ transport | The plugin create a transport client that will connect to a remote E
 {code}
 If no host is defined, @localhost:9300@ will be used by the transport client.
 
+h4. Mapping Migration properties
+
+Define the application's behaviour when a conflict is found while installing Elasticsearch mappings on startup. For a detailed explanation, see [Mapping Migrations].
+
+* @elasticSearch.migration.strategy@
+Defines the behaviour to follow if an error occurs on startup when the application is installing new mappings on ElasticSearch due to conflicting mappings.
+{table}
+Possible value | Description
+@'none'@ | No changes on the indices or mappings will happen, the merge problem will be logged and a MappingException will be thrown.
+@'delete'@ | The conflicting mapping will be deleted (along with all indexed content of that type) and replaced with a new mapping. Deleted content can be automatically reindexed on startup by using this in combination the @elasticSearch.bulkIndexOnStartup@ config option
+@'alias'@ | Applies [Elasticsearch recommended approach for migrating conflicting mappings|http://www.elasticsearch.org/blog/changing-mapping-with-zero-downtime/]. A new numbered index will be created (@<indexName>_vX@) where new mappings will installed for all the types included on the original index. An Elasticsearch alias called @<indexName>@ will point to the new index. As content won't be available on the new index, content can be automcatically reindexedon startup by using this in combination the @elasticSearch.bulkIndexOnStartup@ config option. It is recommended to set @elasticSearch.aliasReplacesIndex@ to deal with potential index/alias conflicts.
+{table}
+
+The default is @'alias'@.
+
+* @elasticSearch.migration.aliasReplacesIndex@
+Deals with a special conflict case using the @'alias'@ strategy. When the @'alias'@ migration strategy is chosen and there's a mapping conflict on an index, defines whether to replace the index with a versioned index (@<indexName>_vX@) and an alias (@<indexName>@). This is required when applying the alias strategy on top of existing indices for the first time as indices cannot be renamed (from @<indexName>@ to @<indexName>_vX@) and an alias cannot exist with the same name as an index.
+{table}
+Possible value | Description
+@true@ | The index and it's content will be deleted and a versioned index and an alias will be created. Deleted content can be automatically reindexed on startup by using this in combination the @elasticSearch.bulkIndexOnStartup@ config option
+@false@ | Falls back to the @'none'@ strategy. Event will be logged and a MappingException will be thrown.
+{table}
+
+The default is @true@.
+
 h4. Others properties
 * @elasticSearch.datastoreImpl@
 Only required when enabling the auto-index feature.
@@ -60,7 +85,14 @@ A boolean determining if the plugin should reflect any database save/update/dele
 Default to @false@.
 
 * @elasticSearch.bulkIndexOnStartup@
-A boolean determining if the application should launch a bulk index operation upon startup. Default to @true@.
+Determines whether the application should launch a bulk index operation upon startup.
+{table}
+Possible value | Description
+@false@ | No indexing will happen on startup.
+@true@ | All content will be indexed on startup.
+@'deleted'@ | This value is related to the mapping migration strategy choosen. If any migration is required and any content is deleted due to it, on startup only indices and mappings lost will be indexed. More on [Mapping Migrations].
+{table}
+Default to @true@.
 
 * @elasticSearch.index.name@
 A string indicating which ElasticSearch index should be used.  If not present, will default to the package name of the domain in question.
