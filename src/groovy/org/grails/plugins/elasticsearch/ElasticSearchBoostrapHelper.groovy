@@ -3,7 +3,6 @@ package org.grails.plugins.elasticsearch
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
-import org.grails.plugins.elasticsearch.util.ElasticSearchShortcuts
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -14,14 +13,14 @@ import static org.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.
  * Created by @marcos-carceles on 13/01/15.
  * Created and exposed as a bean, because Bootstrap cannot be easily tested and invoked from IntegrationSpec
  */
-class ElasticSearchBooStrapHelper {
+class ElasticSearchBootStrapHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
     private GrailsApplication grailsApplication
     private ElasticSearchService elasticSearchService
+    private ElasticSearchAdminService elasticSearchAdminService
     private ElasticSearchContextHolder elasticSearchContextHolder
-    private ElasticSearchShortcuts es
 
     void bulkIndexOnStartup() {
         def esConfig = grailsApplication.config.elasticSearch
@@ -39,9 +38,9 @@ class ElasticSearchBooStrapHelper {
         if (migrationStrategy == alias) {
             elasticSearchContextHolder.deleted.each { Class clazz ->
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
-                int latestVersion = es.getLatestVersion(scm.queryingIndex)
+                int latestVersion = elasticSearchAdminService.getLatestVersion(scm.queryingIndex)
                 LOG.debug("Pointing ElasticSearch aias ${scm.queryingIndex} to version ${latestVersion}")
-                es.pointAliasTo scm.queryingIndex, scm.queryingIndex, latestVersion
+                elasticSearchAdminService.pointAliasTo scm.queryingIndex, scm.queryingIndex, latestVersion
                 scm.indexingIndex = scm.queryingIndex
             }
         }
@@ -55,11 +54,12 @@ class ElasticSearchBooStrapHelper {
         this.elasticSearchService = elasticSearchService
     }
 
+    void setElasticSearchAdminService(ElasticSearchAdminService elasticSearchAdminService) {
+        this.elasticSearchAdminService = elasticSearchAdminService
+    }
+
     void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
         this.elasticSearchContextHolder = elasticSearchContextHolder
     }
 
-    void setEs(ElasticSearchShortcuts es) {
-        this.es = es
-    }
 }
