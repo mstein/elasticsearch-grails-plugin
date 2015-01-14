@@ -43,7 +43,6 @@ class SearchableClassMappingConfigurator {
 
     private ElasticSearchContextHolder elasticSearchContext
     private GrailsApplication grailsApplication
-    private Client elasticSearchClient
     private ElasticSearchShortcuts es
     private ConfigObject config
 
@@ -205,9 +204,7 @@ class SearchableClassMappingConfigurator {
             }
         }
 
-        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
-                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
-        LOG.debug("Cluster status: ${response.status}")
+        es.waitForClusterYellowStatus()
     }
 
 
@@ -237,10 +234,6 @@ class SearchableClassMappingConfigurator {
 
     void setGrailsApplication(GrailsApplication grailsApplication) {
         this.grailsApplication = grailsApplication
-    }
-
-    void setElasticSearchClient(Client elasticSearchClient) {
-        this.elasticSearchClient = elasticSearchClient
     }
 
     void setEs(ElasticSearchShortcuts es) {

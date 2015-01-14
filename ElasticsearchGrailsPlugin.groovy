@@ -95,7 +95,6 @@ class ElasticsearchGrailsPlugin {
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref('elasticSearchContextHolder')
             grailsApplication = ref('grailsApplication')
-            elasticSearchClient = ref('elasticSearchClient')
             es = ref('elasticSearchShortcuts')
             config = esConfig
 

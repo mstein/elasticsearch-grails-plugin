@@ -25,8 +25,21 @@ class MappingMigrationSpec extends IntegrationSpec {
 
     def setup() {
         // Recreate a clean environment as if the app had just booted
-        es.deleteMapping(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
-        es.deleteIndex(catalogMapping.queryingIndex)
+        grailsApplication.config.elasticSearch.migration = [strategy: "none"]
+        grailsApplication.config.elasticSearch.bulkIndexOnStartup = false
+        try {
+            es.deleteMapping(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
+            es.deleteMapping(catalogMapping.queryingIndex, itemMapping.elasticTypeName)
+            if(es.aliasExists(catalogMapping.queryingIndex)) {
+                es.deleteAlias(catalogMapping.queryingIndex)
+            }
+        } catch(e) {
+            //Ignore errors
+        }
+        es.getIndices(catalogMapping.queryingIndex).each {
+
+            es.deleteIndex(it)
+        }
         searchableClassMappingConfigurator.configureAndInstallMappings()
     }
 
@@ -211,6 +224,7 @@ class MappingMigrationSpec extends IntegrationSpec {
 
         and: "Alias Configuration"
         grailsApplication.config.elasticSearch.migration = [strategy: "alias"]
+        grailsApplication.config.elasticSearch.bulkIndexOnStartup = false //Content creation tested on a different test
 
         expect:
         es.indexExists catalogMapping.queryingIndex
@@ -234,12 +248,6 @@ class MappingMigrationSpec extends IntegrationSpec {
 
         and: "Others mappings are created as well"
         es.mappingExists(itemMapping.queryingIndex, itemMapping.elasticTypeName)
-
-        cleanup:
-        es.deleteIndex catalogMapping.queryingIndex
-        (0..10).each {
-            es.deleteIndex catalogMapping.queryingIndex, it
-        }
     }
 
     void "With 'alias' strategy if index exists, decide whether to replace with alias based on config"() {
@@ -305,7 +313,6 @@ class MappingMigrationSpec extends IntegrationSpec {
         cleanup:
         Catalog.findAll().each { it.delete() }
         Item.findAll().each { it.delete() }
-
     }
 
     /*

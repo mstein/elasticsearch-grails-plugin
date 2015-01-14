@@ -1,5 +1,7 @@
 package org.grails.plugins.elasticsearch.util
 
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
 import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest
@@ -43,7 +45,8 @@ class ElasticSearchShortcuts {
         elasticSearchClient.admin().indices().typesExists(new TypesExistsRequest([index] as String[], type)).actionGet().exists
     }
 
-    void deleteIndex(String index) {
+    void deleteIndex(String index, Integer version = null) {
+        index = versionIndex index, version
         LOG.info("Deleting  Elasticsearch index ${index} ...")
         elasticSearchClient.admin().indices().prepareDelete(index).execute().actionGet()
     }
@@ -83,6 +86,10 @@ class ElasticSearchShortcuts {
         return index
     }
 
+    void deleteAlias(String alias) {
+        elasticSearchClient.admin().indices().prepareAliases().removeAlias(indexPointedBy(alias), [alias] as String[]).execute().actionGet()
+    }
+
     void pointAliasTo(String alias, String index, Integer version = null) {
         index = versionIndex(index, version)
         LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
@@ -105,8 +112,17 @@ class ElasticSearchShortcuts {
         version == null ? index : index + "_v${version}"
     }
 
-    int getNextVersion(String index) {
+    Set<String> getIndices(String prefix=null) {
         Set indices = elasticSearchClient.admin().indices().prepareStats().execute().actionGet().indices.keySet()
+        if(prefix) {
+            indices = indices.findAll {
+                it =~ /^${prefix}/
+            }
+        }
+        indices
+    }
+
+    int getNextVersion(String index) {
         indices.count {
             it =~ /^${index}_v\d+$/
         }
@@ -126,5 +142,11 @@ class ElasticSearchShortcuts {
             // ignore any exceptions due to non-existing index.
             LOG.debug('Index health', e)
         }
+    }
+
+    void waitForClusterYellowStatus() {
+        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
+                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
+        LOG.debug("Cluster status: ${response.status}")
     }
 }
