@@ -20,14 +20,11 @@ import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.GrailsClass
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
-import org.elasticsearch.client.Client
 import org.elasticsearch.index.mapper.MergeMappingException
 import org.elasticsearch.transport.RemoteTransportException
+import org.grails.plugins.elasticsearch.ElasticSearchAdminService
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.exception.MappingException
-import org.grails.plugins.elasticsearch.util.ElasticSearchShortcuts
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -43,7 +40,7 @@ class SearchableClassMappingConfigurator {
 
     private ElasticSearchContextHolder elasticSearchContext
     private GrailsApplication grailsApplication
-    private ElasticSearchShortcuts es
+    private ElasticSearchAdminService es
     private ConfigObject config
 
     /**
@@ -236,7 +233,7 @@ class SearchableClassMappingConfigurator {
         this.grailsApplication = grailsApplication
     }
 
-    void setEs(ElasticSearchShortcuts es) {
+    void setEs(ElasticSearchAdminService es) {
         this.es = es
     }
 

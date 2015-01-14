@@ -1,8 +1,8 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.test.spock.IntegrationSpec
+import org.grails.plugins.elasticsearch.ElasticSearchAdminService
 import org.grails.plugins.elasticsearch.exception.MappingException
-import org.grails.plugins.elasticsearch.util.ElasticSearchShortcuts
 import test.mapping.migration.Catalog
 import test.mapping.migration.Item
 
@@ -16,11 +16,10 @@ class MappingMigrationSpec extends IntegrationSpec {
     def elasticSearchContextHolder
     def elasticSearchService
     def elasticSearchAdminService
-    def elasticSearchShortcuts
     def elasticSearchBooStrapHelper
 
-    ElasticSearchShortcuts getEs() {
-        elasticSearchShortcuts
+    ElasticSearchAdminService getEs() {
+        elasticSearchAdminService
     }
 
     def setup() {

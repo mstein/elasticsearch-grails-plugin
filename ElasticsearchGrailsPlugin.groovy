@@ -30,7 +30,6 @@ import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurat
 import org.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
 import org.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
-import org.grails.plugins.elasticsearch.util.ElasticSearchShortcuts
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -89,13 +88,10 @@ class ElasticsearchGrailsPlugin {
             elasticSearchClient = ref('elasticSearchClient')
             jsonDomainFactory = ref('jsonDomainFactory')
         }
-        elasticSearchShortcuts(ElasticSearchShortcuts) {
-            elasticSearchClient = ref('elasticSearchClient')
-        }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref('elasticSearchContextHolder')
             grailsApplication = ref('grailsApplication')
-            es = ref('elasticSearchShortcuts')
+            es = ref('elasticSearchAdminService')
             config = esConfig
 
             bean.initMethod = 'configureAndInstallMappings'
@@ -125,7 +121,7 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
             elasticSearchService = ref('elasticSearchService')
             elasticSearchContextHolder = ref('elasticSearchContextHolder')
-            es = ref('elasticSearchShortcuts')
+            es = ref('elasticSearchAdminService')
         }
 
         if (!esConfig.disableAutoIndex) {
