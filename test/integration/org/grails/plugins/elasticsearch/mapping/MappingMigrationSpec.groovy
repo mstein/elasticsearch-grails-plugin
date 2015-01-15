@@ -16,7 +16,7 @@ class MappingMigrationSpec extends IntegrationSpec {
     def elasticSearchContextHolder
     def elasticSearchService
     def elasticSearchAdminService
-    def elasticSearchBooStrapHelper
+    def elasticSearchBootStrapHelper
 
     ElasticSearchAdminService getEs() {
         elasticSearchAdminService
@@ -370,7 +370,7 @@ class MappingMigrationSpec extends IntegrationSpec {
         Item.search("Glue").total == 1
 
         when: "Bootstrap runs"
-        elasticSearchBooStrapHelper.bulkIndexOnStartup()
+        elasticSearchBootStrapHelper.bulkIndexOnStartup()
         and:
         elasticSearchAdminService.refresh()
 

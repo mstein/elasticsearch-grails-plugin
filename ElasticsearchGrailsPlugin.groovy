@@ -19,7 +19,7 @@ import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
-import org.grails.plugins.elasticsearch.ElasticSearchBooStrapHelper
+import org.grails.plugins.elasticsearch.ElasticSearchBootStrapHelper
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar
@@ -117,7 +117,7 @@ class ElasticsearchGrailsPlugin {
             domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
         }
 
-        elasticSearchBooStrapHelper(ElasticSearchBooStrapHelper) {
+        elasticSearchBootStrapHelper(ElasticSearchBootStrapHelper) {
             grailsApplication = ref('grailsApplication')
             elasticSearchService = ref('elasticSearchService')
             elasticSearchContextHolder = ref('elasticSearchContextHolder')

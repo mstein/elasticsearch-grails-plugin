@@ -1,8 +1,8 @@
 class ElasticsearchBootStrap {
 
-    def elasticSearchBooStrapHelper
+    def elasticSearchBootStrapHelper
 
     def init = { servletContext ->
-        elasticSearchBooStrapHelper.bulkIndexOnStartup()
+        elasticSearchBootStrapHelper.bulkIndexOnStartup()
     }
 }
