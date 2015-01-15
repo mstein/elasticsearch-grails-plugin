@@ -48,6 +48,17 @@ Possible value | Description
 
 The default is @true@.
 
+* @elasticSearch.migration.disableAliasChange@
+In some cases the developer may prefer not to upgrade the alias to the new version of the index until some other tasks are performed. This allows them to disable automatically pointing the alias to a new version of the index when this is created. Aliases can be changed later on manually or programatically using @elasticSearchAdminService@
+{table}
+Possible value | Description
+@false@ | Standard behaviour
+@true@ | Prevents the aliases to be changed to point to a new index
+{table}
+
+The default is @false@.
+
+
 h4. Others properties
 * @elasticSearch.datastoreImpl@
 Only required when enabling the auto-index feature.

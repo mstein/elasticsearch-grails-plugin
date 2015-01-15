@@ -160,10 +160,10 @@ class SearchableClassMappingConfigurator {
                     conflictingMappings.each {
                         SearchableClassMapping scm = it.scm
                         if (!migratedIndices.contains(scm.queryingIndex)) {
-                            boolean isAlias = es.aliasExists(scm.queryingIndex)
-                            if(isAlias || esConfig.migration.aliasReplacesIndex ) {
+                            boolean conflictIsOnAlias = es.aliasExists(scm.queryingIndex)
+                            if(conflictIsOnAlias || esConfig.migration.aliasReplacesIndex ) {
                                 int nextVersion = 0
-                                if (isAlias) {
+                                if (conflictIsOnAlias) {
                                     nextVersion = es.getNextVersion(scm.queryingIndex)
                                 } else {
                                     es.deleteIndex(scm.queryingIndex)
@@ -172,7 +172,9 @@ class SearchableClassMappingConfigurator {
                                 es.waitForIndex scm.queryingIndex, nextVersion //Ensure it exists so later on mappings are created on the right version
 
                                 if(!esConfig.bulkIndexOnStartup) { //Otherwise, it will be done post content creation
-                                    es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
+                                    if (conflictIsOnAlias && !esConfig.migration.disableAliasChange) {
+                                        es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
+                                    }
                                 }
                                 migratedIndices << scm.queryingIndex
                             } else {

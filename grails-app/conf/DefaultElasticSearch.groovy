@@ -70,6 +70,11 @@ elasticSearch {
      * Whether to replace existing indices with aliases when there's a conflict and the 'alias' strategy is chosen
      */
     migration.aliasReplacesIndex = true
+
+    /**
+     * When set to false, in case of an alias migration, prevents the alias to point to the newly created index
+     */
+    migration.disableAliasChange = false
 }
 
 environments {

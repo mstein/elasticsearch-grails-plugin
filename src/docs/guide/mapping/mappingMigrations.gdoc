@@ -79,6 +79,8 @@ Alias exists pointing to a version (ie. 'myapplication.store' -> 'myapplication.
 Index already exists (ie. 'myapplication.store') | Elasticsearch cannot rename an index or create an alias with the same name as an index. The two alternatives here are to delete the index or fail the migration. This is controlled by the @elasticSearch.migration.aliasReplacesIndex@ configuration property, if set to true, it will delete the index and proceed the same way as when the index did not exist. The deleted documents will be reindexed or not depending on the value of the @elasticSearch.bulkIndexOnStartup@. *This is the only scenario where there is content loss/downtime using the @'alias'@ strategy.*
 {table}
 
+In the case you wanted to create a new version of an index, but not change where the alias points to (ie. for testing or if you wanted to perform extra tasks on the index before updating the alias), the @elasticSearch.migration.disableAliasChange@ configuration property can be used
+
 {note}
 Aliases will only point to the new version of the index once all content is reindexed (if chosen to). Meanwhile, all index requests, either by @elasticSearchService@ or using dynamic finders will go to the new version of the index, whilst queries will go to the old version of the index.
 {note}
