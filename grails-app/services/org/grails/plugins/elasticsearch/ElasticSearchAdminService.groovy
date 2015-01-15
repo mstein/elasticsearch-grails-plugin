@@ -329,23 +329,22 @@ class ElasticSearchAdminService {
     }
 
     /**
+     * The current version of the index
+     * @param index
+     * @return the current version if any exists, -1 otherwise
+     */
+    int getLatestVersion(String index) {
+        def versionedIndices = getIndices(index).findAll{it =~ /^${index}_v\d+$/}.sort()
+        versionedIndices ? (versionedIndices.last() =~ /_v(\d)+$/)[0][1] as Integer : -1
+    }
+
+    /**
      * The next available version for an index
      * @param index the index name
      * @return an integer representing the next version to be used for this index (ie. 10 if the latest is <index>_v<9>)
      */
     int getNextVersion(String index) {
-        indices.count {
-            it =~ /^${index}_v\d+$/
-        }
-    }
-
-    /**
-     * The current version of the index
-     * @param index
-     * @return
-     */
-    int getLatestVersion(String index) {
-        getNextVersion(index) - 1
+        getLatestVersion(index) + 1
     }
 
     /**

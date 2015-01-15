@@ -219,8 +219,9 @@ class SearchableClassMappingConfigurator {
         if(!es.indexExists(indexName)) {
             LOG.debug("Index ${indexName} does not exists, initiating creation...")
             if (strategy == alias) {
-                es.createIndex indexName, 0, settings
-                es.pointAliasTo indexName, indexName, 0
+                def nextVersion = es.getNextVersion indexName
+                es.createIndex indexName, nextVersion, settings
+                es.pointAliasTo indexName, indexName, nextVersion
             } else {
                 es.createIndex indexName, settings
             }
