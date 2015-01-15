@@ -263,7 +263,9 @@ class ElasticSearchAdminService {
      * @param alias The name of the alias
      */
     void deleteAlias(String alias) {
-        elasticSearchClient.admin().indices().prepareAliases().removeAlias(indexPointedBy(alias), [alias] as String[]).execute().actionGet()
+        elasticSearchHelper.withElasticSearch { Client client ->
+            client.admin().indices().prepareAliases().removeAlias(indexPointedBy(alias), [alias] as String[]).execute().actionGet()
+        }
     }
 
     /**
@@ -276,14 +278,16 @@ class ElasticSearchAdminService {
         index = versionIndex(index, version)
         LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
         String oldIndex = indexPointedBy(alias)
-        //Create atomic operation
-        def aliasRequest = elasticSearchClient.admin().indices().prepareAliases()
-        if (oldIndex && oldIndex != index) {
-            LOG.debug "Index used to point to ${oldIndex}, removing ..."
-            aliasRequest.removeAlias(oldIndex,alias)
+        elasticSearchHelper.withElasticSearch { Client client ->
+            //Create atomic operation
+            def aliasRequest = client.admin().indices().prepareAliases()
+            if (oldIndex && oldIndex != index) {
+                LOG.debug "Index used to point to ${oldIndex}, removing ..."
+                aliasRequest.removeAlias(oldIndex,alias)
+            }
+            aliasRequest.   addAlias(index,alias)
+            aliasRequest.execute().actionGet()
         }
-        aliasRequest.   addAlias(index,alias)
-        aliasRequest.execute().actionGet()
     }
 
     /**
@@ -292,7 +296,9 @@ class ElasticSearchAdminService {
      * @return true if the alias exists
      */
     boolean aliasExists(String alias) {
-        elasticSearchClient.admin().indices().prepareAliasesExist(alias).execute().actionGet().exists
+        elasticSearchHelper.withElasticSearch { Client client ->
+            client.admin().indices().prepareAliasesExist(alias).execute().actionGet().exists
+        }
     }
 
     /**
@@ -311,13 +317,15 @@ class ElasticSearchAdminService {
      * @return a Set of index names
      */
     Set<String> getIndices(String prefix=null) {
-        Set indices = elasticSearchClient.admin().indices().prepareStats().execute().actionGet().indices.keySet()
-        if(prefix) {
-            indices = indices.findAll {
-                it =~ /^${prefix}/
+        elasticSearchHelper.withElasticSearch { Client client ->
+            Set indices = client.admin().indices().prepareStats().execute().actionGet().indices.keySet()
+            if (prefix) {
+                indices = indices.findAll {
+                    it =~ /^${prefix}/
+                }
             }
+            indices
         }
-        indices
     }
 
     /**
@@ -346,14 +354,16 @@ class ElasticSearchAdminService {
      * @return
      */
     def waitForIndex(index) {
-        try {
-            LOG.debug("Waiting at least yellow status on ${index}")
-            elasticSearchClient.admin().cluster().prepareHealth(index)
-                    .setWaitForYellowStatus()
-                    .execute().actionGet()
-        } catch (Exception e) {
-            // ignore any exceptions due to non-existing index.
-            LOG.debug('Index health', e)
+        elasticSearchHelper.withElasticSearch { Client client ->
+            try {
+                LOG.debug("Waiting at least yellow status on ${index}")
+                client.admin().cluster().prepareHealth(index)
+                        .setWaitForYellowStatus()
+                        .execute().actionGet()
+            } catch (Exception e) {
+                // ignore any exceptions due to non-existing index.
+                LOG.debug('Index health', e)
+            }
         }
     }
 
@@ -361,9 +371,11 @@ class ElasticSearchAdminService {
      * Waits for the cluster to be on Yellow status
      */
     void waitForClusterYellowStatus() {
-        ClusterHealthResponse response = elasticSearchClient.admin().cluster().health(
-                new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
-        LOG.debug("Cluster status: ${response.status}")
+        elasticSearchHelper.withElasticSearch { Client client ->
+            ClusterHealthResponse response = client.admin().cluster().health(
+                    new ClusterHealthRequest([] as String[]).waitForYellowStatus()).actionGet()
+            LOG.debug("Cluster status: ${response.status}")
+        }
     }
 
 }

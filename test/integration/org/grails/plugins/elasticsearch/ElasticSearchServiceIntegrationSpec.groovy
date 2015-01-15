@@ -222,9 +222,11 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     }
 
     private MappingMetaData getFieldMappingMetaData(String indexName, String typeName) {
+        if (elasticSearchAdminService.aliasExists(indexName)) {
+            indexName = elasticSearchAdminService.indexPointedBy(indexName)
+        }
         AdminClient admin = elasticSearchHelper.elasticSearchClient.admin()
         ClusterAdminClient cluster = admin.cluster()
-
         ClusterStateRequestBuilder indices = cluster.prepareState().setIndices(indexName)
         ClusterState clusterState = indices.execute().actionGet().state
         IndexMetaData indexMetaData = clusterState.metaData.index(indexName)

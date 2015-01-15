@@ -18,6 +18,7 @@ public class SearchableClassMappingTest {
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
         assert 'test' == mapping.getQueryingIndex()
     }
+
     @Test
     public void testGetIndexingIndexName() throws Exception {
         GrailsDomainClass dc = new DefaultGrailsDomainClass(Photo.class)

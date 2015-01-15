@@ -121,7 +121,7 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
             elasticSearchService = ref('elasticSearchService')
             elasticSearchContextHolder = ref('elasticSearchContextHolder')
-            es = ref('elasticSearchAdminService')
+            elasticSearchAdminService = ref('elasticSearchAdminService')
         }
 
         if (!esConfig.disableAutoIndex) {
