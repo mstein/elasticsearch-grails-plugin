@@ -174,7 +174,7 @@ class SearchableClassMappingConfigurator {
                                 es.waitForIndex scm.queryingIndex, nextVersion //Ensure it exists so later on mappings are created on the right version
 
                                 if(!esConfig.bulkIndexOnStartup) { //Otherwise, it will be done post content creation
-                                    if (conflictIsOnAlias && !esConfig.migration.disableAliasChange) {
+                                    if (!conflictIsOnAlias || !esConfig.migration.disableAliasChange) {
                                         es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
                                     }
                                 }
