@@ -39,8 +39,9 @@ class ElasticSearchBootStrapHelper {
             elasticSearchContextHolder.deleted.each { Class clazz ->
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
                 int latestVersion = elasticSearchAdminService.getLatestVersion(scm.queryingIndex)
-                LOG.debug("Pointing ElasticSearch aias ${scm.queryingIndex} to version ${latestVersion}")
-                elasticSearchAdminService.pointAliasTo scm.queryingIndex, scm.queryingIndex, latestVersion
+                if(!esConfig.migration.disableAliasChange) {
+                    elasticSearchAdminService.pointAliasTo scm.queryingIndex, scm.queryingIndex, latestVersion
+                }
                 scm.indexingIndex = scm.queryingIndex
             }
         }
