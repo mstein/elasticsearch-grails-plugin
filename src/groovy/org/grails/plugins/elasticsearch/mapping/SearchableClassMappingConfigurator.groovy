@@ -160,6 +160,8 @@ class SearchableClassMappingConfigurator {
                     conflictingMappings.each {
                         SearchableClassMapping scm = it.scm
                         if (!migratedIndices.contains(scm.queryingIndex)) {
+                            migratedIndices << scm.queryingIndex
+                            LOG.debug("Creating new version and alias for conflicting mapping ${scm.queryingIndex}/${scm.elasticTypeName}")
                             boolean conflictIsOnAlias = es.aliasExists(scm.queryingIndex)
                             if(conflictIsOnAlias || esConfig.migration.aliasReplacesIndex ) {
                                 int nextVersion = 0
@@ -176,7 +178,6 @@ class SearchableClassMappingConfigurator {
                                         es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
                                     }
                                 }
-                                migratedIndices << scm.queryingIndex
                             } else {
                                 throw new MappingException("Could not create alias ${scm.queryingIndex} to solve error installing mapping ${scm.elasticTypeName}, index with the same name already exists.", it.exception)
                             }

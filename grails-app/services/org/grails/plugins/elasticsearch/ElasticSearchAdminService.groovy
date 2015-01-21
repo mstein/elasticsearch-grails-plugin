@@ -14,6 +14,8 @@ import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.regex.Matcher
+
 class ElasticSearchAdminService {
 
     static transactional = false
@@ -312,20 +314,28 @@ class ElasticSearchAdminService {
     }
 
     /**
+     * Returns all the indices
+     * @param prefix the prefix
+     * @return a Set of index names
+     */
+    Set<String> getIndices() {
+        elasticSearchHelper.withElasticSearch { Client client ->
+            Set indices = client.admin().indices().prepareStats().execute().actionGet().indices.keySet()
+        }
+    }
+    /**
      * Returns all the indices starting with a prefix
      * @param prefix the prefix
      * @return a Set of index names
      */
-    Set<String> getIndices(String prefix=null) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            Set indices = client.admin().indices().prepareStats().execute().actionGet().indices.keySet()
-            if (prefix) {
-                indices = indices.findAll {
-                    it =~ /^${prefix}/
-                }
+    Set<String> getIndices(String prefix) {
+        Set indices = getIndices()
+        if (prefix) {
+            indices = indices.findAll {
+                it =~ /^${prefix}/
             }
-            indices
         }
+        indices
     }
 
     /**
@@ -334,8 +344,11 @@ class ElasticSearchAdminService {
      * @return the current version if any exists, -1 otherwise
      */
     int getLatestVersion(String index) {
-        def versionedIndices = getIndices(index).findAll{it =~ /^${index}_v\d+$/}.sort()
-        versionedIndices ? (versionedIndices.last() =~ /_v(\d)+$/)[0][1] as Integer : -1
+        def versions = getIndices(index).collect {
+            Matcher m = (it =~ /^${index}_v(\d+)$/)
+            m ? m[0][1] as Integer : -1
+        }.sort()
+        versions ? versions.last() : -1
     }
 
     /**
