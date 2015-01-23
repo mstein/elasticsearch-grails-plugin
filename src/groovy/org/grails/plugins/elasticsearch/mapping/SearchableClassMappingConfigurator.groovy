@@ -116,16 +116,14 @@ class SearchableClassMappingConfigurator {
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
 
-                assert scm.indexingIndex == scm.queryingIndex
-
                 Map elasticMapping = elasticMappings[scm]
 
                 // todo wait for success, maybe retry.
                 // If the index was not created, create it
-                if (!installedIndices.contains(scm.queryingIndex)) {
+                if (!installedIndices.contains(scm.indexName)) {
                     try {
-                        safeCreateIndex(migrationStrategy, scm.queryingIndex, settings)
-                        installedIndices.add(scm.queryingIndex)
+                        createReadAndWriteIndex(migrationStrategy, scm, settings)
+                        installedIndices.add(scm.indexName)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
                     }
@@ -136,9 +134,9 @@ class SearchableClassMappingConfigurator {
                     LOG.debug("Installing mapping [" + scm.elasticTypeName + "] => " + elasticMapping)
                 }
                 try {
-                    es.createMapping scm.queryingIndex, scm.elasticTypeName, elasticMapping
+                    es.createMapping scm.indexName, scm.elasticTypeName, elasticMapping
                 } catch (MergeMappingException e) {
-                    LOG.warn("Could not install mapping ${scm.queryingIndex}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                    LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                     conflictingMappings << [scm: scm, exception: e, elasticMapping: elasticMapping]
                 }
             }
@@ -214,18 +212,20 @@ class SearchableClassMappingConfigurator {
      * @returns true if it created a new index, false if it already existed
      * @throws RemoteTransportException if some other error occured
      */
-    private boolean safeCreateIndex(MappingMigrationStrategy strategy, String indexName, Map settings) throws RemoteTransportException {
+    private boolean createReadAndWriteIndex(MappingMigrationStrategy strategy, SearchableClassMapping scm, Map settings) throws RemoteTransportException {
         // Could be blocked on index level, thus wait.
-        es.waitForIndex(indexName)
-        if(!es.indexExists(indexName)) {
-            LOG.debug("Index ${indexName} does not exists, initiating creation...")
+        es.waitForIndex(scm.indexName)
+        if(!es.indexExists(scm.indexName)) {
+            LOG.debug("Index ${scm.indexName} does not exists, initiating creation...")
             if (strategy == alias) {
-                def nextVersion = es.getNextVersion indexName
-                es.createIndex indexName, nextVersion, settings
-                es.pointAliasTo indexName, indexName, nextVersion
+                def nextVersion = es.getNextVersion scm.indexName
+                es.createIndex scm.indexName, nextVersion, settings
+                es.pointAliasTo scm.indexName, scm.indexName, nextVersion
             } else {
-                es.createIndex indexName, settings
+                es.createIndex scm.indexName, settings
             }
+            es.pointAliasTo(scm.queryingIndex, scm.indexName)
+            es.pointAliasTo(scm.indexingIndex, scm.indexName)
         }
     }
 

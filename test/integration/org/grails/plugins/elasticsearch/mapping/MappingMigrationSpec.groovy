@@ -3,8 +3,12 @@ package org.grails.plugins.elasticsearch.mapping
 import grails.test.spock.IntegrationSpec
 import org.grails.plugins.elasticsearch.ElasticSearchAdminService
 import org.grails.plugins.elasticsearch.exception.MappingException
+import spock.lang.IgnoreRest
 import test.mapping.migration.Catalog
 import test.mapping.migration.Item
+
+import static org.grails.plugins.elasticsearch.mapping.SearchableClassMapping.READ_SUFFIX
+import static org.grails.plugins.elasticsearch.mapping.SearchableClassMapping.WRITE_SUFFIX
 
 /**
  * Created by @marcos-carceles on 07/01/15.
@@ -48,26 +52,30 @@ class MappingMigrationSpec extends IntegrationSpec {
      * case 2: Conflict
      */
 
+    @IgnoreRest
     void "An index is created when nothing exists"() {
         given: "That an index does not exist"
-        es.deleteIndex catalogMapping.queryingIndex
+        es.deleteIndex catalogMapping.indexName
 
         and: "Alias Configuration"
         grailsApplication.config.elasticSearch.migration = [strategy: "none"]
 
         expect:
+        !es.indexExists(catalogMapping.indexName)
         !es.indexExists(catalogMapping.queryingIndex)
+        !es.indexExists(catalogMapping.indexingIndex)
 
         when: "Installing the mappings"
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
-        then: "Indexing and Querying index are the same"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
+        then: "The Index and mapping is created"
+        es.indexExists(catalogMapping.indexName)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
 
-        and: "A Simple configuration is created"
-        !es.aliasExists(catalogMapping.queryingIndex)
-        es.indexExists(catalogMapping.queryingIndex)
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
+        and: "There are aliases for reading and writing"
+        es.aliasExists(catalogMapping.queryingIndex)
+        es.aliasExists(catalogMapping.indexingIndex)
+
     }
 
     void "when there's a conflict and no strategy is selected an exception is thrown"() {

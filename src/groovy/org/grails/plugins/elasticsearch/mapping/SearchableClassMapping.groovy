@@ -31,14 +31,15 @@ class SearchableClassMapping {
     private boolean root = true
     private boolean all = true
 
-    private String indexingIndex
-    private String queryingIndex
+    public static final READ_SUFFIX = "_read"
+    public static final WRITE_SUFFIX = "_write"
+
+    String indexName
 
     SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass
         this.propertiesMapping = propertiesMapping
-        this.indexingIndex = calculateIndexName()
-        this.queryingIndex = calculateIndexName()
+        this.indexName = calculateIndexName()
     }
 
     SearchableClassPropertyMapping getPropertyMapping(String propertyName) {
@@ -76,7 +77,7 @@ class SearchableClassMapping {
         }
     }
 
-    private String calculateIndexName() {
+    String calculateIndexName() {
         String name = domainClass.grailsApplication?.config?.elasticSearch?.index?.name ?: domainClass.packageName
         if (name == null || name.length() == 0) {
             // index name must be lowercase (org.elasticsearch.indices.InvalidIndexNameException)
@@ -86,19 +87,11 @@ class SearchableClassMapping {
     }
 
     String getIndexingIndex() {
-        return indexingIndex
-    }
-
-    void setIndexingIndex(String indexingIndex) {
-        this.indexingIndex = indexingIndex
+        return indexName + WRITE_SUFFIX
     }
 
     String getQueryingIndex() {
-        return queryingIndex
-    }
-
-    void setQueryingIndex(String searchingIndex) {
-        this.queryingIndex = searchingIndex
+        return indexName + READ_SUFFIX
     }
 
     /**
