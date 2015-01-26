@@ -34,7 +34,7 @@ public class SearchableClassMappingTest {
         dc.grailsApplication = grailsApplication
         SearchableClassMapping mapping = new SearchableClassMapping(dc, null)
         String indexName = mapping.getIndexName()
-        assert 'test.uppercase' == mapping.getIndexingIndex()
+        assert 'test.uppercase' == indexName
     }
 
     @After
