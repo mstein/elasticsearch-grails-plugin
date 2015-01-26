@@ -27,8 +27,8 @@ class ElasticSearchBootStrapHelper {
         def bulkIndexOnStartup = esConfig?.bulkIndexOnStartup
         //Index Content
         if (bulkIndexOnStartup == "deleted") { //Index lost content due to migration
-            LOG.debug "Performing bulk indexing of classes requiring index/mapping migration ${elasticSearchContextHolder.deleted} on their new version."
-            elasticSearchService.index(elasticSearchContextHolder.deleted as Class[])
+            LOG.debug "Performing bulk indexing of classes requiring index/mapping migration ${elasticSearchContextHolder.deletedOnMigration} on their new version."
+            elasticSearchService.index(elasticSearchContextHolder.deletedOnMigration as Class[])
         } else if (bulkIndexOnStartup) { //Index all
             LOG.debug "Performing bulk indexing."
             elasticSearchService.index()
@@ -36,7 +36,7 @@ class ElasticSearchBootStrapHelper {
         //Update index aliases where needed
         MappingMigrationStrategy migrationStrategy = esConfig?.migration?.strategy ? MappingMigrationStrategy.valueOf(esConfig.migration.strategy) : none
         if (migrationStrategy == alias) {
-            elasticSearchContextHolder.deleted.each { Class clazz ->
+            elasticSearchContextHolder.deletedOnMigration.each { Class clazz ->
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
                 int latestVersion = elasticSearchAdminService.getLatestVersion(scm.indexName)
                 if(!esConfig.migration.disableAliasChange) {

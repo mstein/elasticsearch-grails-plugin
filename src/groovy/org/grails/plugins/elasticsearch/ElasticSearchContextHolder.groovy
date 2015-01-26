@@ -17,7 +17,7 @@ class ElasticSearchContextHolder {
     /**
      * A Set containing all the mappings that were deleted and created again by the migration strategy
      */
-    Set<Class> deleted = [] as Set
+    Set<Class> deletedOnMigration = [] as Set
 
     /**
      * Adds a mapping context to the current mapping holder
