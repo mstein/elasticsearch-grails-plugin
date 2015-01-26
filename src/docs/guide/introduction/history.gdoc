@@ -1,5 +1,9 @@
 h4. History
 
+* TBD
+** 0.0.4.0
+*** Included Mapping migrations
+*** Included read and write aliases to indices to deal with migrations on multinode deployments
 * December 14, 2014
 ** 0.0.3.8
 *** Upgrade to ElasticSearch 1.4.1
