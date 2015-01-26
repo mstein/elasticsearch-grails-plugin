@@ -153,8 +153,11 @@ class SearchableClassMappingConfigurator {
                 es.createIndex scm.indexName, indexSettings
             }
         }
-        es.pointAliasTo(scm.queryingIndex, scm.indexName)
-        es.pointAliasTo(scm.indexingIndex, scm.indexName)
+        //Create them only if they don't exist so it does not mess with other migrations
+        if(!es.aliasExists(scm.queryingIndex)) {
+            es.pointAliasTo(scm.queryingIndex, scm.indexName)
+            es.pointAliasTo(scm.indexingIndex, scm.indexName)
+        }
     }
 
     private Map<String, Object> buildIndexSettings(def esConfig) {
