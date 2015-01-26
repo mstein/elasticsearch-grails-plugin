@@ -122,7 +122,7 @@ class SearchableClassMappingConfigurator {
                 // If the index was not created, create it
                 if (!installedIndices.contains(scm.indexName)) {
                     try {
-                        createReadAndWriteIndex(migrationStrategy, scm, settings)
+                        createIndexWithReadAndWrite(migrationStrategy, scm, settings)
                         installedIndices.add(scm.indexName)
                     } catch (RemoteTransportException rte) {
                         LOG.debug(rte.getMessage())
@@ -148,8 +148,8 @@ class SearchableClassMappingConfigurator {
                 case delete:
                     conflictingMappings.each {
                         SearchableClassMapping scm = it.scm
-                        es.deleteMapping scm.queryingIndex, scm.elasticTypeName
-                        es.createMapping scm.queryingIndex, scm.elasticTypeName, it.elasticMapping
+                        es.deleteMapping scm.indexName, scm.elasticTypeName
+                        es.createMapping scm.indexName, scm.elasticTypeName, it.elasticMapping
                         elasticSearchContext.deleted << scm.domainClass.clazz
                     }
                     break;
@@ -157,41 +157,38 @@ class SearchableClassMappingConfigurator {
                     def migratedIndices = []
                     conflictingMappings.each {
                         SearchableClassMapping scm = it.scm
-                        if (!migratedIndices.contains(scm.queryingIndex)) {
-                            migratedIndices << scm.queryingIndex
-                            LOG.debug("Creating new version and alias for conflicting mapping ${scm.queryingIndex}/${scm.elasticTypeName}")
-                            boolean conflictIsOnAlias = es.aliasExists(scm.queryingIndex)
-                            if(conflictIsOnAlias || esConfig.migration.aliasReplacesIndex ) {
-                                int nextVersion = 0
-                                if (conflictIsOnAlias) {
-                                    nextVersion = es.getNextVersion(scm.queryingIndex)
-                                } else {
-                                    es.deleteIndex(scm.queryingIndex)
+                        if (!migratedIndices.contains(scm.indexName)) {
+                            migratedIndices << scm.indexName
+                            LOG.debug("Creating new version and alias for conflicting mapping ${scm.indexName}/${scm.elasticTypeName}")
+                            boolean conflictOnAlias = es.aliasExists(scm.indexName)
+                            if(conflictOnAlias || esConfig.migration.aliasReplacesIndex ) {
+                                int nextVersion = es.getNextVersion(scm.indexName)
+                                if (!conflictOnAlias) {
+                                    es.deleteIndex(scm.indexName)
                                 }
-                                es.createIndex scm.queryingIndex, nextVersion, settings
-                                es.waitForIndex scm.queryingIndex, nextVersion //Ensure it exists so later on mappings are created on the right version
+                                es.createIndex scm.indexName, nextVersion, settings
+                                es.waitForIndex scm.indexName, nextVersion //Ensure it exists so later on mappings are created on the right version
+                                es.pointAliasTo scm.indexName, scm.indexName, nextVersion
+                                es.pointAliasTo scm.indexingIndex, scm.indexName, nextVersion
 
                                 if(!esConfig.bulkIndexOnStartup) { //Otherwise, it will be done post content creation
-                                    if (!conflictIsOnAlias || !esConfig.migration.disableAliasChange) {
-                                        es.pointAliasTo scm.queryingIndex, scm.queryingIndex, nextVersion
+                                    if (!conflictOnAlias || !esConfig.migration.disableAliasChange) {
+                                        es.pointAliasTo scm.queryingIndex, scm.indexName, nextVersion
                                     }
                                 }
                             } else {
-                                throw new MappingException("Could not create alias ${scm.queryingIndex} to solve error installing mapping ${scm.elasticTypeName}, index with the same name already exists.", it.exception)
+                                throw new MappingException("Could not create alias ${scm.indexName} to solve error installing mapping ${scm.elasticTypeName}, index with the same name already exists.", it.exception)
                             }
                         }
                     }
                     //Recreate the mappings for all the indexes that were changed
                     elasticMappings.each { SearchableClassMapping scm, elasticMapping ->
-                        if (migratedIndices.contains(scm.queryingIndex)) {
+                        if (migratedIndices.contains(scm.indexName)) {
                             elasticSearchContext.deleted << scm.domainClass.clazz //Mark it for potential content index on Bootstrap
                             if (scm.isRoot()) {
-                                int newVersion = es.getLatestVersion(scm.queryingIndex)
-                                String indexName = es.versionIndex(scm.queryingIndex, newVersion)
+                                int newVersion = es.getLatestVersion(scm.indexName)
+                                String indexName = es.versionIndex(scm.indexName, newVersion)
                                 es.createMapping(indexName, scm.elasticTypeName, elasticMapping)
-                                if(esConfig.bulkIndexOnStartup) { //Content needs to be indexed on the new index
-                                    scm.indexingIndex = indexName
-                                }
                             }
                         }
                     }
@@ -207,12 +204,12 @@ class SearchableClassMappingConfigurator {
 
 
     /**
-     * Creates the Elasticsearch index once unblocked
+     * Creates the Elasticsearch index once unblocked and its read and write aliases
      * @param indexName
      * @returns true if it created a new index, false if it already existed
      * @throws RemoteTransportException if some other error occured
      */
-    private boolean createReadAndWriteIndex(MappingMigrationStrategy strategy, SearchableClassMapping scm, Map settings) throws RemoteTransportException {
+    private boolean createIndexWithReadAndWrite(MappingMigrationStrategy strategy, SearchableClassMapping scm, Map settings) throws RemoteTransportException {
         // Could be blocked on index level, thus wait.
         es.waitForIndex(scm.indexName)
         if(!es.indexExists(scm.indexName)) {
@@ -224,9 +221,9 @@ class SearchableClassMappingConfigurator {
             } else {
                 es.createIndex scm.indexName, settings
             }
-            es.pointAliasTo(scm.queryingIndex, scm.indexName)
-            es.pointAliasTo(scm.indexingIndex, scm.indexName)
         }
+        es.pointAliasTo(scm.queryingIndex, scm.indexName)
+        es.pointAliasTo(scm.indexingIndex, scm.indexName)
     }
 
     void setElasticSearchContext(ElasticSearchContextHolder elasticSearchContext) {

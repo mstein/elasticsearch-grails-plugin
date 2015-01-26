@@ -3,12 +3,9 @@ package org.grails.plugins.elasticsearch.mapping
 import grails.test.spock.IntegrationSpec
 import org.grails.plugins.elasticsearch.ElasticSearchAdminService
 import org.grails.plugins.elasticsearch.exception.MappingException
-import spock.lang.IgnoreRest
 import test.mapping.migration.Catalog
 import test.mapping.migration.Item
 
-import static org.grails.plugins.elasticsearch.mapping.SearchableClassMapping.READ_SUFFIX
-import static org.grails.plugins.elasticsearch.mapping.SearchableClassMapping.WRITE_SUFFIX
 
 /**
  * Created by @marcos-carceles on 07/01/15.
@@ -27,22 +24,12 @@ class MappingMigrationSpec extends IntegrationSpec {
     }
 
     def setup() {
+        es.getIndices().each {
+            es.deleteIndex(it)
+        }
         // Recreate a clean environment as if the app had just booted
         grailsApplication.config.elasticSearch.migration = [strategy: "none"]
         grailsApplication.config.elasticSearch.bulkIndexOnStartup = false
-        try {
-            es.deleteMapping(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
-            es.deleteMapping(catalogMapping.queryingIndex, itemMapping.elasticTypeName)
-            if(es.aliasExists(catalogMapping.queryingIndex)) {
-                es.deleteAlias(catalogMapping.queryingIndex)
-            }
-        } catch(e) {
-            //Ignore errors
-        }
-        es.getIndices(catalogMapping.queryingIndex).each {
-
-            es.deleteIndex(it)
-        }
         searchableClassMappingConfigurator.configureAndInstallMappings()
     }
 
@@ -52,7 +39,6 @@ class MappingMigrationSpec extends IntegrationSpec {
      * case 2: Conflict
      */
 
-    @IgnoreRest
     void "An index is created when nothing exists"() {
         given: "That an index does not exist"
         es.deleteIndex catalogMapping.indexName
@@ -73,9 +59,29 @@ class MappingMigrationSpec extends IntegrationSpec {
         es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
 
         and: "There are aliases for reading and writing"
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.indexingIndex)
+        es.indexPointedBy(catalogMapping.queryingIndex) == catalogMapping.indexName
+        es.indexPointedBy(catalogMapping.indexingIndex) == catalogMapping.indexName
 
+    }
+
+    void "Read and Write aliases are created when none exist"() {
+        given: "An index without read and write aliases"
+        es.deleteAlias(catalogMapping.indexingIndex)
+        es.deleteAlias(catalogMapping.queryingIndex)
+
+        expect:
+        es.indexExists(catalogMapping.indexName)
+        !es.aliasExists(catalogMapping.indexName)
+        !es.aliasExists(catalogMapping.indexingIndex)
+        !es.aliasExists(catalogMapping.queryingIndex)
+
+        when: "Installing the mappings"
+        searchableClassMappingConfigurator.installMappings([catalogMapping])
+
+        then: "The aliases are created"
+        es.indexExists(catalogMapping.indexName)
+        es.indexPointedBy(catalogMapping.queryingIndex) == catalogMapping.indexName
+        es.indexPointedBy(catalogMapping.indexingIndex) == catalogMapping.indexName
     }
 
     void "when there's a conflict and no strategy is selected an exception is thrown"() {
@@ -114,6 +120,7 @@ class MappingMigrationSpec extends IntegrationSpec {
         elasticSearchAdminService.refresh()
 
         expect:
+        es.indexPointedBy(catalogMapping.queryingIndex) == catalogMapping.indexName
         Catalog.count() == 2
         Catalog.search("ACME").total == 2
 
@@ -121,15 +128,17 @@ class MappingMigrationSpec extends IntegrationSpec {
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then: "It succeeds"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists(catalogMapping.queryingIndex)
-        es.mappingExists catalogMapping.queryingIndex, catalogMapping.elasticTypeName
+        es.indexExists(catalogMapping.indexName)
+        es.indexPointedBy(catalogMapping.indexingIndex) == catalogMapping.indexName
+        es.indexPointedBy(catalogMapping.queryingIndex) == catalogMapping.indexName
+        es.mappingExists catalogMapping.indexName, catalogMapping.elasticTypeName
 
-        and: "Documents are lost as maping was recreated"
+        and: "Documents are lost on ES as mapping was recreated"
+        Catalog.count() == 2
         Catalog.search("ACME").total == 0
 
         and: "No alias was created"
-        !es.aliasExists(catalogMapping.queryingIndex)
+        !es.aliasExists(catalogMapping.indexName)
 
         cleanup:
         Catalog.findAll().each { it.delete() }
@@ -138,9 +147,11 @@ class MappingMigrationSpec extends IntegrationSpec {
     void "delete works on alias as well"() {
 
         given: "An alias pointing to a versioned index"
-        es.deleteIndex catalogMapping.queryingIndex
-        es.createIndex catalogMapping.queryingIndex, 0
-        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.queryingIndex, 0
+        es.deleteIndex catalogMapping.indexName
+        es.createIndex catalogMapping.indexName, 0
+        es.pointAliasTo catalogMapping.indexName, catalogMapping.indexName, 0
+        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.indexName
+        es.pointAliasTo catalogMapping.indexingIndex, catalogMapping.indexName
         searchableClassMappingConfigurator.configureAndInstallMappings()
 
         and: "A Conflicting Catalog mapping (with nested as opposed to inner pages)"
@@ -156,11 +167,10 @@ class MappingMigrationSpec extends IntegrationSpec {
         elasticSearchAdminService.refresh()
 
         expect:
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.indexExists(catalogMapping.queryingIndex, 0)
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 0)
+        es.indexExists(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 0)
         Catalog.count() == 2
         Catalog.search("ACME").total == 2
 
@@ -168,17 +178,16 @@ class MappingMigrationSpec extends IntegrationSpec {
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then: "It succeeds"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists(catalogMapping.queryingIndex)
-        es.mappingExists catalogMapping.queryingIndex, catalogMapping.elasticTypeName
+        es.mappingExists catalogMapping.indexName, catalogMapping.elasticTypeName
 
-        and: "The alias was not modified"
-        es.indexExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.indexExists(catalogMapping.queryingIndex, 0)
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 0)
+        and: "The aliases were not modified"
+        es.indexExists(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 0)
 
-        and: "Documents are lost as mapping was recreated"
+        and: "Documents are lost on ES as mapping was recreated"
+        Catalog.count() == 2
         Catalog.search("ACME").total == 0
 
         cleanup:
@@ -194,38 +203,39 @@ class MappingMigrationSpec extends IntegrationSpec {
 
     void "With 'alias' strategy an index and an alias are created when none exist"() {
         given: "That an index does not exist"
-        es.deleteIndex catalogMapping.queryingIndex
+        es.deleteIndex catalogMapping.indexName
 
         and: "Alias Configuration"
         grailsApplication.config.elasticSearch.migration = [strategy: "alias"]
 
         expect:
-        !es.indexExists(catalogMapping.queryingIndex)
+        !es.indexExists(catalogMapping.indexName)
 
         when:
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then:
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.indexExists(catalogMapping.queryingIndex, 0)
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 0)
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.indexExists(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
     }
 
     void "With 'alias' strategy if alias exist, the next one is created"() {
         given: "A range of previously created versions"
-        es.deleteIndex catalogMapping.queryingIndex
+        es.deleteIndex catalogMapping.indexName
         (0..10).each {
-            es.createIndex catalogMapping.queryingIndex, it
+            es.createIndex catalogMapping.indexName, it
         }
-        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.queryingIndex, 10
+        es.pointAliasTo catalogMapping.indexName, catalogMapping.indexName, 10
+        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.indexName
+        es.pointAliasTo catalogMapping.indexingIndex, catalogMapping.indexName
         searchableClassMappingConfigurator.configureAndInstallMappings()
 
         and: "Two different mapping conflicts on the same index"
         assert catalogMapping != itemMapping
-        assert catalogMapping.queryingIndex == itemMapping.queryingIndex
+        assert catalogMapping.indexName == itemMapping.indexName
         createConflictingCatalogMapping()
         createConflictingProductMapping()
 
@@ -234,33 +244,34 @@ class MappingMigrationSpec extends IntegrationSpec {
         grailsApplication.config.elasticSearch.bulkIndexOnStartup = false //Content creation tested on a different test
 
         expect:
-        es.indexExists catalogMapping.queryingIndex
-        es.aliasExists catalogMapping.queryingIndex
-        es.indexExists catalogMapping.queryingIndex, 10
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 10)
+        es.indexExists catalogMapping.indexName, 10
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 10)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 10)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 10)
 
         when:
         searchableClassMappingConfigurator.installMappings([catalogMapping, itemMapping])
 
         then: "A new version is created"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists catalogMapping.queryingIndex
-        es.aliasExists catalogMapping.queryingIndex
-        es.indexExists catalogMapping.queryingIndex, 11
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.indexExists catalogMapping.indexName, 11
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 11)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 11)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 11)
 
         and: "Only one version is created and not a version per conflict"
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 11)
-        !es.indexExists(catalogMapping.queryingIndex, 12)
+        catalogMapping.indexName == itemMapping.indexName
+        catalogMapping.queryingIndex == itemMapping.queryingIndex
+        catalogMapping.indexingIndex == itemMapping.indexingIndex
+        !es.indexExists(catalogMapping.indexName, 12)
 
         and: "Others mappings are created as well"
-        es.mappingExists(itemMapping.queryingIndex, itemMapping.elasticTypeName)
+        es.mappingExists(itemMapping.indexName, itemMapping.elasticTypeName)
     }
 
     void "With 'alias' strategy if index exists, decide whether to replace with alias based on config"() {
         given: "Two different mapping conflicts on the same index"
         assert catalogMapping != itemMapping
-        assert catalogMapping.queryingIndex == itemMapping.queryingIndex
+        assert catalogMapping.indexName == itemMapping.indexName
         createConflictingCatalogMapping()
         createConflictingProductMapping()
 
@@ -272,8 +283,8 @@ class MappingMigrationSpec extends IntegrationSpec {
         elasticSearchAdminService.refresh()
 
         expect:
-        es.indexExists catalogMapping.queryingIndex
-        !es.aliasExists(catalogMapping.queryingIndex)
+        es.indexExists catalogMapping.indexName
+        !es.aliasExists(catalogMapping.indexName)
         Catalog.count() == 2
         Catalog.search("ACME").total == 2
         Item.count() == 1
@@ -287,13 +298,14 @@ class MappingMigrationSpec extends IntegrationSpec {
         thrown MappingException
 
         and: "no content or mappings are affected"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
+        es.indexExists(catalogMapping.indexName)
+        !es.aliasExists(catalogMapping.indexName)
         Catalog.count() == 2
         Catalog.search("ACME").total == 2
         Item.count() == 1
         Item.search("Glue").total == 1
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
-        es.mappingExists(itemMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
+        es.mappingExists(itemMapping.indexName, catalogMapping.elasticTypeName)
 
         when:
         grailsApplication.config.elasticSearch.migration = [strategy: "alias", "aliasReplacesIndex" : true]
@@ -301,11 +313,10 @@ class MappingMigrationSpec extends IntegrationSpec {
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then: "Alias replaces the index"
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
-        es.indexExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 0)
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 0)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
 
         and: "Content is lost, as the index is regenerated"
         Catalog.count() == 2
@@ -314,8 +325,8 @@ class MappingMigrationSpec extends IntegrationSpec {
         Item.search("Glue").total == 0
 
         and: "All mappings are recreated"
-        es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
-        es.mappingExists(itemMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.mappingExists(catalogMapping.indexName, catalogMapping.elasticTypeName)
+        es.mappingExists(itemMapping.indexName, catalogMapping.elasticTypeName)
 
         cleanup:
         Catalog.findAll().each { it.delete() }
@@ -330,9 +341,11 @@ class MappingMigrationSpec extends IntegrationSpec {
     void "Alias -> Alias : If configuration says to recreate the content, there is zero downtime"() {
 
         given: "An existing Alias"
-        es.deleteIndex catalogMapping.queryingIndex
-        es.createIndex catalogMapping.queryingIndex, 0
-        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.queryingIndex, 0
+        es.deleteIndex catalogMapping.indexName
+        es.createIndex catalogMapping.indexName, 0
+        es.pointAliasTo catalogMapping.indexName, catalogMapping.indexName, 0
+        es.pointAliasTo catalogMapping.queryingIndex, catalogMapping.indexName
+        es.pointAliasTo catalogMapping.indexingIndex, catalogMapping.indexName
         searchableClassMappingConfigurator.configureAndInstallMappings()
 
         and: "A mapping conflict"
@@ -357,21 +370,15 @@ class MappingMigrationSpec extends IntegrationSpec {
         searchableClassMappingConfigurator.installMappings([catalogMapping, itemMapping])
 
         then: "Temporarily, while indexing occurs, indexing happens on the new index, while querying on the old one"
-        catalogMapping.queryingIndex == old(catalogMapping.queryingIndex)
-        catalogMapping.indexingIndex == es.versionIndex(catalogMapping.queryingIndex, 1)
-        catalogMapping.indexingIndex != catalogMapping.queryingIndex
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 0)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 1)
 
         then: "All aliases, indexes and mappings exist"
-        es.indexExists(catalogMapping.queryingIndex)
-        es.aliasExists(catalogMapping.queryingIndex)
-        es.indexExists(catalogMapping.indexingIndex)
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 1)
         es.mappingExists(catalogMapping.queryingIndex, catalogMapping.elasticTypeName)
-        es.mappingExists(itemMapping.queryingIndex, catalogMapping.elasticTypeName)
+        es.mappingExists(itemMapping.queryingIndex, itemMapping.elasticTypeName)
         es.mappingExists(catalogMapping.indexingIndex, catalogMapping.elasticTypeName)
-        es.mappingExists(itemMapping.indexingIndex, catalogMapping.elasticTypeName)
-
-        and: "the Alias is not updated until the new index is populated"
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 0)
+        es.mappingExists(itemMapping.indexingIndex, itemMapping.elasticTypeName)
 
         and: "Content isn't lost as it keeps pointing to the old index"
         Catalog.search("ACME").total == 2
@@ -382,12 +389,10 @@ class MappingMigrationSpec extends IntegrationSpec {
         and:
         elasticSearchAdminService.refresh()
 
-        then: "The alias now points to the new index"
-        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.queryingIndex, 1)
-
-        and: "All indices point to the new location"
-        catalogMapping.queryingIndex == old(catalogMapping.queryingIndex)
-        catalogMapping.indexingIndex == catalogMapping.queryingIndex
+        then: "All aliases now point to the new index"
+        es.indexPointedBy(catalogMapping.indexName) == es.versionIndex(catalogMapping.indexName, 1)
+        es.indexPointedBy(catalogMapping.queryingIndex) == es.versionIndex(catalogMapping.indexName, 1)
+        es.indexPointedBy(catalogMapping.indexingIndex) == es.versionIndex(catalogMapping.indexName, 1)
 
         and: "Content is still found"
         Catalog.search("ACME").total == 2
@@ -421,7 +426,7 @@ class MappingMigrationSpec extends IntegrationSpec {
 
     private void createConflictingCatalogMapping() {
         //Delete existing Mapping
-        es.deleteMapping catalogMapping.queryingIndex, catalogMapping.elasticTypeName
+        es.deleteMapping catalogMapping.indexName, catalogMapping.elasticTypeName
         //Create conflicting Mapping
         catalogPagesMapping.addAttributes([component:true])
         searchableClassMappingConfigurator.installMappings([catalogMapping])
@@ -431,7 +436,7 @@ class MappingMigrationSpec extends IntegrationSpec {
 
     private void createConflictingProductMapping() {
         //Delete existing Mapping
-        es.deleteMapping itemMapping.queryingIndex, itemMapping.elasticTypeName
+        es.deleteMapping itemMapping.indexName, itemMapping.elasticTypeName
         //Create conflicting Mapping
         itemSupplierMapping.addAttributes([component:true])
         searchableClassMappingConfigurator.installMappings([itemMapping])

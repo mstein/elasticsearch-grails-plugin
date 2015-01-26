@@ -80,6 +80,7 @@ class ElasticSearchAdminService {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it)
             if (scm) {
                 toRefresh << scm.queryingIndex
+                toRefresh << scm.indexingIndex
             }
         }
 
@@ -123,7 +124,7 @@ class ElasticSearchAdminService {
         searchableClasses.each {
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it)
             if (scm) {
-                toDelete << scm.queryingIndex
+                toDelete << scm.indexName
             }
         }
         // We do not trigger the deleteIndex with an empty list as it would delete ALL indices.
