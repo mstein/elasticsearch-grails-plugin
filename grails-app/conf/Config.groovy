@@ -56,7 +56,7 @@ environments {
     }
 }
 
-grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. Nekoval'
+grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. Nekoval, Marcos Carceles'
 grails.doc.license = 'Apache License 2.0'
 grails.views.default.codec = 'none' // none, html, base64
 grails.views.gsp.encoding = 'UTF-8'

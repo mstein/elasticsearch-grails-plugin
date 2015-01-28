@@ -29,6 +29,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortBuilder
 import org.elasticsearch.search.sort.SortOrder
+import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.grails.plugins.elasticsearch.util.GXContentBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -499,12 +500,12 @@ class ElasticSearchService implements GrailsApplicationAware {
                 indices = [params.indices.toLowerCase()]
             } else if (params.indices instanceof Class) {
                 // Resolved with the class type
-                def scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
-                indices = [scm.indexName]
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
+                indices = [scm.queryingIndex]
             } else if (params.indices instanceof Collection<Class>) {
                 indices = params.indices.collect { c ->
-                    def scm = elasticSearchContextHolder.getMappingContextByType(c)
-                    scm.indexName
+                    SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(c)
+                    scm.queryingIndex
                 }
             }
             request.indices((indices ?: params.indices) as String[])

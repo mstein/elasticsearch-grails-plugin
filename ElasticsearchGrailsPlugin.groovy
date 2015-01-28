@@ -19,12 +19,14 @@ import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
 import org.grails.plugins.elasticsearch.ClientNodeFactoryBean
+import org.grails.plugins.elasticsearch.ElasticSearchBootStrapHelper
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import org.grails.plugins.elasticsearch.ElasticSearchHelper
 import org.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar
 import org.grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import org.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
 import org.grails.plugins.elasticsearch.index.IndexRequestQueue
+import org.grails.plugins.elasticsearch.mapping.MappingMigrationManager
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import org.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
@@ -87,10 +89,16 @@ class ElasticsearchGrailsPlugin {
             elasticSearchClient = ref('elasticSearchClient')
             jsonDomainFactory = ref('jsonDomainFactory')
         }
+        mappingMigrationManager(MappingMigrationManager) {
+            elasticSearchContextHolder = ref('elasticSearchContextHolder')
+            config = esConfig
+            es = ref('elasticSearchAdminService')
+        }
         searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
             elasticSearchContext = ref('elasticSearchContextHolder')
             grailsApplication = ref('grailsApplication')
-            elasticSearchClient = ref('elasticSearchClient')
+            es = ref('elasticSearchAdminService')
+            mmm = ref('mappingMigrationManager')
             config = esConfig
 
             bean.initMethod = 'configureAndInstallMappings'
@@ -115,6 +123,14 @@ class ElasticsearchGrailsPlugin {
             grailsApplication = ref('grailsApplication')
             domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
         }
+
+        elasticSearchBootStrapHelper(ElasticSearchBootStrapHelper) {
+            grailsApplication = ref('grailsApplication')
+            elasticSearchService = ref('elasticSearchService')
+            elasticSearchContextHolder = ref('elasticSearchContextHolder')
+            elasticSearchAdminService = ref('elasticSearchAdminService')
+        }
+
         if (!esConfig.disableAutoIndex) {
             if (!esConfig.datastoreImpl) {
                 throw new Exception('No datastore implementation specified')

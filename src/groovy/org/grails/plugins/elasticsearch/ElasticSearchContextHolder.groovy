@@ -15,6 +15,11 @@ class ElasticSearchContextHolder {
     Map<String, SearchableClassMapping> mapping = [:]
 
     /**
+     * A Set containing all the mappings that were deleted and created again by the migration strategy
+     */
+    Set<Class> deletedOnMigration = [] as Set
+
+    /**
      * Adds a mapping context to the current mapping holder
      *
      * @param scm The SearchableClassMapping instance to add
