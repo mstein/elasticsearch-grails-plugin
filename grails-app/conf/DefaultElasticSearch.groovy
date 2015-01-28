@@ -77,6 +77,21 @@ elasticSearch {
      * The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
      */
     searchableProperty.name = 'searchable'
+
+    /**
+     * The strategy to be used in case of a conflict installing mappings
+     */
+    migration.strategy = 'alias'
+
+    /**
+     * Whether to replace existing indices with aliases when there's a conflict and the 'alias' strategy is chosen
+     */
+    migration.aliasReplacesIndex = true
+
+    /**
+     * When set to false, in case of an alias migration, prevents the alias to point to the newly created index
+     */
+    migration.disableAliasChange = false
 }
 
 environments {

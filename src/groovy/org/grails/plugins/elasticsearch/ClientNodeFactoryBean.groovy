@@ -113,7 +113,6 @@ class ClientNodeFactoryBean implements FactoryBean {
                 if(pluginsDirectory){
                     nb.settings().put('path.plugins', pluginsDirectory as String)
                 }
-
                 nb.local(true)
                 break
 
@@ -147,6 +146,14 @@ class ClientNodeFactoryBean implements FactoryBean {
         if (transportClient) {
             return transportClient
         }
+		
+	//Inject http settings...
+	if(elasticSearchContextHolder.config.http){
+		flattenMap(elasticSearchContextHolder.config.http).each { p ->
+			nb.settings().put("http.${p.key}",p.value as String)
+		}
+	}
+		
         // Avoiding this:
         node = nb.node()
         node.start()
@@ -156,7 +163,10 @@ class ClientNodeFactoryBean implements FactoryBean {
         //            client.admin().cluster().health(new ClusterHealthRequest().waitForGreenStatus()).actionGet()
         return client
     }
-
+    //From http://groovy.329449.n5.nabble.com/Flatten-Map-using-closure-td364360.html
+    def flattenMap(map){
+	    [:].putAll(map.entrySet().flatten{ it.value instanceof Map ? it.value.collect{ k, v -> new MapEntry(it.key + '.' + k, v)} : it })
+    }
     Class getObjectType() {
         return org.elasticsearch.client.Client
     }

@@ -17,4 +17,5 @@ index | @"no"@, @"not_analyzed"@, @"analyzed"@. | How or if the property is made
 [parent|guide:parentChild] | @true@, @false@ | A boolean value to be used in conjunction with the @reference@ or @component@ property . Set to @true@ if the referenced field should be mapped as the parent of this document. Default set to @false@.
 multi_field | @true@, @false@ | A boolean value. Maps the value of the field twice; Once with it being analyzed, and once with it being not_analyzed under untouched. Default set to @false@.
 [geoPoint|guide:geoPoint] | @true@, @false@ | Maps the field to a geo_point. Default: @false@
+[alias|guide:alias] | String | A string value.  The field noted with this parameter will be duplicated to an alias.  
 {table}

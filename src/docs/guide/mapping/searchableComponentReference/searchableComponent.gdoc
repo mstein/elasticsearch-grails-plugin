@@ -39,3 +39,15 @@ When indexing an instance of MyDomain, the resulting JSON document will be sent 
     }
 }
 {code}
+
+If you'd rather that the reference object be mapped with type 'inner' rather than the default 'nested', set the 'component' key with a value of 'inner' rather than 'true':
+{code}
+class MyDomain {
+    // odom is an association with the OtherDomain class, set as a reference
+    OtherDomain odom
+
+    static searchable = {
+        odom component: 'inner'
+    }
+}
+{code}
