@@ -1,6 +1,6 @@
 h4. History
 
-* TBD
+* January 28, 2015
 ** 0.0.4.0
 *** Included Mapping migrations
 *** Included read and write aliases to indices to deal with migrations on multinode deployments
