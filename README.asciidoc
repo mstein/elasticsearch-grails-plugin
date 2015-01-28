@@ -8,13 +8,15 @@ The original Elasticsearch plugin relies on *Hibernate-specific* GORM components
 
 === How can I obtain the plugin?
 
+image:https://travis-ci.org/noamt/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/noamt/elasticsearch-grails-plugin"]
+
 Just like any other Grails plugin, through the Grails Plugin center.
 Edit your project's +BuildConfig.groovy+ file, by adding the plugin's dependency declaration:
 
 ----
 grails.project.dependency.resolution = {
     plugins {
-        runtime ':elasticsearch:0.0.3.1'
+        runtime ':elasticsearch:0.0.4.0'
     }
 }
 ----

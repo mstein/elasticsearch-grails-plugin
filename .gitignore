@@ -8,3 +8,4 @@ web-app
 *.log
 *.zip
 plugin.xml
+/docs

@@ -1,0 +1,94 @@
+During the application startup the application will attempt to create the needed indices on Elasticsearch and create the type mappings defined by the user. If these indices and mappings already existed on the Elasticsearch cluster (ie. an older verion of the application was running against it) and the new mapping definitions differ with the existing ones there's the potential for a Mapping conflict. This section describes how to configure the application to deal with this scenario.
+
+It is important to highlight that not all type mapping changes will result on a conflict. Ie. adding a new field to a mapping does not result in a conflict whilst changing a property from component:'inner' to nested or viceversa, will. These strategies will only be needed and applied when a *conflicting* mapping is found.
+
+h3. Migration Strategies
+The migration strategy is defined by the @elasticSearch.migration.strategy@ configuration property and it accepts three values:
+
+- @'none'@
+- @'delete'@
+- @'alias'@
+
+The default strategy is @'alias'@ as it is the only strategy that can achieve zero-downtime migrations and thus [recommended by Elasticsearch|http://www.elasticsearch.org/blog/changing-mapping-with-zero-downtime/]
+
+These values are described on more detail further ahead
+
+h4. Migration Strategy 'none'
+
+This option keeps the original behaviour the plugin used before the Migration Strategies were implemented. When a Mapping Merge conflict id identified the event will be logged and an Exception will be logged.
+It will be responsability for the application administrator to manually fix the problem.
+This configuration was left as a backwards compatibility and it will prevent the application from booting successfully, therefore we *discourage teams from using this option*.
+
+h4. Migration Strategy 'delete'
+
+When choosing this option, when a conflict occurs installing  mapping, the application will delete the existing mapping for the type, alongside with all content indexed on that index and type and recreated the mapping. There are a couple of important details on this information:
+- Only documents indexed on the conflicting mapping will be deleted, any other document on a different mapping on the same (or other) index will remain untouched.
+- Deleted documents can be automatically reindexed on startup by using the @elasticSearch.bulkIndexOnStartup@ configuration property (See below)
+- Using this configuration there will always be a time window (between deletion and reindexation) where documents can't be found by search, therefore this option cannot achieve a *zero-downtime* deployment
+
+See [Dealing with deleted content] below for more details on automatic indexing.
+
+h4. Migration Strategy 'alias'
+
+This is the migration strategy [recommended by Elasticsearch|http://www.elasticsearch.org/blog/changing-mapping-with-zero-downtime/].
+
+To better understand this strategy we will describe a typical @'alias'@ migration.
+
+{code}
+Elasticsearch contains
+  index 'myapplication.store_v27' with types 'car' and 'motorbike'
+  alias 'myapplication.store' pointing to 'myapplication.store_v27'
+  'myapplication.store_v27/car' contains 520 documents
+  'myapplication.store_v27/motorbike' contains 12 documents
+  index 'myapplication.admin_v0' with type 'quote'
+  alias 'myapplication.admin' pointing to 'myapplication.admin_v0'
+  'myapplication.admin_v0/quote' contains 3200 documents
+
+The application is configured to use indexes based on package names 'myapplication.store' and 'myapplication.admin'
+(which as we already explained are actually aliases that point to versioned indices)
+
+The team introduced a change on the Car domain that results in a conflict on the 'car' mapping
+
+The application starts up
+    Tries to install the mapping for 'motorbike', it detects the conflict
+    Creates a new index called 'myapplication.store_v28'
+    Creates mappings 'myapplication.store_v28/car' and 'myapplication.store_v28/motorbike'
+    Points all indexing requests for Car and Motorbike to the new index, while queries still happen on 'myapplication.store'
+On Boostrap (bulkIndexOnStartup)
+    It indexes 520 cars into 'myapplication.store_v28/car'
+    It indexes 12 motorbikes into 'myapplication.store_v28/motorbike'
+    Switches the 'myapplication.store' alias to point to 'myapplication.store_v28'
+    Now all cars are indexed according to the new mapping
+    Now all motorbikes are indexed according to the new mapping
+{code}
+
+{note}
+All content can be queried at all times, during Bootstrap bulkIndexOnStartup content will be retrieved from the old index.
+{note}
+
+{warning}
+Eventhough there wasn't a conflict on 'car', all cars needed to be reindexed as they lived on the same index.
+{warning}
+
+There are three potential scenarios when using the @'alias'@ strategy:
+
+{table}
+Scenario | Behaviour
+The index (ie. 'myapplication.store') does not exist | On this case there is not possibility of conflicts, as no previous mapping exist. However the application will behave slightly different than on the other to scenarios. Instead of creating the index (ie. 'myapplication.store'), it will create version 0 of it (ie. 'myapplication.store_v0') and an alias pointint to it. This is to facilitate the creation of future versions in case of conflict.
+Alias exists pointing to a version (ie. 'myapplication.store' -> 'myapplication.store_v27') | If there's a conflict on a mapping on the index, it will create a new version (ie. 'myapplication.store_v28'), reindex the content or not depending on the value of the @elasticSearch.bulkIndexOnStartup@ configuration property and point the alias to the new version once done.
+Index already exists (ie. 'myapplication.store') | Elasticsearch cannot rename an index or create an alias with the same name as an index. The two alternatives here are to delete the index or fail the migration. This is controlled by the @elasticSearch.migration.aliasReplacesIndex@ configuration property, if set to true, it will delete the index and proceed the same way as when the index did not exist. The deleted documents will be reindexed or not depending on the value of the @elasticSearch.bulkIndexOnStartup@. *This is the only scenario where there is content loss/downtime using the @'alias'@ strategy.*
+{table}
+
+In the case you wanted to create a new version of an index, but not change where the alias points to (ie. for testing or if you wanted to perform extra tasks on the index before updating the alias), the @elasticSearch.migration.disableAliasChange@ configuration property can be used
+
+{note}
+Aliases will only point to the new version of the index once all content is reindexed (if chosen to). Meanwhile, all index requests, either by @elasticSearchService@ or using dynamic finders will go to the new version of the index, whilst queries will go to the old version of the index.
+{note}
+
+See [Dealing with deleted content] below for more details on automatic indexing.
+
+h4. Dealing with deleted content
+
+Using the @'delete'@ or @'alias'@ strategy may lead to deleting content stored on Elasticsearch. This content can be automatically reindexed using the @elasticSearch.bulkIndexOnStartup@. The duration of this process will depend on the amount of content to index.
+
+When this property is set to @true@ all content will be deleted. When set to @'deleted'@ only the domain classes which documents where deleted will be indexed. In either case, when using the @'alias'@ strategy, once all content is indexed all aliases will point to the latest version of the index.

@@ -11,10 +11,12 @@ mapping:
     title: Properties mapping
     parentChild: Parent-Child
     geoPoint: GeoPoint
+    alias: Alias
   searchableComponentReference:
     title: Searchable Component-Reference
     searchableReference: Searchable Reference
     searchableComponent: Searchable Component
+  mappingMigrations: Mapping Migrations
 indexing: Indexing
 searching:
   title: Searching

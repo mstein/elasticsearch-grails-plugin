@@ -61,4 +61,42 @@ class SearchableDomainClassMapperSpec extends Specification {
         expect: 'a mapping can be built from this domain class'
         mapper.buildClassMapping()
     }
+
+    void 'a mapping is aliased'() {
+        def config = [:] as ConfigObject
+        def grailsApplication = [:] as GrailsApplication
+
+        given: 'a mapper for Building'
+
+        def clazz = new DefaultGrailsDomainClass(Building)
+        SearchableDomainClassMapper mapper = new SearchableDomainClassMapper(grailsApplication, clazz, config)
+
+        when: 'the mapping is built'
+        def classMapping = mapper.buildClassMapping()
+
+        then: 'the date is aliased'
+        classMapping.domainClass == clazz
+        classMapping.elasticTypeName == 'building'
+        def aliasMapping = classMapping.propertiesMapping.find { it.propertyName == 'date' }
+        aliasMapping.isAlias()
+    }
+
+    void 'can get the mapped alias'() {
+        def config = [:] as ConfigObject
+        def grailsApplication = [:] as GrailsApplication
+
+        given: 'a mapper for Building'
+
+        def clazz = new DefaultGrailsDomainClass(Building)
+        SearchableDomainClassMapper mapper = new SearchableDomainClassMapper(grailsApplication, clazz, config)
+
+        when: 'the mapping is built'
+        def classMapping = mapper.buildClassMapping()
+
+        then: 'the date is aliased'
+        classMapping.domainClass == clazz
+        classMapping.elasticTypeName == 'building'
+        def aliasMapping = classMapping.propertiesMapping.find { it.propertyName == 'date' }
+        aliasMapping.getAlias() == "@timestamp"
+    }
 }

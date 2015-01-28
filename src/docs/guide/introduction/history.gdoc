@@ -1,5 +1,34 @@
 h4. History
 
+* January 28, 2015
+** 0.0.4.0
+*** Included Mapping migrations
+*** Included read and write aliases to indices to deal with migrations on multinode deployments
+* December 14, 2014
+** 0.0.3.8
+*** Upgrade to ElasticSearch 1.4.1
+*** Support the min_score query parameter.
+*** Try to detect the MongoDB without using the plugin manager.
+* December 01, 2014
+** 0.0.3.7
+*** Create separate SimpleTypeConverter per-thread
+* November 06, 2014
+** 0.0.3.6
+*** Upgrade to ElasticSearch 1.4.0
+* October 28, 2014
+** 0.0.3.5
+*** Fix the bulk index query iteration.
+* October 14, 2014
+** 0.0.3.4
+*** Upgrade to latest version of ElasticSearch and remove the Groovy client dependency.
+* August 28, 2014
+** 0.0.3.3
+*** Configure a component field to act as an inner object instead of a nested object.
+* August 3, 2014
+** 0.0.3.2
+*** Add the ability to mark fields with aliases
+*** Support ES client HTTP configuration parameters
+*** Improve Hibernate 4 support
 * June 9, 2014
 ** 0.0.3.1
 *** Upgrade to ElasticSearch 1.2.x

@@ -149,6 +149,10 @@ class JSONDomainFactory {
             marshallingContext.lastParentPropertyName = scpm.propertyName
             def res = delegateMarshalling(instance."${scpm.propertyName}", marshallingContext)
             json.field(scpm.propertyName, res)
+			//add the alias
+			if(scpm.getAlias()){
+				json.field(scpm.getAlias(), res)
+			}
         }
         marshallingContext.pop()
         json.endObject()

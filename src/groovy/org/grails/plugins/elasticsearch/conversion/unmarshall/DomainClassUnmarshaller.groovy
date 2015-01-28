@@ -43,13 +43,13 @@ class DomainClassUnmarshaller {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    private TypeConverter typeConverter = new SimpleTypeConverter()
     private ElasticSearchContextHolder elasticSearchContextHolder
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
 
     Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
+        TypeConverter typeConverter = new SimpleTypeConverter()
         List results = []
         for (SearchHit hit : hits) {
             String type = hit.type()
@@ -65,12 +65,21 @@ class DomainClassUnmarshaller {
             GroovyObject instance = (GroovyObject) scm.domainClass.newInstance()
             instance.setProperty(identifier.name, id)
 
+            def aliasFields = elasticSearchContextHolder.getMappingContext(scm.domainClass).getPropertiesMapping().findResults {
+                if (it.isAlias()) {
+                    return it.getAlias()
+                }
+                null
+            }
+
             Map rebuiltProperties = new HashMap()
             for (Map.Entry<String, Object> entry : hit.source.entrySet()) {
+                def key = entry.key
+                if (aliasFields.contains(key)) {
+                    continue
+                }
                 try {
-                    def key = entry.key
                     unmarshallingContext.unmarshallingStack.push(key)
-
                     def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
                     rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
@@ -239,8 +248,9 @@ class DomainClassUnmarshaller {
     private unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
-        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).indexName
+        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).queryingIndex
         String name = elasticSearchContextHolder.getMappingContext(domainClass).elasticTypeName
+        TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id
         GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
@@ -256,6 +266,7 @@ class DomainClassUnmarshaller {
 
     private unmarshallDomain(GrailsDomainClass domainClass, providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         GrailsDomainClassProperty identifier = domainClass.identifier
+        TypeConverter typeConverter = new SimpleTypeConverter()
         Object id = typeConverter.convertIfNecessary(providedId, identifier.type)
         GroovyObject instance = (GroovyObject) domainClass.newInstance()
         instance.setProperty(identifier.name, id)
