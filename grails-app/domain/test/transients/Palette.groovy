@@ -3,9 +3,10 @@ package test.transients
 class Palette {
 
     List<Color> colors
+    String author
 
-    String getName() {
-        "${colors} palette"
+    String getDescription() {
+        (author && colors) ? "${author} likes to paint with ${colors}" : null
     }
 
     List<String> getComplementaries() {
@@ -17,7 +18,7 @@ class Palette {
     static transients = ['complementaries']
 
     static searchable = {
-        only = ['complementaries']
+        only = ['colors', 'complementaries']
     }
 
     static hasMany = [colors : Color, tags:String, complementaries: String]

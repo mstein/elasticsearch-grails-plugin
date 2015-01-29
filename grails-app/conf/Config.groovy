@@ -28,6 +28,8 @@ elasticSearch {
     unmarshallComponents = true
 
     searchableProperty.name = 'searchable'
+
+    includeTransients = false
 }
 
 environments {

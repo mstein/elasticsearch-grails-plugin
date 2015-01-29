@@ -552,7 +552,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
     void 'Component as an inner object'() {
         given:
-        def mal = new Person(name: 'Malcolm Reynolds').save(flush: true)
+        def mal = new Person(firstName: 'Malcolm', lastName: 'Reynolds').save(flush: true)
         def spaceship = new Spaceship(name: 'Serenity', captain: mal).save(flush: true)
         elasticSearchService.index(spaceship)
         elasticSearchAdminService.refresh()
@@ -565,13 +565,14 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         def result = search.searchResults.first()
         result.name == 'Serenity'
-        result.captain.name == 'Malcolm Reynolds'
+        result.captain.firstName == 'Malcolm'
+        result.captain.lastName == 'Reynolds'
     }
 
     void 'bulk test'() {
         given:
         (1..1858).each {
-            def person = new Person(name: 'Person-' + it).save(flush: true)
+            def person = new Person(firstName: 'Person', lastName: 'McNumbery'+it).save(flush: true)
             def spaceShip = new Spaceship(name: 'Ship-' + it, captain: person).save(flush: true)
             println "Created ${it} domains"
         }
