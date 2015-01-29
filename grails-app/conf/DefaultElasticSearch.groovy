@@ -75,6 +75,11 @@ elasticSearch {
      * When set to false, in case of an alias migration, prevents the alias to point to the newly created index
      */
     migration.disableAliasChange = false
+
+    /**
+     * Whether to index and search all non excluded transient properties. All explicitly included transients in @only@ will be indexed regardless.
+     */
+    includeTransients = false
 }
 
 environments {
