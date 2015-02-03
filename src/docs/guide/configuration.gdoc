@@ -124,6 +124,9 @@ niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory
 simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
 {table}
 
+* @elasticSearch.index.numberOfReplicas@
+Sets the number of replicas created for each shard of the index. If not present, will default to zero.
+
 * @elasticSearch.gateway.type@
 Determine the gateway type to be used.
 More details on the possible values are in the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/modules/gateway/].

@@ -75,6 +75,8 @@ elasticSearch {
      * When set to false, in case of an alias migration, prevents the alias to point to the newly created index
      */
     migration.disableAliasChange = false
+
+    index.numberOfReplicas = 0
 }
 
 environments {

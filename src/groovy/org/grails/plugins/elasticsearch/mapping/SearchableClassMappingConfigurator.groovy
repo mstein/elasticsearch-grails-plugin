@@ -162,7 +162,7 @@ class SearchableClassMappingConfigurator {
 
     private Map<String, Object> buildIndexSettings(def esConfig) {
         Map<String, Object> indexSettings = new HashMap<String, Object>()
-        indexSettings.put("number_of_replicas", 0)
+        indexSettings.put("number_of_replicas", numberOfReplicas())
         // Look for default index settings.
         if (esConfig != null) {
             Map<String, Object> indexDefaults = esConfig.get("index")
@@ -202,5 +202,13 @@ class SearchableClassMappingConfigurator {
     }
     void setConfig(ConfigObject config) {
         this.config = config
+    }
+
+    private int numberOfReplicas() {
+        def defaultNumber = elasticSearchContext.config.index.numberOfReplicas
+        if (!defaultNumber) {
+            return 0
+        }
+        defaultNumber
     }
 }
