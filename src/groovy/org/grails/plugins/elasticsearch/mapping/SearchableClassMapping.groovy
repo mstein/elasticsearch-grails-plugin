@@ -17,7 +17,6 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
-
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 
@@ -109,10 +108,15 @@ class SearchableClassMapping {
     boolean isAll() {
         if (all instanceof Boolean) {
             return all
-        }
-        else if (all instanceof Map) {
+        } else if (all instanceof Map) {
             return all.enabled instanceof Boolean ? all.enabled : true
         }
         return true
     }
+
+    @Override
+    public String toString() {
+        return "${getClass().name}(domainClass:$domainClass, propertiesMapping:$propertiesMapping, indexName:$indexName, isAll:${isAll()})"
+    }
+
 }
