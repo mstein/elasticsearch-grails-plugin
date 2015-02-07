@@ -35,3 +35,20 @@ class User {
 }
 {code}
 When searching, any matches in the @userPreferences@ property will be considered as a @User@ match.
+
+h4. all
+Set default analyzer for all domain class fields.
+
+{code}
+static searchable = {
+  all = [analyzer: 'russian_morphology']
+}
+{code}
+
+{code}
+static searchable = {
+  all = false
+}
+{code}
+
+When disabling the all field, it is a good practice to set index.query.default_field to a different value (for example, if you have a main 'message' field in your data, set it to message).
