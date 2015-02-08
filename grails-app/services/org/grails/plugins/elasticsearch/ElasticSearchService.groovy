@@ -24,6 +24,7 @@ import org.elasticsearch.action.support.QuerySourceBuilder
 import org.elasticsearch.client.Client
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.index.query.QueryStringQueryBuilder
+import org.elasticsearch.index.query.FilterBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.highlight.HighlightBuilder
@@ -70,7 +71,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param params Search parameters
      * @return search results
      */
-    def search(Closure query, Closure filter = null, Map params = [:]) {
+    def search(Closure query, filter = null, Map params = [:]) {
         search(params, query, filter)
     }
 
@@ -78,11 +79,17 @@ class ElasticSearchService implements GrailsApplicationAware {
         search(params, query)
     }
 
-    def search(QueryBuilder query, Closure filter = null, Map params = [:]) {
+	/**
+	 * Alias for the search(Map params, QueryBuilder query, Closure filter) signature
+	 * 
+	 * @param query QueryBuilder query
+	 * @return
+	 */
+    def search(QueryBuilder query, filter = null, Map params = [:]) {
         search(params, query, filter)
     }
 
-    def search(Map params, QueryBuilder query, Closure filter = null) {
+    def search(Map params, QueryBuilder query, filter = null) {
         SearchRequest request = buildSearchRequest(query, filter, params)
         search(request, params)
     }
@@ -98,6 +105,11 @@ class ElasticSearchService implements GrailsApplicationAware {
         SearchRequest request = buildSearchRequest(query, null, params)
         search(request, params)
     }
+	
+	def search(String query, filter, Map params = [:]){
+		SearchRequest request = buildSearchRequest(query, filter, params)
+		search(request, params)
+	}
 
     /**
      * Returns the number of hits for a peculiar query
@@ -338,10 +350,11 @@ class ElasticSearchService implements GrailsApplicationAware {
      * Builds a search request
      *
      * @param params The query parameters
-     * @param query The search query, whether a String or a Closure
+     * @param query The search query, whether a String, a Closure or a QueryBuilder
+     * @param filter The search filter, whether a Closure or a FilterBuilder
      * @return The SearchRequest instance
      */
-    private SearchRequest buildSearchRequest(query, Closure filter, Map params) {
+    private SearchRequest buildSearchRequest(query, filter, Map params) {
         SearchSourceBuilder source = new SearchSourceBuilder()
 
         source.from(params.from ? params.from as int : 0)
@@ -366,7 +379,7 @@ class ElasticSearchService implements GrailsApplicationAware {
         }
 
         if (filter) {
-            source.postFilter(new GXContentBuilder().buildAsBytes(filter))
+            setFilterInSource(source, filter, params)
         }
 
         // Handle highlighting
@@ -405,6 +418,14 @@ class ElasticSearchService implements GrailsApplicationAware {
     SearchSourceBuilder setQueryInSource(SearchSourceBuilder source, QueryBuilder query, Map params = [:]) {
         source.query(query)
     }
+	
+	SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, Closure filter, Map params = [:]){
+		source.postFilter(new GXContentBuilder().buildAsBytes(filter))
+	}
+	
+	SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, FilterBuilder filter, Map params = [:]){
+		source.postFilter(filter)
+	}
 
     /**
      * Computes a search request and builds the results
