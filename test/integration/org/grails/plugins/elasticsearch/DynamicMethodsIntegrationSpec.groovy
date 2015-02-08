@@ -112,5 +112,20 @@ class DynamicMethodsIntegrationSpec extends IntegrationSpec {
 		results.searchResults[0].name == "Captain Kirk"
 	}
 	
-	
+	def "can search and filter using Dynamic Methods and a FilterBuilder"() {
+		given:
+		elasticSearchAdminService.refresh()
+		expect:
+		elasticSearchService.search('Captain', [indices: Photo, types: Photo]).total == 5
+
+		when:
+		FilterBuilder filter = FilterBuilders.termFilter("url", "http://www.nicenicejpg.com/100")
+		def results = Photo.search({
+			match(name:"Captain")
+		}, filter)
+
+		then:
+		results.total == 1
+		results.searchResults[0].name == "Captain Kirk"
+	}
 }

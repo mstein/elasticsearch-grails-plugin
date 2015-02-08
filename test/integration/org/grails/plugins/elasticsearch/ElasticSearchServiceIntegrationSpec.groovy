@@ -15,6 +15,8 @@ import org.elasticsearch.cluster.metadata.IndexMetaData
 import org.elasticsearch.cluster.metadata.MappingMetaData
 import org.elasticsearch.common.unit.DistanceUnit
 import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.index.query.QueryBuilder
+import org.elasticsearch.index.query.FilterBuilder
 import org.elasticsearch.index.query.FilterBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
@@ -297,10 +299,21 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         searchResults[0].name == wurmProduct.name
     }
 	
-	void 'searching with a FilterBuilder filter'(){
+	void 'searching with a FilterBuilder filter and a Closure query'(){
         when: 'searching for a price'
-		def filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
+		FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
         def result = elasticSearchService.search(null as Closure, filter)
+
+        then: "the result should be product 'wurm'"
+        result.total == 1
+        List<Product> searchResults = result.searchResults
+        searchResults[0].name == "wurm"
+	}
+	
+	void 'searching with a FilterBuilder filter and a QueryBuilder query'(){
+		when: 'searching for a price'
+		FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
+        def result = elasticSearchService.search(null as QueryBuilder, filter)
 
         then: "the result should be product 'wurm'"
         result.total == 1
