@@ -1,0 +1,11 @@
+A @FilterBuilder@ filter can be passed as a second argument after the search parameter to the search method.
+
+h4. Example
+
+{code:groovy}
+FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
+def result = elasticSearchService.search(
+    [indices: Building, types: Building, sort: sortBuilder],
+    null as Closure,
+    filter)
+{code}

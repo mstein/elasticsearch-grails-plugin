@@ -1,0 +1,8 @@
+A @QueryBuilder@ can be passed to the search method.
+
+h4. Example
+
+{code:groovy}
+QueryBuilder query = QueryBuilders.matchAllQuery()
+def result = elasticSearchService.search(query)
+{code}
