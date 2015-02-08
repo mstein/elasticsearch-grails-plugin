@@ -59,7 +59,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param closure Query closure
      * @return search results
      */
-    def search(Map params, Closure query, Closure filter = null) {
+    def search(Map params, Closure query, filter = null) {
         SearchRequest request = buildSearchRequest(query, filter, params)
         search(request, params)
     }
