@@ -53,7 +53,7 @@ class DomainDynamicMethodsUtils {
                 continue
             }
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainCopy)
-            def indexAndType = [indices: scm.indexName, types: domainCopy.clazz]
+            def indexAndType = [indices: scm.queryingIndex, types: domainCopy.clazz]
 
             // Inject the search method
             domain.metaClass.'static'.search << { String q, Map params = [:] ->

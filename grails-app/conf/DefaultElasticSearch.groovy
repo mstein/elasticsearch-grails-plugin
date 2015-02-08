@@ -62,9 +62,21 @@ elasticSearch {
     searchableProperty.name = 'searchable'
 
     /**
-    * Should the plugin delete the index when a MergeMappingException is caught. The default is false.
-    */
-    deleteOnMergeMappingException = false
+     * The strategy to be used in case of a conflict installing mappings
+     */
+    migration.strategy = 'alias'
+
+    /**
+     * Whether to replace existing indices with aliases when there's a conflict and the 'alias' strategy is chosen
+     */
+    migration.aliasReplacesIndex = true
+
+    /**
+     * When set to false, in case of an alias migration, prevents the alias to point to the newly created index
+     */
+    migration.disableAliasChange = false
+
+    index.numberOfReplicas = 0
 }
 
 environments {
