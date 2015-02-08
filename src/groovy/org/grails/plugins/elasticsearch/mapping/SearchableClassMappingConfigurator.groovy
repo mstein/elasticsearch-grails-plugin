@@ -85,7 +85,7 @@ class SearchableClassMappingConfigurator {
      * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
      * @param mappings searchable class mappings to be install.
      */
-    public void installMappings(Collection<SearchableClassMapping> mappings) throws MergeMappingException{
+    public void installMappings(Collection<SearchableClassMapping> mappings){
 
         Map esConfig = grailsApplication.config.getProperty("elasticSearch")
         Map<String, Object> indexSettings = buildIndexSettings(esConfig)
