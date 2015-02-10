@@ -1,5 +1,8 @@
 h4. History
 
+* February 10, 2015
+** 0.0.4.2
+*** Reduce severity of non-searchable property in index document when unmarshalling domain
 * February 03, 2015
 ** 0.0.4.1
 *** Upgrade to Elasticsearch 1.4.2
