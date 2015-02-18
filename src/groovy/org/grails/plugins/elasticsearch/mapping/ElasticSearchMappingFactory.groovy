@@ -148,10 +148,12 @@ class ElasticSearchMappingFactory {
                 propOptions.include_in_all = !scpm.shouldExcludeFromAll()
             }
             // todo only enable this through configuration...
-            if ((propType == 'string') && scpm.isAnalyzed()) {
+            if(propType == 'string' && scpm.isDynamic()) {
+                propOptions.type = 'object'
+                propOptions.dynamic = true
+            } else if ((propType == 'string') && scpm.isAnalyzed()) {
                 propOptions.term_vector = 'with_positions_offsets'
-            }
-            if (scpm.isMultiField()) {
+            } else if (scpm.isMultiField()) {
                 Map<String, Object> field = new LinkedHashMap<String, Object>(propOptions)
                 Map untouched = [:]
                 untouched.put('type', propOptions.get('type'))
