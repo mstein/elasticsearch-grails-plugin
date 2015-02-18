@@ -146,6 +146,10 @@ The location of plugin files such as native scripts. Each plugin will be contain
 * @elasticSearch.searchableProperty.name@
 The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
 
+* @elasticSearch.includeTransients@
+Whether to index and search all non excluded transient properties. All explicitly included transients in @only@ will be indexed regardless.
+Default is @false@.
+
 h4. Default configuration script
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).
 

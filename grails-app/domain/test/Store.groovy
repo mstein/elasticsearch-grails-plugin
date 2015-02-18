@@ -8,7 +8,6 @@ class Store {
 
     static searchable = true
 
-
     static constraints = {
         name blank: false
         description nullable: true
@@ -17,5 +16,9 @@ class Store {
 
     static mapping = {
         autoImport(false)
+    }
+
+    public String toString() {
+        name
     }
 }
