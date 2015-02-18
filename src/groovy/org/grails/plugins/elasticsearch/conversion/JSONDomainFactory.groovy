@@ -39,8 +39,8 @@ class JSONDomainFactory {
      * The default marshallers, not defined by user
      */
     static DEFAULT_MARSHALLERS = [
-        (Map): MapMarshaller,
-        (Collection): CollectionMarshaller
+            (Map)       : MapMarshaller,
+            (Collection): CollectionMarshaller
     ]
 
     /**
@@ -86,7 +86,11 @@ class JSONDomainFactory {
                     def refClass = propertyMapping.getBestGuessReferenceType()
                     marshaller = new SearchableReferenceMarshaller(refClass: refClass)
                 } else if (propertyMapping?.component) {
-                    marshaller = new DeepDomainClassMarshaller()
+                    if (propertyMapping?.isGeoPoint()) {
+                        marshaller = new GeoPointMarshaller()
+                    } else {
+                        marshaller = new DeepDomainClassMarshaller()
+                    }
                 }
             }
         }
@@ -95,9 +99,13 @@ class JSONDomainFactory {
             // TODO : support user custom marshaller/converter (& marshaller registration)
             // Check for domain classes
             if (DomainClassArtefactHandler.isDomainClass(objectClass)) {
-                /*def domainClassName = objectClass.simpleName.substring(0,1).toLowerCase() + objectClass.simpleName.substring(1)
-             SearchableClassPropertyMapping propMap = elasticSearchContextHolder.getMappingContext(domainClassName).getPropertyMapping(marshallingContext.lastParentPropertyName)*/
-                marshaller = new DeepDomainClassMarshaller()
+                def propertyMapping = elasticSearchContextHolder.getMappingContext(getDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+
+                if (propertyMapping?.isGeoPoint()) {
+                    marshaller = new GeoPointMarshaller()
+                } else {
+                    marshaller = new DeepDomainClassMarshaller()
+                }
             } else {
                 // Check for inherited marshaller matching
                 def inheritedMarshaller = DEFAULT_MARSHALLERS.find { key, value -> key.isAssignableFrom(objectClass) }
@@ -141,6 +149,10 @@ class JSONDomainFactory {
             marshallingContext.lastParentPropertyName = scpm.propertyName
             def res = delegateMarshalling(instance."${scpm.propertyName}", marshallingContext)
             json.field(scpm.propertyName, res)
+			//add the alias
+			if(scpm.getAlias()){
+				json.field(scpm.getAlias(), res)
+			}
         }
         marshallingContext.pop()
         json.endObject()

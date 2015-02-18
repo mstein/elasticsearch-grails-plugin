@@ -1,0 +1,106 @@
+h4. History
+
+* January 28, 2015
+** 0.0.4.0
+*** Included Mapping migrations
+*** Included read and write aliases to indices to deal with migrations on multinode deployments
+* December 14, 2014
+** 0.0.3.8
+*** Upgrade to ElasticSearch 1.4.1
+*** Support the min_score query parameter.
+*** Try to detect the MongoDB without using the plugin manager.
+* December 01, 2014
+** 0.0.3.7
+*** Create separate SimpleTypeConverter per-thread
+* November 06, 2014
+** 0.0.3.6
+*** Upgrade to ElasticSearch 1.4.0
+* October 28, 2014
+** 0.0.3.5
+*** Fix the bulk index query iteration.
+* October 14, 2014
+** 0.0.3.4
+*** Upgrade to latest version of ElasticSearch and remove the Groovy client dependency.
+* August 28, 2014
+** 0.0.3.3
+*** Configure a component field to act as an inner object instead of a nested object.
+* August 3, 2014
+** 0.0.3.2
+*** Add the ability to mark fields with aliases
+*** Support ES client HTTP configuration parameters
+*** Improve Hibernate 4 support
+* June 9, 2014
+** 0.0.3.1
+*** Upgrade to ElasticSearch 1.2.x
+*** Add special treatment for MongoDB ObjectId data types
+*** Return raw result objects when now class mapping is found
+*** Fix integration-test NPE
+* May 25, 2014
+** 0.0.3.0
+*** Upgrade to Grails dependency 2.2.x
+*** Upgrade to Grails runtime 2.3.x
+*** Upgrade to ElasticSearch 1.x
+*** Apply ElasticSearch 1.x compatibility fixes
+*** Enable customization of index name types when mapping classes
+* May 15, 2014
+** 0.0.2.6
+*** Use 'grails.util.Holders' instead of ApplicationHolder
+* April 2, 2014
+** 0.0.2.5
+*** Start releasing the plugin as 'elasticsearch' instead of 'elasticsearch-gorm'
+*** Fix NPE when marshalling JSONObject fields
+* March 24, 2014
+** 0.0.2.4
+*** GeoPoint mapping
+*** Injected service now supports filters (e.g. geo_reference) and sort builders (e.g. for geo_distance sorting)
+*** Marshalled date values are now with correct time zone
+*** Removed dependency on Java 7
+*** Fix support of BigDecimal
+*** Searchable mapping property name and Elasticsearch plugin path are now configurable.
+* February 4, 2014
+** 0.0.2.3 Bugfix release
+* January 19, 2014
+** 0.0.2.2 Bugfix release
+* November 24, 2013
+** 0.0.2.1 Bugfix release
+* November 12, 2013
+** 0.0.2 release
+* November 2, 2013
+** initial 0.0.1 release
+
+h4. Authors and Contributors
+
+Noam Y. Tenne,
+Stefan Rother-Stübs (Dating Cafe),
+Sven Kiesewetter (Dating Cafe),
+Michael Schwartz (Dating Cafe)
+
+h4. Authors and Contributors of the original plugin
+
+Manuarii Stein (doc4web consulting),
+Stephane Maldini (doc4web consulting),
+Serge P. Nekoval
+
+Get the full and updated list of contributors on the [github|https://github.com/noamt/elasticsearch-grails-plugin] repository.
+
+h4. License
+
+{quote}
+    Copyright 2013-2014 the original author or authors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+{quote}
+
+h4. Previous work
+
+Graeme Rocher started the first draft which this plugin is based on.

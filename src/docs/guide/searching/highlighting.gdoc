@@ -1,0 +1,74 @@
+The search method support highlighting: automatic wrapping of the matching terms in the search results with
+HTML/XML/Whatever tags.
+You can activate this with a @Closure@ containing the highlight settings in the search method @highlight@ parameter.
+The format of the @Closure@ for defining the highlight settings is the same as the
+[ElasticSearch REST API|http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-highlighting.html].
+
+*Example*
+{code:groovy}
+// Define the pre & post tag that will wrap each term matched in the document.
+def highlighter = {
+  field 'message'
+  field 'tags.name'
+  preTags '<strong>'
+  postTags '</strong>'
+}
+
+def results = Tweet.search("${params.query}", [highlight: highlightSettings])
+{code}
+
+h3. Highlight results
+If a search result is found, the @search@ method will add a @highlight@ entry in the map result.
+That entry contains a @List@ with every highlighted fragments/fields found for each hit.
+
+{code:groovy}
+def results = Tweet.search("${params.query}", [highlight: { field 'message' }])
+def highlighted = results.highlight
+
+results?.searchResults?.eachWithIndex { hit, index ->
+    // Retrieve the 'message' field fragments for the current hits
+    def fragments = highlighted[index].message?.fragments
+
+    // Print the fragment
+    println fragments?.size() ? fragments[0] : ''
+}
+{code}
+
+h3. Highlighted fields
+To determine which fields are to be processed by ElasticSearch, use the @field@ setting.
+You can call the @field@ setting as many time as you want to add any field.
+
+*Signature*
+{code:groovy}
+    field <fieldName>[, <fragmentSize>[, <numberOfFragment>]]
+{code}
+
+*Examples*
+{code:groovy}
+def highlightSettings = {
+    field 'message'                    // Add the 'message' field in the highlighted fields list
+    field 'tags.name'                  // Add the 'name' field contained in the 'tags' field of
+                                       // the document in the highlighted fields list
+    field 'thatAwesomeField', 0, 20    // Add the 'thatAwesomeField' field with
+                                       // some values fixed for fragmentSize and numberOfFragment parameters
+}
+
+def highlightSettings2 = {
+    field '_all'                       // Add the special '_all' field in the highlighted fields list
+}
+
+def results = Tweet.search("${params.query}", [highlight: highlightSettings])
+def results2 = Tweet.search("${params.query}", [highlight: highlightSettings2])
+{code}
+
+h3. Highlighting tags
+By default, ElasticSearch will use emphasis tag "@<em>...</em>@" to wrap the matching text.
+You can customize the tags with the @preTags@ and @postTags@ settings.
+
+{code:groovy}
+def highlightSettings = {
+    field 'message'
+    preTags '<myAweSomeTag>'
+    postTags '</myAweSomeTag>'
+}
+{code}

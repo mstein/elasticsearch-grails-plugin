@@ -1,8 +1,8 @@
 log4j = {
     error 'org.codehaus.groovy.grails',
-          'org.springframework',
-          'org.hibernate',
-          'net.sf.ehcache.hibernate'
+            'org.springframework',
+            'org.hibernate',
+            'net.sf.ehcache.hibernate'
     debug 'org.grails.plugins.elasticsearch'
 }
 
@@ -10,7 +10,7 @@ elasticSearch {
     /**
      * Date formats used by the unmarshaller of the JSON responses
      */
-    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.S'Z'"]
+    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
 
     /**
      * Hosts for remote ElasticSearch instances.
@@ -26,6 +26,8 @@ elasticSearch {
         compound_format = true
     }
     unmarshallComponents = true
+
+    searchableProperty.name = 'searchable'
 }
 
 environments {
@@ -45,6 +47,7 @@ environments {
             client.mode = 'local'
             client.transport.sniff = true
             index.store.type = 'memory'
+            datastoreImpl = 'hibernateDatastore'
         }
     }
 
@@ -53,5 +56,8 @@ environments {
     }
 }
 
-grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. Nekoval'
+grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. Nekoval, Marcos Carceles'
 grails.doc.license = 'Apache License 2.0'
+grails.views.default.codec = 'none' // none, html, base64
+grails.views.gsp.encoding = 'UTF-8'
+grails.databinding.dateFormats= ["yyyy-MM-dd'T'HH:mm:ss.SSSZ"]

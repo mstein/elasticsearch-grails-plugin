@@ -1,0 +1,37 @@
+h4. root
+Determine if the domain class will have its own index or not. Take a boolean as parameter, and is set to @true@ by default.
+{code}
+class Preference {
+    static searchable = {
+        root false
+    }
+    // ...
+}
+
+class Tag {
+    static searchable = true
+    // ...
+}
+
+class Tweet {
+    static searchable = {
+        message boost:2.0
+    }
+    // ...
+}
+{code}
+In this code, the classes @Tweet@ and @Tag@ are going to have their own index. The class @Preference@ will not.
+It also mean that any search request will never return a Preference-type hit. The dynamic method @search@ will not be
+injected in the @Preference@ domain class.
+The domains not root-mapped can still be considered searchable, as they can be components of another domain which is root-mapped.
+For example, considered the following domain:
+{code}
+class User {
+    static searchable = {
+        userPreferences component:true
+    }
+
+    Preference userPreferences
+}
+{code}
+When searching, any matches in the @userPreferences@ property will be considered as a @User@ match.

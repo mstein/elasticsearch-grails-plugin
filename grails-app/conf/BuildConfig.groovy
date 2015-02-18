@@ -9,9 +9,9 @@ grails.project.dependency.distribution = {
         authentication username: System.getProperty('DEPLOYER_USERNAME'), password: System.getProperty('DEPLOYER_PASSWORD')
     }
 }
+grails.project.dependency.resolver = 'maven' // or ivy
 grails.project.dependency.resolution = {
 
-    pom true
     inherits 'global'
     log 'warn'
 
@@ -33,29 +33,27 @@ grails.project.dependency.resolution = {
             transitive = false
         }
 
-        def datastoreVersion = '1.1.9.RELEASE'
+        def datastoreVersion = '3.1.1.RELEASE'
 
         provided("org.grails:grails-datastore-gorm-plugin-support:$datastoreVersion",
-                 "org.grails:grails-datastore-gorm:$datastoreVersion",
-                 "org.grails:grails-datastore-core:$datastoreVersion",
-                 "org.grails:grails-datastore-web:$datastoreVersion", excludes)
+                "org.grails:grails-datastore-gorm:$datastoreVersion",
+                "org.grails:grails-datastore-core:$datastoreVersion",
+                "org.grails:grails-datastore-web:$datastoreVersion", excludes)
 
-        runtime 'org.elasticsearch:elasticsearch:0.90.5'
-        runtime('org.elasticsearch:elasticsearch-lang-groovy:1.5.0') {
-            excludes 'junit'
-            excludes 'elasticsearch'
-            excludes 'groovy-all'
-            excludes 'log4j'
-        }
-        runtime 'com.spatial4j:spatial4j:0.3'
+        runtime 'org.elasticsearch:elasticsearch:1.4.1'
+        runtime 'com.spatial4j:spatial4j:0.4.1'
+
+        compile 'com.vividsolutions:jts:1.13'
+
+        test 'com.googlecode.json-simple:json-simple:1.1.1'
     }
 
     plugins {
-        build ':release:2.2.1', ':rest-client-builder:1.0.3', {
+        build ':release:3.0.1', ':rest-client-builder:2.0.3', {
             export = false
         }
 
-        test(':spock:0.7') {
+        test(':hibernate:3.6.10.16', ':tomcat:7.0.54') {
             export = false
         }
     }

@@ -1,0 +1,44 @@
+h1. index
+
+h2. Purpose
+
+Index specific domain instances to ElasticSearch.
+Internally, the plugin uses the Bulk API of ElasticSearch to perform the index requests.
+{note}Only domains that are [root-mapped|guide:classMapping] have this method injected.{note}
+
+h2. Examples
+
+{code:groovy}
+// Index all instances of the MyDomain domain class
+MyDomain.index()
+
+// Index a specific domain instance
+MyDomain md = new MyDomain(value:'that')
+md.id = 1
+md.index()
+
+// Index a collection of domain instances
+def ds = [new MyDomain(value:'that'), new MyDomain(name:'that2'), new MyDomain(value:'thatagain')]
+ds.eachWithIndex { val, i->  ds[i].id = i }
+MyDomain.index(ds)
+{code}
+
+h4. Description
+
+@index@ signatures:
+
+{code:groovy}
+// Index a specific domain instance
+def index()
+// Index ALL instances of a domain class
+static index()
+// Index a Collection of domain instances
+static index(Collection<Domain> domains)
+// Same with an ellipsis
+static index(Domain... domain)
+{code}
+
+h4. Parameters
+
+* @Collection<Domain>@ domains - A @Collection@ of domain instances to index.
+* @Domain...@ domain - Same as @Collection<Domain>@, but with an ellipsis.

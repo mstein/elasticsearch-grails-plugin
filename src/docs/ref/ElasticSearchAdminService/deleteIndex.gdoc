@@ -15,9 +15,9 @@ h4. Description
 @deleteIndex@ signatures:
 
 {code}
-public void deleteIndex()   // Delete all indices
-public void deleteIndex(String... indices)
-public void deleteIndex(Class... searchableClasses)
+void deleteIndex()   // Delete all indices
+void deleteIndex(String... indices)
+void deleteIndex(Class... searchableClasses)
 {code}
 
 h4. Parameters

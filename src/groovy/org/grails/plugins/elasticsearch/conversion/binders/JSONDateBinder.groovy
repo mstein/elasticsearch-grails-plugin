@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat
 
 class JSONDateBinder extends PropertyEditorSupport {
 
+    final utcTimeZone = TimeZone.getTimeZone('UTC')
     final List<String> formats
 
     JSONDateBinder(List formats) {
@@ -19,8 +20,10 @@ class JSONDateBinder extends PropertyEditorSupport {
 
         int counter = formats.size()
         for(format in formats){
-            // Need to create the SimpleDateFormat every time, since it's not thead-safe
+            // Need to create the SimpleDateFormat every time, since it's not thread-safe
             SimpleDateFormat df = new SimpleDateFormat(format)
+            df.timeZone = utcTimeZone
+
             try {
                 setValue(df.parse(s))
                 return

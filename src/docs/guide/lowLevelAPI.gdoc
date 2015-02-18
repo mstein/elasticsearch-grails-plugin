@@ -1,0 +1,27 @@
+If you need to use the Elastic Search client directly, you can use the @elasticSearchHelper@ bean that is
+injected in any services/controllers to get the current instance.
+Simply encapsulate your code within a @withElasticSearch@ bloc,
+and you will get a @org.elasticsearch.client.Client@ implementation to play with.
+
+{code}
+class MySearchService {
+    static transactional = true
+
+    def elasticSearchHelper
+
+    def myMethod(indexName, settings) {
+        elasticSearchHelper.withElasticSearch { client ->
+            // Do some stuff with the ElasticSearch client
+            client.admin()
+                .indices()
+                .prepareCreate(indexName)
+                .setSettings(settings)
+                .execute()
+                .actionGet()
+        }
+    }
+}
+{code}
+
+Please refers to the [Elastic Search API|http://www.elasticsearch.org/guide/reference/java-api/] for more
+information on the methods and properties available on the client.

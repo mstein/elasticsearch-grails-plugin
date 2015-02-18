@@ -16,26 +16,12 @@
 
 package org.grails.plugins.elasticsearch.mapping
 
-import java.lang.reflect.Modifier
-
-import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
-import org.codehaus.groovy.grails.commons.DomainClassArtefactHandler
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.commons.GrailsClassUtils
-import org.codehaus.groovy.grails.commons.GrailsDomainClass
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
+import org.codehaus.groovy.grails.commons.*
 import org.springframework.util.Assert
 
-class SearchableDomainClassMapper extends GroovyObjectSupport {
-    /**
-     * Options applied to searchable class itself
-     */
-    public static final Set<String> CLASS_MAPPING_OPTIONS = Arrays.asList("all", "root", "only", "except")
-    /**
-     * Searchable property name
-     */
-    public static final String SEARCHABLE_PROPERTY_NAME = "searchable"
+import java.lang.reflect.Modifier
 
+class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Class mapping properties
      */
@@ -89,7 +75,9 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      */
     SearchableClassMapping buildClassMapping() {
 
-        if (!grailsDomainClass.hasProperty(SEARCHABLE_PROPERTY_NAME)) {
+        String searchablePropertyName = getSearchablePropertyName()
+
+        if (!grailsDomainClass.hasProperty(searchablePropertyName)) {
             return null
         }
         // Process inheritance.
@@ -113,9 +101,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
                     break
                 }
 
-                if (superDomainClass.hasProperty(SEARCHABLE_PROPERTY_NAME) &&
-                        superDomainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME).equals(Boolean.FALSE)) {
-
+                if (superDomainClass.hasProperty(searchablePropertyName) &&
+                        superDomainClass.getPropertyValue(searchablePropertyName).equals(Boolean.FALSE)) {
                     // hierarchy explicitly terminated. Do not browse any more properties.
                     break
                 }
@@ -138,8 +125,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         // Process inherited mappings in reverse order.
         for (GrailsDomainClass domainClass : superMappings) {
-            if (domainClass.hasProperty(SEARCHABLE_PROPERTY_NAME)) {
-                Object searchable = domainClass.getPropertyValue(SEARCHABLE_PROPERTY_NAME)
+            if (domainClass.hasProperty(searchablePropertyName)) {
+                Object searchable = domainClass.getPropertyValue(searchablePropertyName)
                 if (searchable instanceof Boolean) {
                     buildDefaultMapping(domainClass)
                 } else if (searchable instanceof java.util.LinkedHashMap) {
@@ -149,13 +136,13 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
                     Set<String> inheritedProperties = getInheritedProperties(domainClass)
                     buildClosureMapping(domainClass, (Closure) searchable, inheritedProperties)
                 } else {
-                    throw new IllegalArgumentException("'searchable' property has unknown type: " + searchable.getClass())
+                    throw new IllegalArgumentException("'$searchablePropertyName' property has unknown type: " + searchable.getClass())
                 }
             }
         }
 
         // Populate default settings.
-        // Clean out any per-property specs not allowed by 'only','except' rules.
+        // Clean out any per-property specs not allowed by 'only', 'except' rules.
 
         customMappedProperties.keySet().retainAll(mappableProperties)
         mappableProperties.remove(grailsDomainClass.getIdentifier().getName())
@@ -217,7 +204,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         Set<String> propsOnly = convertToSet(only)
         Set<String> propsExcept = convertToSet(except)
         if (!propsOnly.isEmpty() && !propsExcept.isEmpty()) {
-            throw new IllegalArgumentException("Both 'only' and 'except' were used in '" + grailsDomainClass.getPropertyName() + "#searchable': provide one or neither but not both")
+            throw new IllegalArgumentException("Both 'only' and 'except' were used in '${grailsDomainClass.getPropertyName()}#${getSearchablePropertyName()}': provide one or neither but not both")
         }
 
         Boolean alwaysInheritProperties = (Boolean) esConfig.get("alwaysInheritProperties")
@@ -249,7 +236,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     def invokeMethod(String name, args) {
         // Custom properties mapping options
         GrailsDomainClassProperty property = grailsDomainClass.getPropertyByName(name)
-        Assert.notNull(property, "Unable to find property [$name] used in [$grailsDomainClass.propertyName]#searchable].")
+        Assert.notNull(property, "Unable to find property [$name] used in [$grailsDomainClass.propertyName]#${getSearchablePropertyName()}].")
 
         // Check if we already has mapping for this property.
         SearchableClassPropertyMapping propertyMapping = customMappedProperties.get(name)
@@ -277,5 +264,15 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
             return new HashSet<String>(arg)
         }
         throw new IllegalArgumentException("Unknown argument: $arg")
+    }
+
+    private String getSearchablePropertyName() {
+        def searchablePropertyName = esConfig.searchableProperty.name
+
+        //Maintain backwards compatibility. Searchable property name may not be defined
+        if (!searchablePropertyName) {
+            return 'searchable'
+        }
+        searchablePropertyName
     }
 }

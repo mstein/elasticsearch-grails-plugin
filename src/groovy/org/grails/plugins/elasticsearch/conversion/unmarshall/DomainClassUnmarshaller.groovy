@@ -16,14 +16,13 @@
 
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
-import java.beans.PropertyEditor
-
 import org.codehaus.groovy.grails.commons.*
-import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
+import org.codehaus.groovy.grails.web.binding.DatabindingApi
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
 import org.elasticsearch.client.Client
+import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.SearchHits
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
@@ -35,6 +34,8 @@ import org.springframework.beans.SimpleTypeConverter
 import org.springframework.beans.TypeConverter
 import org.springframework.util.Assert
 
+import java.beans.PropertyEditor
+
 /**
  * Domain class unmarshaller.
  */
@@ -42,61 +43,70 @@ class DomainClassUnmarshaller {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    private TypeConverter typeConverter = new SimpleTypeConverter()
     private ElasticSearchContextHolder elasticSearchContextHolder
-    private BindDynamicMethod bind = new BindDynamicMethod()
     private GrailsApplication grailsApplication
     private Client elasticSearchClient
 
     Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
+        TypeConverter typeConverter = new SimpleTypeConverter()
         List results = []
         for (SearchHit hit : hits) {
             String type = hit.type()
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type)
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type())
+                LOG.warn("Unknown SearchHit: ${hit.id()}#${hit.type()}: adding to result set as a raw object")
+		        results << hit.source
                 continue
             }
-            String domainClassName = scm.getDomainClass().getFullName()
 
-            GrailsDomainClassProperty identifier = scm.getDomainClass().getIdentifier()
-            Object id = typeConverter.convertIfNecessary(hit.id(), identifier.getType())
-            GroovyObject instance = (GroovyObject) scm.getDomainClass().newInstance()
-            instance.setProperty(identifier.getName(), id)
+            GrailsDomainClassProperty identifier = scm.domainClass.identifier
+            Object id = typeConverter.convertIfNecessary(hit.id(), identifier.type)
+            GroovyObject instance = (GroovyObject) scm.domainClass.newInstance()
+            instance.setProperty(identifier.name, id)
+
+            def aliasFields = elasticSearchContextHolder.getMappingContext(scm.domainClass).getPropertiesMapping().findResults {
+                if (it.isAlias()) {
+                    return it.getAlias()
+                }
+                null
+            }
 
             Map rebuiltProperties = new HashMap()
-            for (Map.Entry<String, Object> entry : hit.getSource().entrySet()) {
+            for (Map.Entry<String, Object> entry : hit.source.entrySet()) {
+                def key = entry.key
+                if (aliasFields.contains(key)) {
+                    continue
+                }
                 try {
-                    unmarshallingContext.getUnmarshallingStack().push(entry.getKey())
-                    rebuiltProperties.put(entry.getKey(),
-                            unmarshallProperty(scm.getDomainClass(), entry.getKey(), entry.getValue(), unmarshallingContext))
+                    unmarshallingContext.unmarshallingStack.push(key)
+                    def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
+                    rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
                 } catch (Throwable t) {
-                    LOG.error("Error unmarshalling Class ${scm.getDomainClass().getName()} with id $id", t)
+                    LOG.error("Error unmarshalling Class ${scm.domainClass.name} with id $id", t)
                 } finally {
                     unmarshallingContext.resetContext()
                 }
             }
-            // todo manage read-only transient properties...
-            bind.invoke(instance, "bind", [instance, rebuiltProperties] as Object[])
+            new DatabindingApi().setProperties(instance, rebuiltProperties)
 
-            results.add(instance)
+            results << instance
         }
-        return results
+        results
     }
 
     private void populateCyclicReference(instance, Map<String, Object> rebuiltProperties, DefaultUnmarshallingContext unmarshallingContext) {
-        for (CycleReferenceSource cr : unmarshallingContext.getCycleRefStack()) {
-            populateProperty(cr.getCyclePath(), rebuiltProperties, resolvePath(cr.getSourcePath(), instance, rebuiltProperties))
+        for (CycleReferenceSource cr : unmarshallingContext.cycleRefStack) {
+            populateProperty(cr.cyclePath, rebuiltProperties, resolvePath(cr.sourcePath, instance, rebuiltProperties))
         }
     }
 
     private resolvePath(String path, instance, Map<String, Object> rebuiltProperties) {
-        if (path == null || path.equals("")) {
+        if (!path || path == '') {
             return instance
         }
-        StringTokenizer st = new StringTokenizer(path, "/")
+        StringTokenizer st = new StringTokenizer(path, '/')
         Object currentProperty = rebuiltProperties
         while (st.hasMoreTokens()) {
             String part = st.nextToken()
@@ -107,13 +117,13 @@ class DomainClassUnmarshaller {
                 currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
             }
         }
-        return currentProperty
+        currentProperty
     }
 
     private void populateProperty(String path, Map<String, Object> rebuiltProperties, value) {
         String last
         Object currentProperty = rebuiltProperties
-        StringTokenizer st = new StringTokenizer(path, "/")
+        StringTokenizer st = new StringTokenizer(path, '/')
         int size = st.countTokens()
         int index = 0
         while (st.hasMoreTokens()) {
@@ -127,8 +137,8 @@ class DomainClassUnmarshaller {
                         currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
                     }
                 } catch (Exception e) {
-                    LOG.warn("/!\\ Error when trying to populate " + path)
-                    LOG.warn("Cannot get " + part + " on " + currentProperty + " from " + rebuiltProperties)
+                    LOG.warn("/!\\ Error when trying to populate $path")
+                    LOG.warn("Cannot get $part on $currentProperty from $rebuiltProperties")
                 }
             }
             if (!st.hasMoreTokens()) {
@@ -163,84 +173,84 @@ class DomainClassUnmarshaller {
             }
 
             // Searchable reference.
-            if (scpm.getReference() != null) {
-                Class<?> refClass = scpm.getBestGuessReferenceType()
+            if (scpm.reference != null) {
+                Class<?> refClass = scpm.bestGuessReferenceType
                 GrailsDomainClass refDomainClass
                 for (GrailsClass dClazz : grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE)) {
-                    if (dClazz.getClazz().equals(refClass)) {
+                    if (dClazz.clazz.equals(refClass)) {
                         refDomainClass = dClazz
                         break
                     }
                 }
-                Assert.state(refDomainClass != null, "Found reference to non-domain class: " + refClass)
+                Assert.state(refDomainClass != null, "Found reference to non-domain class: $refClass")
                 return unmarshallReference(refDomainClass, data, unmarshallingContext)
             }
 
-            if (data.containsKey("class") && (Boolean) grailsApplication.getFlatConfig().get("elasticSearch.unmarshallComponents")) {
+            if (data.containsKey("class") && (Boolean) grailsApplication.flatConfig.get('elasticSearch.unmarshallComponents')) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?
-                    throw new IllegalStateException("Property " + domainClass.getName() + "." + propertyName +
-                            " is not mapped as [component], but broken search hit found.")
+                    throw new IllegalStateException("Property ${domainClass.name}.${propertyName} is not mapped as [component], but broken search hit found.")
                 }
-                GrailsDomainClass nestedDomainClass = ((GrailsDomainClass) grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, (String) data.get("class")))
+                GrailsDomainClass nestedDomainClass = ((GrailsDomainClass) grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, (String) data.get('class')))
                 if (domainClass != null) {
                     // Unmarshall 'component' instance.
                     if (!scpm.isComponent()) {
-                        throw new IllegalStateException("Object " + data.get("class") +
-                                " found in index, but [" + propertyName + "] is not mapped as component.")
+                        throw new IllegalStateException("Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component.")
                     }
-                    parseResult = unmarshallDomain(nestedDomainClass, data.get("id"), data, unmarshallingContext)
+                    parseResult = unmarshallDomain(nestedDomainClass, data.get('id'), data, unmarshallingContext)
                 }
             }
         } else if (propertyValue instanceof Collection) {
             List<Object> results = []
             int index = 0
             for (innerValue in (Collection) propertyValue) {
-                unmarshallingContext.getUnmarshallingStack().push(String.valueOf(index))
+                unmarshallingContext.unmarshallingStack.push(String.valueOf(index))
                 Object parseItem = unmarshallProperty(domainClass, propertyName, innerValue, unmarshallingContext)
                 if (parseItem != null) {
                     results.add(parseItem)
                 }
                 index++
-                unmarshallingContext.getUnmarshallingStack().pop()
+                unmarshallingContext.unmarshallingStack.pop()
             }
             parseResult = results
         } else {
             // consider any custom property editors here.
-            if (scpm.getConverter() != null) {
-                if (scpm.getConverter() instanceof Class) {
+            if (scpm.converter != null) {
+                if (scpm.converter instanceof Class) {
                     try {
-                        PropertyEditor propertyEditor = (PropertyEditor) ((Class) scpm.getConverter()).newInstance()
+                        PropertyEditor propertyEditor = (PropertyEditor) ((Class) scpm.converter).newInstance()
                         propertyEditor.setAsText((String) propertyValue)
-                        parseResult = propertyEditor.getValue()
+                        parseResult = propertyEditor.value
                     } catch (Exception e) {
                         throw new IllegalArgumentException("Unable to unmarshall $propertyName using $scpm.converter", e)
                     }
                 }
-            } else if (scpm.getReference() != null) {
+            } else if (scpm.reference != null) {
 
                 // This is a reference and it MUST be null because it's not a Map.
                 if (propertyValue != null) {
-                    throw new IllegalStateException("Found searchable reference which is not a Map: " + domainClass + "." + propertyName +
-                            " = " + propertyValue)
+                    throw new IllegalStateException("Found searchable reference which is not a Map: ${domainClass}.${propertyName} = $propertyValue")
                 }
 
                 parseResult = null
+            } else if (scpm.grailsProperty.type == Date && null != propertyValue) {
+                parseResult = XContentBuilder.defaultDatePrinter.parseDateTime(propertyValue).toDate()
             }
         }
+
         if (parseResult != null) {
             return parseResult
-        } else {
-            return propertyValue
         }
+        propertyValue
     }
 
     private unmarshallReference(GrailsDomainClass domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
-        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).getIndexName()
-        String name = elasticSearchContextHolder.getMappingContext(domainClass).getElasticTypeName()
+        String indexName = elasticSearchContextHolder.getMappingContext(domainClass).queryingIndex
+        String name = elasticSearchContextHolder.getMappingContext(domainClass).elasticTypeName
+        TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id
         GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
@@ -249,25 +259,26 @@ class DomainClassUnmarshaller {
             request.parent(typeConverter.convertIfNecessary(data.parent, String))
         }
         GetResponse response = elasticSearchClient.get(request).actionGet()
-        Map<String, Object> resolvedReferenceData = response.getSourceAsMap()
-        Assert.state(resolvedReferenceData != null, "Could not find and resolve searchable reference: ${request}")
-        return unmarshallDomain(domainClass, response.getId(), resolvedReferenceData, unmarshallingContext)
+        Map<String, Object> resolvedReferenceData = response.sourceAsMap
+        Assert.state(resolvedReferenceData != null, "Could not find and resolve searchable reference: $request")
+        unmarshallDomain(domainClass, response.id, resolvedReferenceData, unmarshallingContext)
     }
 
     private unmarshallDomain(GrailsDomainClass domainClass, providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
-        GrailsDomainClassProperty identifier = domainClass.getIdentifier()
-        Object id = typeConverter.convertIfNecessary(providedId, identifier.getType())
+        GrailsDomainClassProperty identifier = domainClass.identifier
+        TypeConverter typeConverter = new SimpleTypeConverter()
+        Object id = typeConverter.convertIfNecessary(providedId, identifier.type)
         GroovyObject instance = (GroovyObject) domainClass.newInstance()
-        instance.setProperty(identifier.getName(), id)
+        instance.setProperty(identifier.name, id)
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (!entry.getKey().equals("class") && !entry.getKey().equals("id")) {
-                unmarshallingContext.getUnmarshallingStack().push(entry.getKey())
-                Object propertyValue = unmarshallProperty(domainClass, entry.getKey(), entry.getValue(), unmarshallingContext)
-                bind.invoke(instance, "bind", [instance, Collections.singletonMap(entry.getKey(), propertyValue)] as Object[])
-                unmarshallingContext.getUnmarshallingStack().pop()
+            if (entry.key != 'class' && entry.key != 'id') {
+                unmarshallingContext.unmarshallingStack.push(entry.key)
+                Object propertyValue = unmarshallProperty(domainClass, entry.key, entry.value, unmarshallingContext)
+                new DatabindingApi().setProperties(instance, Collections.singletonMap(entry.key, propertyValue))
+                unmarshallingContext.unmarshallingStack.pop()
             }
         }
-        return instance
+        instance
     }
 
     void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {

@@ -1,0 +1,19 @@
+You can use the [Groovy Query DSL|http://www.elasticsearch.org/guide/en/elasticsearch/client/groovy-api/current/search.html] to build your search query as a @Closure@.
+The format of the search @Closure@ follow the same JSON syntax as the [ElasticSearch REST API|http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html]
+and the [Java Query DSL|http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/current/query-dsl-queries.html].
+
+*Example*
+{code:groovy}
+def result = elasticSearchService.search(searchType:'dfs_query_and_fetch') {
+  bool {
+      must {
+          query_string(query: params.query)
+      }
+      if (params.firstname) {
+          must {
+              term(firstname: params.firstname)
+          }
+      }
+  }
+}
+{code}

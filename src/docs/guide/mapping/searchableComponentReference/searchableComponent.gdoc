@@ -1,0 +1,53 @@
+The searchable-component mapping mode must be explicitly set, and does not require the
+searchable class of the association to be root-mapped.
+With this mode, the associated domains are nested in the parent document.
+
+*Example*
+{code}
+class MyDomain {
+    // odom is an association with the OtherDomain class, set as a reference
+    OtherDomain odom
+
+    static searchable = {
+        odom component:true
+    }
+}
+
+// The OtherDomain definition, with default searchable configuration
+class OtherDomain {
+    static searchable = true
+
+    String field1 = "val1"
+    String field2 = "val2"
+    String field3 = "val3"
+    String field4 = "val4"
+}
+{code}
+
+When indexing an instance of MyDomain, the resulting JSON document will be sent to ElasticSearch:
+{code:json}
+{
+    "mydomain": {
+        "_id":1,
+        "odom": {
+            "_id":1,
+            "field1":"val1",
+            "field2":"val2",
+            "field3":"val3",
+            "field4":"val4"
+        }
+    }
+}
+{code}
+
+If you'd rather that the reference object be mapped with type 'inner' rather than the default 'nested', set the 'component' key with a value of 'inner' rather than 'true':
+{code}
+class MyDomain {
+    // odom is an association with the OtherDomain class, set as a reference
+    OtherDomain odom
+
+    static searchable = {
+        odom component: 'inner'
+    }
+}
+{code}

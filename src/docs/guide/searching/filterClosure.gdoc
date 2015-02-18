@@ -1,0 +1,15 @@
+A filter closure can be passed as a second argument after the search closure to the search method.
+
+h4. Example
+
+{code:groovy}
+def result = elasticSearchService.search(
+    [indices: Building, types: Building, sort: sortBuilder],
+    null as Closure,
+    {
+        geo_distance(
+            'distance': '5km',
+            'location': [lat: 48.141, lon: 11.57]
+        )
+    })
+{code}

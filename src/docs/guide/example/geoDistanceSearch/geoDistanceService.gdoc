@@ -1,0 +1,32 @@
+Searching for all buildings sorted by distance with 5km radius around geo location (lat=41.141, lon=11.57)
+
+{code:groovy}
+def searchForBuildings() {
+    Closure filter = {
+        geo_distance(
+            'distance': '5km',
+            'location': [lat: 48.141, lon: 11.57]
+        )
+    }
+
+    def sortBuilder = SortBuilders.geoDistanceSort("location").
+        point(48.141, 11.57).
+        unit(DistanceUnit.KILOMETERS).
+        order(SortOrder.ASC)
+
+    def result = elasticSearchService.search(
+        [indices: Building, types: Building, sort: sortBuilder],
+        null as Closure,
+        filter)
+
+    return [results: result.searchResults, distances: result.sort]
+}
+{code}
+
+The calculated distances are not part of the search results themselves but are part of @result.sort@.
+@sort@ contains all search values calculated by the ElasticSearch server as a list mapped to the id of the respective domain objects
+
+h4. Example
+{code:groovy}
+assert [1:[23, 42], 2: [24, 40]] == result.sort
+{code}
