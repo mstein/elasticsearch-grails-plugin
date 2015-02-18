@@ -47,12 +47,12 @@ h2. Description
 @search@ signatures:
 
 {code}
-def search(Map params, Closure query, Closure filter = null)
-def search(Map params, QueryBuilder query, Closure filter = null)
+def search(Map params, Closure query, filter = null)
+def search(Map params, QueryBuilder query, filter = null)
 def search(String query, Map params = [:])
 def search(Closure query, Map params)
-def search(Closure query, Closure filter = null, Map params = [:])
-def search(QueryBuilder query, Closure filter = null, Map params = [:])
+def search(Closure query, filter = null, Map params = [:])
+def search(QueryBuilder query, filter = null, Map params = [:])
 {code}
 
 h2. Parameters
@@ -60,9 +60,10 @@ h2. Parameters
 * @query@ - The search query.
 ** As a @String@, the query is parsed by the Lucene query parser for advanced searching.
 ** Can also be a @Closure@, using the Groovy Query DSL of the ElasticSearch groovy client.
-** Can also be a @QueryBuilder@
+** Can also be a @QueryBuilder@.
 * @filter@ - The search filter
 ** A @Closure@, using the Groovy Query DSL of the ElasticSearch groovy client.
+** can also be a @FilterBuilder@.
 * @params@ - A list of additional parameters to customize the searching process
 ** @from@ and @size@ - From (hit) and the size (number of hits) to return.
 ** @sort@ - Sort based on different fields including ElasticSearch's internal ones (like @_score@)
