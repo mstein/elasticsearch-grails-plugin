@@ -16,6 +16,7 @@
 
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
+import grails.converters.JSON
 import org.codehaus.groovy.grails.commons.*
 import org.codehaus.groovy.grails.web.binding.DatabindingApi
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -236,6 +237,8 @@ class DomainClassUnmarshaller {
                 parseResult = null
             } else if (scpm.grailsProperty.type == Date && null != propertyValue) {
                 parseResult = XContentBuilder.defaultDatePrinter.parseDateTime(propertyValue).toDate()
+            } else if (scpm.dynamic && null != propertyValue) {
+                parseResult = (propertyValue as JSON).toString()
             }
         }
 

@@ -19,7 +19,7 @@ package org.grails.plugins.elasticsearch.conversion.marshall
 import grails.converters.JSON
 
 /**
- * Marshal geoPoint properties
+ * Marshal dynamic properties
  */
 class DynamicValueMarshaller extends DefaultMarshaller {
 
