@@ -163,7 +163,10 @@ class DomainClassUnmarshaller {
         if (null == scpm) {
             // TODO: unhandled property exists in index
         }
-        if (null != scpm && propertyValue instanceof Map) {
+
+        if (scpm?.dynamic && null != propertyValue) {
+            parseResult = (propertyValue as JSON).toString()
+        } else if (null != scpm && propertyValue instanceof Map) {
 
             Map<String, Object> data = (Map<String, Object>) propertyValue
 
@@ -237,8 +240,6 @@ class DomainClassUnmarshaller {
                 parseResult = null
             } else if (scpm.grailsProperty.type == Date && null != propertyValue) {
                 parseResult = XContentBuilder.defaultDatePrinter.parseDateTime(propertyValue).toDate()
-            } else if (scpm.dynamic && null != propertyValue) {
-                parseResult = (propertyValue as JSON).toString()
             }
         }
 
