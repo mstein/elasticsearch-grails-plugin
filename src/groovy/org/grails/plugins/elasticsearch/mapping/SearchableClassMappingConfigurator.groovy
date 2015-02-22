@@ -90,6 +90,8 @@ class SearchableClassMappingConfigurator {
         Map esConfig = grailsApplication.config.getProperty("elasticSearch")
         Map<String, Object> indexSettings = buildIndexSettings(esConfig)
 
+        LOG.debug("Index settings are " + indexSettings)
+        
         LOG.debug("Installing mappings...")
         Map<SearchableClassMapping, Map> elasticMappings = buildElasticMappings(mappings)
         LOG.debug "elasticMappings are ${elasticMappings.keySet()}"
@@ -173,6 +175,7 @@ class SearchableClassMappingConfigurator {
                 }
             }
         }
+        indexSettings
     }
 
     private Map<SearchableClassMapping, Map> buildElasticMappings(Collection<SearchableClassMapping> mappings) {

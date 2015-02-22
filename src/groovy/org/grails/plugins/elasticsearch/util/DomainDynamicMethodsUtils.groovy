@@ -66,6 +66,18 @@ class DomainDynamicMethodsUtils {
             domain.metaClass.'static'.search << { Closure q, Map params = [:] ->
                 elasticSearchService.search(params + indexAndType, q)
             }
+            domain.metaClass.'static'.search << { Closure q, Closure f, Map params = [:] ->
+                elasticSearchService.search(q, f, params + indexAndType)
+            }
+            domain.metaClass.'static'.search << { Map params, Closure q, Closure f ->
+                elasticSearchService.search(params + indexAndType, q, f)
+            }
+            domain.metaClass.'static'.search << { Map params, QueryBuilder q, Closure f = null->
+                elasticSearchService.search(params + indexAndType, q, f)
+            }
+            domain.metaClass.'static'.search << { QueryBuilder q, Closure f = null, Map params = [:] ->
+                elasticSearchService.search(q, f, params + indexAndType)
+            }
             domain.metaClass.'static'.search << { Closure q, f, Map params = [:] ->
                 elasticSearchService.search(q, f, params + indexAndType)
             }

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
