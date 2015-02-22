@@ -17,7 +17,6 @@
 package org.grails.plugins.elasticsearch.mapping
 
 import grails.util.GrailsNameUtils
-
 import org.codehaus.groovy.grails.commons.GrailsDomainClass
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
 
@@ -29,7 +28,12 @@ class SearchableClassMapping {
     private GrailsDomainClass domainClass
     /** Searchable root? */
     private boolean root = true
-    private boolean all = true
+    protected all = true
+
+    public static final READ_SUFFIX = "_read"
+    public static final WRITE_SUFFIX = "_write"
+
+    String indexName
 
     public static final READ_SUFFIX = "_read"
     public static final WRITE_SUFFIX = "_write"
@@ -57,6 +61,11 @@ class SearchableClassMapping {
 
     void setRoot(Boolean root) {
         this.root = root != null && root
+    }
+
+    void setAll(all) {
+        if (all != null)
+            this.all = all
     }
 
     Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
@@ -102,6 +111,17 @@ class SearchableClassMapping {
     }
 
     boolean isAll() {
-        return all
+        if (all instanceof Boolean) {
+            return all
+        } else if (all instanceof Map) {
+            return all.enabled instanceof Boolean ? all.enabled : true
+        }
+        return true
     }
+
+    @Override
+    public String toString() {
+        return "${getClass().name}(domainClass:$domainClass, propertiesMapping:$propertiesMapping, indexName:$indexName, isAll:${isAll()})"
+    }
+
 }

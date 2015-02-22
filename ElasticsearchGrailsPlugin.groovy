@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
@@ -75,6 +73,19 @@ class ElasticsearchGrailsPlugin {
 
     def doWithSpring = {
         def esConfig = getConfiguration(application)
+
+        boolean printStatusMessages = (esConfig.printStatusMessages instanceof Boolean) ? esConfig.printStatusMessages : true
+        if (!esConfig || !esConfig.active) {
+            if (printStatusMessages) {
+                println '\n\nElasticsearch is disabled\n\n'
+            }
+            return
+        }
+
+        if (printStatusMessages) {
+            println '\nConfiguring Elasticsearch ...'
+        }
+
         elasticSearchContextHolder(ElasticSearchContextHolder) {
             config = esConfig
         }
@@ -141,11 +152,19 @@ class ElasticsearchGrailsPlugin {
                 indexRequestQueue = ref('indexRequestQueue')
             }
         }
+
+        if (printStatusMessages) {
+            println '... finished configuring Elasticsearch\n'
+        }
     }
 
     def doWithDynamicMethods = { ctx ->
-        // Define the custom ElasticSearch mapping for searchable domain classes
-        DomainDynamicMethodsUtils.injectDynamicMethods(application, ctx)
+        def esConfig = getConfiguration(application)
+
+        if (esConfig && esConfig.active) {
+            // Define the custom ElasticSearch mapping for searchable domain classes
+            DomainDynamicMethodsUtils.injectDynamicMethods(application, ctx)
+        }
     }
     // Get a configuration instance
     private getConfiguration(GrailsApplication application) {
