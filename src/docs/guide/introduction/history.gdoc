@@ -1,5 +1,10 @@
 h4. History
 
+* February 22, 2015
+** 0.0.4.3
+*** Add mapping configuration support for '_all'
+*** Fix issue with indexing nested GeoPoint
+*** Add support for transient properties
 * February 10, 2015
 ** 0.0.4.2
 *** Reduce severity of non-searchable property in index document when unmarshalling domain
