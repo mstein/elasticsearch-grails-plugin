@@ -35,11 +35,6 @@ class SearchableClassMapping {
 
     String indexName
 
-    public static final READ_SUFFIX = "_read"
-    public static final WRITE_SUFFIX = "_write"
-
-    String indexName
-
     SearchableClassMapping(GrailsDomainClass domainClass, Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.domainClass = domainClass
         this.propertiesMapping = propertiesMapping

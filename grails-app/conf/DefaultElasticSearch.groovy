@@ -23,8 +23,6 @@
  */
 
 elasticSearch {
-    active = true
-
     /**
      * Date formats used by the unmarshaller of the JSON responses
      */
