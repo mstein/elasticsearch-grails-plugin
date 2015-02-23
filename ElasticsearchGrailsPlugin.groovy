@@ -38,7 +38,7 @@ class ElasticsearchGrailsPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    def version = '0.0.4.0'
+    def version = '0.0.5.0-SNAPSHOT'
     def grailsVersion = '2.2.0 > *'
 
     def loadAfter = ['services', 'mongodb']
@@ -48,9 +48,9 @@ class ElasticsearchGrailsPlugin {
             'grails-app/services/test/**',
             'grails-app/views/elasticSearch/index.gsp',
             'grails-app/domain/test/**',
-            'grails-app/utils/test/**',
-            'test/**',
-            'src/docs/**',
+//            'grails-app/utils/test/**',
+//            'test/**',
+//            'src/docs/**',
             'src/groovy/test/**',
     ]
 

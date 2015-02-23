@@ -1,5 +1,6 @@
 package org.grails.plugins.elasticsearch
 
+import grails.converters.JSON
 import grails.test.spock.IntegrationSpec
 import grails.util.GrailsNameUtils
 import org.codehaus.groovy.grails.commons.DefaultGrailsDomainClass
@@ -18,6 +19,7 @@ import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
+import spock.lang.IgnoreRest
 import test.*
 
 class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
@@ -566,6 +568,40 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         def result = search.searchResults.first()
         result.name == 'Serenity'
         result.captain.name == 'Malcolm Reynolds'
+    }
+
+    void 'dynamicly mapped JSON strings should be searchable'() {
+        given: 'A Spaceship with some cool canons'
+        def spaceship = new Spaceship(name: 'Spaceball One', captain: new Person(name: 'Dark Helmet').save())
+        def data = [
+                engines: [
+                        [name: "Primary", maxSpeed: 'Ludicrous Speed'],
+                        [name: "Secondary", maxSpeed: 'Ridiculous Speed'],
+                        [name: "Tertiary", maxSpeed: 'Light Speed'],
+                        [name: "Main", maxSpeed: 'Sub-Light Speed'],
+                ],
+                facilities: ['Shopping Mall', 'Zoo', 'Three-Ring circus']
+        ]
+        spaceship.shipData = (data as JSON).toString()
+        spaceship.save(flush: true, validate: false)
+        elasticSearchService.index(spaceship)
+        elasticSearchAdminService.refresh()
+
+        when: 'a search is executed'
+        def search = elasticSearchService.search([indices: Spaceship, types: Spaceship], {
+            bool {
+                must {
+                    term("shipData.engines.name": 'primary')
+                }
+            }
+        })
+        then: "the json data should be searchable as if it was an actual component of the Spaceship"
+        search.total == 1
+        def result = search.searchResults.first()
+        def shipData = JSON.parse(result.shipData)
+
+        result.name == 'Spaceball One'
+        shipData.facilities.size() == 3
     }
 
     void 'bulk test'() {
