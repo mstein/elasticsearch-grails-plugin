@@ -1,5 +1,8 @@
 h4. History
 
+* March 5, 2015
+** 0.0.4.4
+*** Upgrade to Elasticsearch-Groovy 1.4.4
 * February 22, 2015
 ** 0.0.4.3
 *** Add mapping configuration support for '_all'
