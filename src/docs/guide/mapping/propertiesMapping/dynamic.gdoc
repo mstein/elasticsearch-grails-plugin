@@ -1,0 +1,25 @@
+Elasticsearch can map field contents as dynamic objects.
+This is especially useful if you store JSON Strings in your database and want to make those objects searchable in elasticsearch.
+
+h4. Example
+
+{code}
+class Session {
+
+    String jsonData
+
+    static searchable = {
+        dynamic: true
+    }
+}
+
+Session session = new Session()
+session.jsonData = ([foo: 'bar'] as JSON).toString()
+
+{code}
+
+The default mapping would make the jsonData field an escaped String field and
+a search for jsonData.foo = bar would result in no result.
+With dynamic mapping enabled for this field, we enable JSON handling of this field and tell elasticsearch to map this field dynamicly.
+The result is that a search for jsonData.foo=bar would result in a search hit.
+Attention: This will only work on String fields and will result in an error if the String is no valid json

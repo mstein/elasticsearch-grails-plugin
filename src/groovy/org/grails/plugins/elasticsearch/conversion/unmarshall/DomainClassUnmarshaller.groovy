@@ -16,6 +16,7 @@
 
 package org.grails.plugins.elasticsearch.conversion.unmarshall
 
+import grails.converters.JSON
 import org.codehaus.groovy.grails.commons.*
 import org.codehaus.groovy.grails.web.binding.DatabindingApi
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -165,7 +166,10 @@ class DomainClassUnmarshaller {
         if (null == scpm) {
             throw new MappingException("Property ${domainClass.name}.${propertyName} found in index, but is not defined as searchable.")
         }
-        if (null != scpm && propertyValue instanceof Map) {
+
+        if (scpm?.dynamic && null != propertyValue) {
+            parseResult = (propertyValue as JSON).toString()
+        } else if (null != scpm && propertyValue instanceof Map) {
 
             Map<String, Object> data = (Map<String, Object>) propertyValue
 

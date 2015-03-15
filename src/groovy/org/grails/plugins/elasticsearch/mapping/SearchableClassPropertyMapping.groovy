@@ -26,7 +26,7 @@ class SearchableClassPropertyMapping {
     private static final Set<String> SEARCHABLE_MAPPING_OPTIONS = ['boost', 'index', 'analyzer']
     private static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
             ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'parent', 'geoPoint',
-             'alias']
+             'alias', 'dynamic']
 
     /** Grails attributes of this property */
     private GrailsDomainClassProperty grailsProperty
@@ -86,6 +86,10 @@ class SearchableClassPropertyMapping {
     boolean isParent() {
         Object parentVal = specialMappingAttributes.parent
         (parentVal != null) && ((Boolean) parentVal)
+    }
+
+    boolean isDynamic(){
+        specialMappingAttributes.dynamic
     }
 
     /**
