@@ -597,7 +597,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
     void 'dynamicly mapped JSON strings should be searchable'() {
         given: 'A Spaceship with some cool canons'
-        def spaceship = new Spaceship(name: 'Spaceball One', captain: new Person(name: 'Dark Helmet').save())
+        def spaceship = new Spaceship(name: 'Spaceball One', captain: new Person(firstName: 'Dark', lastName: 'Helmet').save())
         def data = [
                 engines: [
                         [name: "Primary", maxSpeed: 'Ludicrous Speed'],
