@@ -115,7 +115,8 @@ class ElasticSearchMappingFactory {
                 propOptions.dynamic = true
             } else if ((propType == 'string') && scpm.isAnalyzed()) {
                 propOptions.term_vector = 'with_positions_offsets'
-            } else if (scpm.isMultiField()) {
+            }
+            if (scpm.isMultiField()) {
                 Map<String, Object> field = new LinkedHashMap<String, Object>(propOptions)
                 Map untouched = [:]
                 untouched.put('type', propOptions.get('type'))

@@ -22,7 +22,6 @@ import org.elasticsearch.index.query.FilterBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
-import spock.lang.IgnoreRest
 import test.*
 
 class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
