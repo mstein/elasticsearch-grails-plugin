@@ -12,6 +12,7 @@ mapping:
     parentChild: Parent-Child
     geoPoint: GeoPoint
     alias: Alias
+    dynamic: Dynamic
   searchableComponentReference:
     title: Searchable Component-Reference
     searchableReference: Searchable Reference

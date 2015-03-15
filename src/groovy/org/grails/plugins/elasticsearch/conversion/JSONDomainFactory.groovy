@@ -82,6 +82,8 @@ class JSONDomainFactory {
                             marshaller = new PropertyEditorMarshaller(propertyEditorClass: converter)
                         }
                     }
+                } else if(propertyMapping.isDynamic()){
+                    marshaller = new DynamicValueMarshaller()
                 } else if (propertyMapping?.reference) {
                     def refClass = propertyMapping.getBestGuessReferenceType()
                     marshaller = new SearchableReferenceMarshaller(refClass: refClass)
