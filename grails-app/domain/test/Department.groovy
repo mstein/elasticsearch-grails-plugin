@@ -6,6 +6,10 @@ class Department {
     Long numberOfProducts
     Store store
 
+    String getFullDepartmentName() {
+        "${store}'s ${name} department"
+    }
+
     static constraints = {
         name blank: false
         numberOfProducts nullable: true

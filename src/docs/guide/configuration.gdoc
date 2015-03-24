@@ -124,6 +124,9 @@ niofs | Stores the shard index on the file system (maps to Lucene NIOFSDirectory
 simplefs | Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
 {table}
 
+* @elasticSearch.index.numberOfReplicas@
+Sets the number of replicas created for each shard of the index. If not present, will default to zero.
+
 * @elasticSearch.gateway.type@
 Determine the gateway type to be used.
 More details on the possible values are in the [ElasticSearch Documentation|http://www.elasticsearch.org/guide/reference/modules/gateway/].
@@ -142,6 +145,10 @@ The location of plugin files such as native scripts. Each plugin will be contain
 
 * @elasticSearch.searchableProperty.name@
 The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
+
+* @elasticSearch.includeTransients@
+Whether to index and search all non excluded transient properties. All explicitly included transients in @only@ will be indexed regardless.
+Default is @false@.
 
 h4. Default configuration script
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).

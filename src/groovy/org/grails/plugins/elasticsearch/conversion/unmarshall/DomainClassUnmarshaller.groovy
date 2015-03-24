@@ -27,6 +27,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.SearchHits
 import org.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import org.grails.plugins.elasticsearch.exception.MappingException
 import org.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
 import org.slf4j.Logger
@@ -84,8 +85,10 @@ class DomainClassUnmarshaller {
                     def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
                     rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
+                } catch (MappingException e) {
+                    LOG.debug("Error unmarshalling property '$key' of Class ${scm.domainClass.name} with id $id", e)
                 } catch (Throwable t) {
-                    LOG.error("Error unmarshalling Class ${scm.domainClass.name} with id $id", t)
+                    LOG.error("Error unmarshalling property '$key' of Class ${scm.domainClass.name} with id $id", t)
                 } finally {
                     unmarshallingContext.resetContext()
                 }
@@ -161,7 +164,7 @@ class DomainClassUnmarshaller {
         SearchableClassPropertyMapping scpm = elasticSearchContextHolder.getMappingContext(domainClass).getPropertyMapping(propertyName)
         Object parseResult
         if (null == scpm) {
-            // TODO: unhandled property exists in index
+            throw new MappingException("Property ${domainClass.name}.${propertyName} found in index, but is not defined as searchable.")
         }
 
         if (scpm?.dynamic && null != propertyValue) {
@@ -276,10 +279,15 @@ class DomainClassUnmarshaller {
         instance.setProperty(identifier.name, id)
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (entry.key != 'class' && entry.key != 'id') {
-                unmarshallingContext.unmarshallingStack.push(entry.key)
-                Object propertyValue = unmarshallProperty(domainClass, entry.key, entry.value, unmarshallingContext)
-                new DatabindingApi().setProperties(instance, Collections.singletonMap(entry.key, propertyValue))
-                unmarshallingContext.unmarshallingStack.pop()
+                try {
+                    unmarshallingContext.unmarshallingStack.push(entry.key)
+                    Object propertyValue = unmarshallProperty(domainClass, entry.key, entry.value, unmarshallingContext)
+                    new DatabindingApi().setProperties(instance, Collections.singletonMap(entry.key, propertyValue))
+                } catch(MappingException e) {
+                    LOG.debug("Error unmarshalling property '${entry.key}', value= ${entry.value}", e)
+                } finally {
+                    unmarshallingContext.unmarshallingStack.pop()
+                }
             }
         }
         instance

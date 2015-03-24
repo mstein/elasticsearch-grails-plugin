@@ -52,3 +52,76 @@ class Tweet {
 
 {note}The properties that are ignored will not be sent to ElasticSearch. It also means that when you will get back a domain
 from ElasticSearch, some fields that are not supposed to be null, may still be null.{note}
+
+h4. Including transients
+
+How the plugin manages transient properties is controlled by the @elasticSearch.includeTransients@ configuration property. If this is set to @false@ only transient properties explictly included in @only@ will be mapped and searchable, if set to @true@, all domain class properties will be mapped, including @transients@.
+
+The following are valid examples
+
+{code}
+//assert grailsApplication.config.elasticSearch.includeTransients == false
+class Person {
+    String firstName
+    String lastName
+    String getFullName() {
+        firstName + " " + lastName
+    }
+    static transients = ['fullName']
+    static searchable = {
+        only = ['fullName']
+    }
+}
+// new Person(firstNameme: "Nikola", lastName: "Tesla")
+// can be found using:
+// def tesla = Person.search("Nikola Tesla").searchResults.first()
+{code}
+
+{code}
+//assert grailsApplication.config.elasticSearch.includeTransients == true
+class Multiplication {
+    int opA
+    int opB
+    int getResult() {
+        opA * opB
+    }
+    static transients = ['result']
+    static searchable = true
+}
+// new Multiplication(opA: 2, opB: 3)
+// can be found using:
+// def multiplication = Multiplication.search("2").searchResults.first()
+// def multiplication = Multiplication.search("3").searchResults.first()
+// def multiplication = Multiplication.search("6").searchResults.first()
+{code}
+
+{note}
+From the examples above, once the domain object is found, its transient values will be calculated from the information stored on ElasticSearch: @multiplication.result == 6@, but @tesla.fullName == "null null"@, as firstName and lastName where not indexed. This behaviour can be prevented by creating convenient setters for the transient properties.
+{note}
+
+h4. Transients and collections
+
+When transient properties are collections the only way the plugin can define the correct ElasticSearch mapping during boot is if the element types are explicitly defined on the grails domain object. For instances of @Collection@ this can be achieved by defining its type on the @hasMany@ property (otherwise the ElasticSearch type will be defined as @object@). This is not required for arrays.
+
+Some valid examples:
+{code}
+class Tweet {
+    String message
+    List getHashtags() { ... }
+    static transients = ['hashtags']
+    static hasMany = [hashtags: String]
+    static searchable = {only = 'hashtags' }
+}
+{code}
+
+{code}
+class FamilyGuy {
+    String wife
+    String son
+    String daughter
+    String baby
+    String[] getRelatives() { ... }
+    static transients = ['relatives']
+    static searchable = { only = 'relatives' }
+}
+{code}

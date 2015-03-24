@@ -25,7 +25,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * Class mapping properties
      */
-    private Boolean all = true
+    private all = true
     private Boolean root = true
 
     private Set<String> mappableProperties = []
@@ -50,7 +50,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         this.grailsApplication = grailsApplication
     }
 
-    void setAll(Boolean all) {
+    void setAll(all) {
         this.all = all
     }
 
@@ -115,8 +115,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         Collections.reverse(superMappings)
 
-        // hmm. should we only consider persistent properties?
-        for (GrailsDomainClassProperty prop : grailsDomainClass.getPersistentProperties()) {
+        for (GrailsDomainClassProperty prop : getDomainProperties(grailsDomainClass)) {
             mappableProperties.add(prop.getName())
         }
 
@@ -157,13 +156,14 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         SearchableClassMapping scm = new SearchableClassMapping(grailsDomainClass, customMappedProperties.values())
         scm.setRoot(root)
+        scm.setAll(all)
         return scm
     }
 
     private Set<String> getInheritedProperties(GrailsDomainClass domainClass) {
         // check which properties belong to this domain class ONLY
         Set<String> inheritedProperties = []
-        for (GrailsDomainClassProperty prop : domainClass.getPersistentProperties()) {
+        for (GrailsDomainClassProperty prop : getDomainProperties(domainClass)) {
             if (GrailsClassUtils.isPropertyInherited(domainClass.getClazz(), prop.getName())) {
                 inheritedProperties.add(prop.getName())
             }
@@ -173,7 +173,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
     void buildDefaultMapping(GrailsDomainClass grailsDomainClass) {
 
-        for (GrailsDomainClassProperty property : grailsDomainClass.getPersistentProperties()) {
+        for (GrailsDomainClassProperty property : getDomainProperties(grailsDomainClass)) {
             //noinspection unchecked
             List<String> defaultExcludedProperties = (List<String>) esConfig.get("defaultExcludedProperties")
             if (defaultExcludedProperties == null || !defaultExcludedProperties.contains(property.getName())) {
@@ -274,5 +274,17 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
             return 'searchable'
         }
         searchablePropertyName
+    }
+
+    private GrailsDomainClassProperty[] getDomainProperties(GrailsDomainClass domainClass) {
+        GrailsDomainClassProperty[] properties
+        if(esConfig.includeTransients) {
+            properties = domainClass.getProperties()
+            //These properties are specific to GORM and of no use for search. For backwards compatibility they are not included
+            properties = properties - domainClass.getPropertyByName("id") - domainClass.getPropertyByName("version")
+        } else {
+            properties = domainClass.getPersistentProperties()
+        }
+        properties
     }
 }

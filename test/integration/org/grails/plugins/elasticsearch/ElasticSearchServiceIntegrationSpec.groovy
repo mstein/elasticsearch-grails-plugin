@@ -16,10 +16,12 @@ import org.elasticsearch.cluster.metadata.IndexMetaData
 import org.elasticsearch.cluster.metadata.MappingMetaData
 import org.elasticsearch.common.unit.DistanceUnit
 import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.index.query.QueryBuilder
+import org.elasticsearch.index.query.FilterBuilder
+import org.elasticsearch.index.query.FilterBuilders
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
-import spock.lang.IgnoreRest
 import test.*
 
 class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
@@ -297,6 +299,28 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
         List<Product> searchResults = result.searchResults
         searchResults[0].name == wurmProduct.name
     }
+	
+	void 'searching with a FilterBuilder filter and a Closure query'(){
+        when: 'searching for a price'
+		FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
+        def result = elasticSearchService.search(null as Closure, filter)
+
+        then: "the result should be product 'wurm'"
+        result.total == 1
+        List<Product> searchResults = result.searchResults
+        searchResults[0].name == "wurm"
+	}
+	
+	void 'searching with a FilterBuilder filter and a QueryBuilder query'(){
+		when: 'searching for a price'
+		FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
+        def result = elasticSearchService.search(null as QueryBuilder, filter)
+
+        then: "the result should be product 'wurm'"
+        result.total == 1
+        List<Product> searchResults = result.searchResults
+        searchResults[0].name == "wurm"
+	}
 
     void 'searching with wildcards in query at first position'() {
         when: 'search with asterisk at first position'
@@ -554,7 +578,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
     void 'Component as an inner object'() {
         given:
-        def mal = new Person(name: 'Malcolm Reynolds').save(flush: true)
+        def mal = new Person(firstName: 'Malcolm', lastName: 'Reynolds').save(flush: true)
         def spaceship = new Spaceship(name: 'Serenity', captain: mal).save(flush: true)
         elasticSearchService.index(spaceship)
         elasticSearchAdminService.refresh()
@@ -567,12 +591,13 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
 
         def result = search.searchResults.first()
         result.name == 'Serenity'
-        result.captain.name == 'Malcolm Reynolds'
+        result.captain.firstName == 'Malcolm'
+        result.captain.lastName == 'Reynolds'
     }
 
     void 'dynamicly mapped JSON strings should be searchable'() {
         given: 'A Spaceship with some cool canons'
-        def spaceship = new Spaceship(name: 'Spaceball One', captain: new Person(name: 'Dark Helmet').save())
+        def spaceship = new Spaceship(name: 'Spaceball One', captain: new Person(firstName: 'Dark', lastName: 'Helmet').save())
         def data = [
                 engines: [
                         [name: "Primary", maxSpeed: 'Ludicrous Speed'],
@@ -607,7 +632,7 @@ class ElasticSearchServiceIntegrationSpec extends IntegrationSpec {
     void 'bulk test'() {
         given:
         (1..1858).each {
-            def person = new Person(name: 'Person-' + it).save(flush: true)
+            def person = new Person(firstName: 'Person', lastName: 'McNumbery'+it).save(flush: true)
             def spaceShip = new Spaceship(name: 'Ship-' + it, captain: person).save(flush: true)
             println "Created ${it} domains"
         }

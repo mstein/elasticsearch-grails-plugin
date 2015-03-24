@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import grails.util.Environment
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.grails.plugins.elasticsearch.AuditEventListener
@@ -38,7 +36,7 @@ class ElasticsearchGrailsPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    def version = '0.0.5.0-SNAPSHOT'
+    def version = '0.0.4.x-SNAPSHOT'
     def grailsVersion = '2.2.0 > *'
 
     def loadAfter = ['services', 'mongodb']
@@ -48,9 +46,9 @@ class ElasticsearchGrailsPlugin {
             'grails-app/services/test/**',
             'grails-app/views/elasticSearch/index.gsp',
             'grails-app/domain/test/**',
-//            'grails-app/utils/test/**',
-//            'test/**',
-//            'src/docs/**',
+            'grails-app/utils/test/**',
+            'test/**',
+            'src/docs/**',
             'src/groovy/test/**',
     ]
 
@@ -59,7 +57,8 @@ class ElasticsearchGrailsPlugin {
     def organization = [name: '10ne.org', url: 'http://www.10ne.org/']
 
     def developers = [
-            [name: 'Noam Y. Tenne', email: 'noam@10ne.org']
+            [name: 'Noam Y. Tenne', email: 'noam@10ne.org'],
+            [name: 'Marcos Carceles', email: 'marcos.carceles@gmail.com']
     ]
 
     def issueManagement = [system: 'github', url: 'https://github.com/noamt/elasticsearch-grails-plugin/issues']

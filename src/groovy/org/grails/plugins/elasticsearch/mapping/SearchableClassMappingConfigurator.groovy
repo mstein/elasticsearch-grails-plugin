@@ -85,11 +85,13 @@ class SearchableClassMappingConfigurator {
      * Resolve the ElasticSearch mapping from the static "searchable" property (closure or boolean) in domain classes
      * @param mappings searchable class mappings to be install.
      */
-    public void installMappings(Collection<SearchableClassMapping> mappings) {
+    public void installMappings(Collection<SearchableClassMapping> mappings){
 
         Map esConfig = grailsApplication.config.getProperty("elasticSearch")
         Map<String, Object> indexSettings = buildIndexSettings(esConfig)
 
+        LOG.debug("Index settings are " + indexSettings)
+        
         LOG.debug("Installing mappings...")
         Map<SearchableClassMapping, Map> elasticMappings = buildElasticMappings(mappings)
         LOG.debug "elasticMappings are ${elasticMappings.keySet()}"
@@ -162,7 +164,7 @@ class SearchableClassMappingConfigurator {
 
     private Map<String, Object> buildIndexSettings(def esConfig) {
         Map<String, Object> indexSettings = new HashMap<String, Object>()
-        indexSettings.put("number_of_replicas", 0)
+        indexSettings.put("number_of_replicas", numberOfReplicas())
         // Look for default index settings.
         if (esConfig != null) {
             Map<String, Object> indexDefaults = esConfig.get("index")
@@ -173,6 +175,7 @@ class SearchableClassMappingConfigurator {
                 }
             }
         }
+        indexSettings
     }
 
     private Map<SearchableClassMapping, Map> buildElasticMappings(Collection<SearchableClassMapping> mappings) {
@@ -202,5 +205,13 @@ class SearchableClassMappingConfigurator {
     }
     void setConfig(ConfigObject config) {
         this.config = config
+    }
+
+    private int numberOfReplicas() {
+        def defaultNumber = elasticSearchContext.config.index.numberOfReplicas
+        if (!defaultNumber) {
+            return 0
+        }
+        defaultNumber
     }
 }

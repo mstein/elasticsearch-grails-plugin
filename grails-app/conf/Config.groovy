@@ -28,6 +28,8 @@ elasticSearch {
     unmarshallComponents = true
 
     searchableProperty.name = 'searchable'
+
+    includeTransients = false
 }
 
 environments {
@@ -46,8 +48,36 @@ environments {
         elasticSearch {
             client.mode = 'local'
             client.transport.sniff = true
-            index.store.type = 'memory'
             datastoreImpl = 'hibernateDatastore'
+
+            index {
+                store.type = 'memory'
+                analysis {
+                    filter {
+                        replace_synonyms {
+                            type = 'synonym'
+                            synonyms = [
+                                    'abc => xyz'
+                            ]
+                        }
+                    }
+                    analyzer {
+                        test_analyzer {
+                            tokenizer = 'standard'
+                            filter = [
+                                    'lowercase'
+                            ]
+                        }
+                        repl_analyzer {
+                            tokenizer = 'standard'
+                            filter = [
+                                    'lowercase',
+                                    'replace_synonyms'
+                            ]
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -60,4 +90,4 @@ grails.doc.authors = 'Noam Y. Tenne, Manuarii Stein, Stephane Maldini, Serge P. 
 grails.doc.license = 'Apache License 2.0'
 grails.views.default.codec = 'none' // none, html, base64
 grails.views.gsp.encoding = 'UTF-8'
-grails.databinding.dateFormats= ["yyyy-MM-dd'T'HH:mm:ss.SSSZ"]
+grails.databinding.dateFormats = ["yyyy-MM-dd'T'HH:mm:ss.SSSZ"]

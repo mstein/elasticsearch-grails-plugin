@@ -161,7 +161,7 @@ class SearchableClassPropertyMapping {
      * @return searchable property mapping information.
      */
     String toString() {
-        "SearchableClassPropertyMapping{propertyName=$propertyName, propertyType='$propertyType, mappingAttributes=$mappingAttributes, specialMappingAttributes=$specialMappingAttributes"
+        "${getClass().name}(propertyName:$propertyName, propertyType:$propertyType, mappingAttributes:$mappingAttributes, specialMappingAttributes:$specialMappingAttributes)"
     }
 
     private Class<?> getPropertyType() {

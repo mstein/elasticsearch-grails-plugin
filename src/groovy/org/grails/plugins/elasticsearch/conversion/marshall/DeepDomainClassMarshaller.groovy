@@ -13,7 +13,7 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
         if (!scm) {
             throw new IllegalStateException("Domain class ${domainClass} is not searchable.")
         }
-        for (GrailsDomainClassProperty prop in domainClass.persistantProperties) {
+        for (GrailsDomainClassProperty prop in domainClass.getProperties()) {
             def propertyMapping = scm.getPropertyMapping(prop.name)
             if (!propertyMapping) {
                 continue
@@ -28,7 +28,11 @@ class DeepDomainClassMarshaller extends DefaultMarshaller {
                 if (propertyValue.class."$searchablePropertyName") {
                     // todo fixme - will throw exception when no searchable field.
                     marshallingContext.lastParentPropertyName = prop.name
-                    marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
+                    if (propertyMapping?.isGeoPoint()) {
+                        marshallResult += [(prop.name): (marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
+                    } else {
+                        marshallResult += [(prop.name): ([id: propertyValue.ident(), 'class': propertyClassName] + marshallingContext.delegateMarshalling(propertyValue, propertyMapping.maxDepth))]
+                    }
                 } else {
                     marshallResult += [(prop.name): [id: propertyValue.ident(), 'class': propertyClassName]]
                 }
