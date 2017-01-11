@@ -34,7 +34,7 @@ class ElasticSearchAdminService {
                 response = client.admin().indices().refresh(Requests.refreshRequest(indices as String[])).actionGet()
             }
 
-            if (response.failedShards > 0) {
+            if (response.getFailedShards() > 0) {
                 LOG.info "Refresh failure"
             } else {
                 LOG.info "Refreshed ${ indices ?: 'all' } indices"

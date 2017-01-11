@@ -59,12 +59,20 @@ public class DomainClassUnmarshaller {
                 LOG.warn("Unknown SearchHit: " + hit.id() + "#" + hit.type() + ", domain class name: ");
                 continue;
             }
-            String domainClassName = scm.getDomainClass().getFullName();
 
-            GrailsDomainClassProperty identifier = scm.getDomainClass().getIdentifier();
-            Object id = typeConverter.convertIfNecessary(hit.id(), identifier.getType());
             GroovyObject instance = (GroovyObject) scm.getDomainClass().newInstance();
-            instance.setProperty(identifier.getName(), id);
+
+            // The id stored in the index may be a composition of multiple fields.  Decompose it and seat each of the
+            // values contained there in (excluding non-persistant properties as they're likely transient or read-only)
+            String[] idValues = hit.id().split(scm.getIdentitySeparator());
+            for (int i = 0; i < idValues.length; i++) {
+                String propertyName = scm.getIdentityProperties().get(i);
+                GrailsDomainClassProperty property = scm.getDomainClass().getPropertyByName(propertyName);
+                if (property.isPersistent()) {
+                    Object value = typeConverter.convertIfNecessary(idValues[i], property.getType());
+                    instance.setProperty(property.getName(), value);
+                }
+            }
 
             /*def mapContext = elasticSearchContextHolder.getMappingContext(domainClass.propertyName)?.propertiesMapping*/
             Map rebuiltProperties = new HashMap();
@@ -178,7 +186,7 @@ public class DomainClassUnmarshaller {
                 return unmarshallReference(refDomainClass, data, unmarshallingContext);
             }
 
-            if (data.containsKey("class") && (Boolean)grailsApplication.getFlatConfig().get("elasticSearch.unmarshallComponents")) {
+            if (data.containsKey("class") && grailsApplication.getFlatConfig().get("elasticSearch.unmarshallComponents") != null && (Boolean)grailsApplication.getFlatConfig().get("elasticSearch.unmarshallComponents")) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?
